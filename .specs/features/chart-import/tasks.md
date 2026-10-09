@@ -356,11 +356,11 @@ T13
 
 **Done when:**
 
-- [ ] Numeric seed and `song-local-*` routes both resolve.
-- [ ] Persisted charts replace demo-only behavior when present.
-- [ ] Cifra Club origin is attributed with its URL.
-- [ ] Unknown IDs render not-found only after local lookup completes.
-- [ ] React integration tests cover seed, local, missing and storage-failure paths.
+- [x] Numeric seed and `song-local-*` routes both resolve.
+- [x] Persisted charts replace demo-only behavior when present.
+- [x] Cifra Club origin is attributed with its URL.
+- [x] Unknown IDs render not-found only after local lookup completes.
+- [x] React integration tests cover seed, local, missing and storage-failure paths.
 
 **Tests:** integration  
 **Gate:** full  
