@@ -452,7 +452,7 @@ T13
 **Gate:** quick  
 **Commit:** `fix(import): serialize imported chart saves`
 
-### F4: Map missing Chromium to actionable failure
+### F4: Map missing Chromium to actionable failure ✅
 
 **What:** Prove browser launch failure becomes `SOURCE_BLOCKED` with local Chromium installation guidance.  
 **Where:** `lib/import/sources/cifraclub.test.ts`  
@@ -461,9 +461,9 @@ T13
 
 **Done when:**
 
-- [ ] A rejected Chromium launch maps to `SOURCE_BLOCKED`.
-- [ ] The message instructs the user to run `npx playwright install chromium`.
-- [ ] Quick gate passes.
+- [x] A rejected Chromium launch maps to `SOURCE_BLOCKED`.
+- [x] The message instructs the user to run `npx playwright install chromium`.
+- [x] Quick gate passes.
 
 **Tests:** unit  
 **Gate:** quick  

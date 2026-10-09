@@ -185,6 +185,17 @@ describe("createCifraClubSource", () => {
     await expect(source.fetch(URL_ONE)).rejects.toMatchObject({ code: "SOURCE_TIMEOUT" });
   });
 
+  it("maps a missing Chromium launch to SOURCE_BLOCKED with installation guidance", async () => {
+    const state = harness([]);
+    state.launch.mockRejectedValueOnce(new Error("Executable doesn't exist"));
+    const source = createCifraClubSource(state.dependencies);
+
+    await expect(source.fetch(URL_ONE)).rejects.toMatchObject({
+      code: "SOURCE_BLOCKED",
+      message: expect.stringContaining("npx playwright install chromium"),
+    });
+  });
+
   it.each([
     { status: 403, html: VALID_HTML },
     { status: 200, html: "<html>captcha challenge</html>" },
