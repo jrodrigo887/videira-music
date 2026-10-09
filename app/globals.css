@@ -2,40 +2,180 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light;
-  background: #f8fafc;
-}
+@layer base {
+  :root,
+  :root.light,
+  [data-theme="light"] {
+    color-scheme: light;
 
-* {
-  box-sizing: border-box;
-}
+    --videira-50: 132 31% 96%;
+    --videira-100: 132 27% 90%;
+    --videira-200: 132 23% 78%;
+    --videira-500: 134 40% 42%;
+    --videira-700: 134 39% 31%;
+    --videira-900: 136 50% 16%;
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(63, 143, 85, 0.12), transparent 30rem),
-    #f8fafc;
-  color: #0f172a;
-}
+    --oracao-50: 294 22% 96%;
+    --oracao-100: 292 21% 90%;
+    --oracao-300: 291 21% 69%;
+    --oracao-500: 291 18% 49%;
+    --oracao-700: 291 24% 35%;
+    --oracao-900: 290 30% 20%;
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+    --neutral-0: 0 0% 100%;
+    --neutral-50: 120 17% 97%;
+    --neutral-100: 120 11% 93%;
+    --neutral-200: 130 9% 86%;
+    --neutral-500: 135 6% 43%;
+    --neutral-700: 136 12% 22%;
+    --neutral-900: 137 29% 8%;
 
+    --color-canvas: var(--neutral-50);
+    --color-surface: var(--neutral-0);
+    --color-surface-elevated: 132 31% 98%;
+    --color-surface-muted: var(--videira-50);
+    --color-content: var(--neutral-900);
+    --color-content-muted: var(--neutral-700);
+    --color-content-subtle: var(--neutral-500);
+    --color-content-inverse: var(--neutral-0);
+    --color-border: var(--neutral-200);
+    --color-border-strong: 132 13% 72%;
+    --color-primary: var(--videira-700);
+    --color-primary-hover: var(--videira-900);
+    --color-primary-foreground: var(--neutral-0);
+    --color-primary-subtle: var(--videira-100);
+    --color-accent: var(--oracao-500);
+    --color-accent-hover: var(--oracao-700);
+    --color-accent-foreground: var(--neutral-0);
+    --color-accent-subtle: var(--oracao-100);
+    --color-focus: var(--oracao-500);
+    --color-chord: var(--videira-700);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not(.light):not([data-theme="light"]) {
+      color-scheme: dark;
+
+      --color-canvas: 137 32% 7%;
+      --color-surface: 137 25% 10%;
+      --color-surface-elevated: 137 21% 13%;
+      --color-surface-muted: 136 28% 15%;
+      --color-content: 130 20% 94%;
+      --color-content-muted: 132 11% 76%;
+      --color-content-subtle: 132 8% 62%;
+      --color-content-inverse: var(--neutral-900);
+      --color-border: 137 17% 22%;
+      --color-border-strong: 136 18% 31%;
+      --color-primary: 132 37% 69%;
+      --color-primary-hover: 132 43% 78%;
+      --color-primary-foreground: var(--neutral-900);
+      --color-primary-subtle: 136 34% 18%;
+      --color-accent: 291 30% 72%;
+      --color-accent-hover: 291 35% 80%;
+      --color-accent-foreground: var(--neutral-900);
+      --color-accent-subtle: 290 28% 20%;
+      --color-focus: 291 30% 72%;
+      --color-chord: 132 41% 72%;
+    }
+  }
+
+  :root.dark,
+  [data-theme="dark"] {
+    color-scheme: dark;
+
+    --color-canvas: 137 32% 7%;
+    --color-surface: 137 25% 10%;
+    --color-surface-elevated: 137 21% 13%;
+    --color-surface-muted: 136 28% 15%;
+    --color-content: 130 20% 94%;
+    --color-content-muted: 132 11% 76%;
+    --color-content-subtle: 132 8% 62%;
+    --color-content-inverse: var(--neutral-900);
+    --color-border: 137 17% 22%;
+    --color-border-strong: 136 18% 31%;
+    --color-primary: 132 37% 69%;
+    --color-primary-hover: 132 43% 78%;
+    --color-primary-foreground: var(--neutral-900);
+    --color-primary-subtle: 136 34% 18%;
+    --color-accent: 291 30% 72%;
+    --color-accent-hover: 291 35% 80%;
+    --color-accent-foreground: var(--neutral-900);
+    --color-accent-subtle: 290 28% 20%;
+    --color-focus: 291 30% 72%;
+    --color-chord: 132 41% 72%;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at top left, hsl(var(--color-primary) / 0.14), transparent 32rem),
+      radial-gradient(circle at bottom right, hsl(var(--color-accent) / 0.10), transparent 28rem),
+      hsl(var(--color-canvas));
+    color: hsl(var(--color-content));
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  ::selection {
+    background: hsl(var(--color-accent-subtle));
+    color: hsl(var(--color-content));
+  }
+}
 
 @layer components {
+  .ds-card {
+    @apply rounded-3xl border border-border bg-surface p-6 shadow-sm shadow-black/5 transition-colors;
+  }
+
+  .ds-card-muted {
+    @apply rounded-2xl border border-border bg-surface-muted p-4 text-content-muted transition-colors;
+  }
+
+  .ds-button {
+    @apply inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm shadow-black/10 transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-focus/25 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .ds-button-secondary {
+    @apply inline-flex items-center justify-center rounded-full border border-border bg-surface px-5 py-3 text-sm font-semibold text-content-muted transition hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-focus/25 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .ds-input {
+    @apply w-full rounded-2xl border border-border bg-surface px-4 py-3 text-base text-content outline-none transition placeholder:text-content-subtle focus:border-primary focus:ring-4 focus:ring-focus/20;
+  }
+
+  .ds-badge {
+    @apply inline-flex w-fit items-center rounded-full bg-primary-subtle px-3 py-1 text-sm font-semibold text-primary;
+  }
+
+  .ds-badge-accent {
+    @apply inline-flex w-fit items-center rounded-full bg-accent-subtle px-3 py-1 text-sm font-semibold text-accent;
+  }
+
+  .ds-eyebrow {
+    @apply text-sm font-semibold uppercase tracking-[0.16em] text-primary;
+  }
+
+  .ds-link {
+    @apply font-semibold text-primary transition hover:text-primary-hover focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-focus/25;
+  }
+
   .music-lyrics {
-    @apply font-lyrics text-[1.0625rem] leading-8 tracking-[0.01em] text-slate-950;
+    @apply font-lyrics text-[1.0625rem] leading-8 tracking-[0.01em] text-content;
   }
 
   .music-chords {
-    @apply font-chord text-sm font-semibold leading-7 tracking-tight text-leaf-700;
+    @apply font-chord text-sm font-semibold leading-7 tracking-tight text-chord;
   }
 
   .music-measure {
-    @apply min-h-16 rounded-xl border border-slate-200 bg-slate-50 p-3 font-chord text-sm font-semibold leading-7 text-slate-950;
+    @apply min-h-16 rounded-xl border border-border bg-surface-muted p-3 font-chord text-sm font-semibold leading-7 text-chord;
   }
 }

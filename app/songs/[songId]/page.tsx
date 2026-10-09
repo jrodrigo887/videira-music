@@ -29,20 +29,20 @@ export default async function SongDetailPage({ params }: SongDetailPageProps) {
 
   return (
     <div className="space-y-8">
-      <Link href="/songs" className="text-sm font-semibold text-leaf-700 transition hover:text-leaf-900">
+      <Link href="/songs" className="ds-link text-sm">
         Voltar para biblioteca
       </Link>
 
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">Detalhe da musica</p>
+      <section className="ds-card">
+        <p className="ds-eyebrow text-content-subtle">Detalhe da musica</p>
         <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-950">{song.title}</h1>
-            <p className="mt-2 text-slate-600">{song.meta}</p>
-            {song.artist ? <p className="mt-1 text-sm text-slate-500">{song.artist}</p> : null}
+            <h1 className="text-3xl font-bold tracking-tight text-content">{song.title}</h1>
+            <p className="mt-2 text-content-muted">{song.meta}</p>
+            {song.artist ? <p className="mt-1 text-sm text-content-subtle">{song.artist}</p> : null}
           </div>
           {song.defaultKey ? (
-            <span className="w-fit rounded-full bg-leaf-50 px-4 py-2 text-sm font-semibold text-leaf-700">
+            <span className="ds-badge px-4 py-2">
               Tom {song.defaultKey}
             </span>
           ) : null}
@@ -51,9 +51,9 @@ export default async function SongDetailPage({ params }: SongDetailPageProps) {
 
       <section className="space-y-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-leaf-700">Previews</p>
-          <h2 className="mt-2 text-2xl font-bold text-slate-950">Cifras de exemplo</h2>
-          <p className="mt-2 text-slate-600">
+          <p className="ds-eyebrow">Previews</p>
+          <h2 className="mt-2 text-2xl font-bold text-content">Cifras de exemplo</h2>
+          <p className="mt-2 text-content-muted">
             Conteudo demonstrativo para validar parsing, renderizacao e transposicao no MVP.
           </p>
         </div>

@@ -25,16 +25,16 @@ export function SongLibrary({ initialSongs }: SongLibraryProps) {
   return (
     <section className="space-y-6">
       <label className="block">
-        <span className="text-sm font-medium text-slate-700">Buscar por titulo, artista ou tom</span>
+        <span className="text-sm font-medium text-content-muted">Buscar por titulo, artista ou tom</span>
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Ex.: Aclame, Diante do Trono, A"
-          className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-leaf-500 focus:ring-4 focus:ring-leaf-100"
+          className="ds-input mt-2"
         />
       </label>
 
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-content-muted">
         {songs.length} de {initialSongs.length} musicas no catalogo inicial
       </p>
 

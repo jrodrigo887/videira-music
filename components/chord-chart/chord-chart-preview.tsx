@@ -47,7 +47,7 @@ function LyricsChart({ chart, semitones }: { chart: ChordChart; semitones: numbe
     <div className="space-y-6">
       {chart.sections.filter(hasLyricsContent).map((section) => (
         <section key={section.id}>
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <h3 className="ds-eyebrow mb-3 text-content-subtle">
             {section.label}
           </h3>
           <div className="space-y-2">
@@ -66,7 +66,7 @@ function GridChart({ chart, semitones }: { chart: ChordChart; semitones: number 
     <div className="space-y-6">
       {chart.sections.filter(hasGridContent).map((section) => (
         <section key={section.id}>
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <h3 className="ds-eyebrow mb-3 text-content-subtle">
             {section.label}
           </h3>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -91,14 +91,14 @@ export function ChordChartPreview({ chart }: ChordChartPreviewProps) {
   const [semitones, setSemitones] = useState(0);
 
   return (
-    <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex flex-col gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
+    <article className="ds-card p-5">
+      <div className="flex flex-col gap-4 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-medium text-leaf-700">
+          <p className="text-sm font-medium text-primary">
             {chart.format === "lyrics" ? "Cifra com letra" : "Grade por compassos"}
           </p>
-          <h2 className="text-xl font-semibold text-slate-950">{chart.title ?? "Exemplo de cifra"}</h2>
-          <p className="text-sm text-slate-600">
+          <h2 className="text-xl font-semibold text-content">{chart.title ?? "Exemplo de cifra"}</h2>
+          <p className="text-sm text-content-muted">
             Tom base {chart.key} · {chart.timeSignature}
           </p>
         </div>
@@ -107,17 +107,17 @@ export function ChordChartPreview({ chart }: ChordChartPreviewProps) {
           <button
             type="button"
             onClick={() => setSemitones((value) => value - 1)}
-            className="rounded-full border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-leaf-500 hover:text-leaf-700"
+            className="ds-button-secondary px-3 py-2"
           >
             -1
           </button>
-          <span className="min-w-20 rounded-full bg-slate-100 px-3 py-2 text-center text-sm font-medium text-slate-700">
+          <span className="min-w-20 rounded-full bg-surface-muted px-3 py-2 text-center text-sm font-medium text-content-muted">
             {semitones > 0 ? `+${semitones}` : semitones}
           </span>
           <button
             type="button"
             onClick={() => setSemitones((value) => value + 1)}
-            className="rounded-full border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-leaf-500 hover:text-leaf-700"
+            className="ds-button-secondary px-3 py-2"
           >
             +1
           </button>

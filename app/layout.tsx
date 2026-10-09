@@ -29,17 +29,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${lyricsFont.variable} ${chordFont.variable} font-sans antialiased`}>
-        <header className="border-b border-slate-200 bg-white/80 backdrop-blur">
+      <body className={`${lyricsFont.variable} ${chordFont.variable} bg-canvas font-sans text-content antialiased`}>
+        <header className="border-b border-border bg-surface/80 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-            <Link href="/" className="text-lg font-bold text-leaf-900">
+            <Link href="/" className="text-lg font-bold text-primary">
               Videira Music
             </Link>
-            <nav className="flex items-center gap-4 text-sm font-medium text-slate-600">
-              <Link className="transition hover:text-leaf-700" href="/songs">
+            <nav className="flex items-center gap-4 text-sm font-medium text-content-muted">
+              <Link className="transition hover:text-primary" href="/songs">
                 Biblioteca
               </Link>
-              <Link className="transition hover:text-leaf-700" href="/setlists">
+              <Link className="transition hover:text-primary" href="/setlists">
                 Setlists
               </Link>
             </nav>
