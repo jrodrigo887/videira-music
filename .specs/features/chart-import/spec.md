@@ -138,7 +138,7 @@ O parser de texto já produz `ImportDraft`, mas o usuário ainda não consegue i
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| IMP-01 | Importar texto e revisar | T1, T2, T9, T10 | In Progress (T1-T2, T9 complete) |
+| IMP-01 | Importar texto e revisar | T1, T2, T9, T10 | Implemented (T1-T2, T9-T10 complete) |
 | IMP-02 | Importar texto e revisar | T2, T9 | Implemented (T2, T9 complete) |
 | IMP-03 | Importar texto e revisar | T2, T5, T9 | Implemented (T2, T5, T9 complete) |
 | IMP-04 | Importar texto e revisar | T9 | Implemented (T9 complete) |
@@ -146,7 +146,7 @@ O parser de texto já produz `ImportDraft`, mas o usuário ainda não consegue i
 | IMP-06 | Vincular e persistir | T3, T4, T5, T12 | In Progress (T3-T5 complete) |
 | IMP-07 | Vincular e persistir | T3, T4, T5, T12 | In Progress (T3-T5 complete) |
 | IMP-08 | Importar URL do Cifra Club | T1, T2, T6, T7, T8, T9, T13 | In Progress (T1-T2, T6-T9 complete) |
-| IMP-09 | Importar URL do Cifra Club | T8, T9, T10, T13 | In Progress (T8-T9 complete) |
+| IMP-09 | Importar URL do Cifra Club | T8, T9, T10, T13 | In Progress (T8-T10 complete) |
 | IMP-10 | Importar URL do Cifra Club | T6, T7, T8, T9 | Implemented (T6-T9 complete) |
 | IMP-11 | Importar URL do Cifra Club | T7, T8 | Implemented (T7-T8 complete) |
 | IMP-12 | Importar URL do Cifra Club | T6, T7, T8 | Implemented (T6-T8 complete) |

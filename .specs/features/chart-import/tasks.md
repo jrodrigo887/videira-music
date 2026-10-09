@@ -308,10 +308,10 @@ T13
 
 **Done when:**
 
-- [ ] URL input receives `enabled=false` unless the server-only flag equals `true`.
-- [ ] Paste import remains available regardless of the flag.
-- [ ] Library exposes a keyboard-accessible import action.
-- [ ] Build gate passes.
+- [x] URL input receives `enabled=false` unless the server-only flag equals `true`.
+- [x] Paste import remains available regardless of the flag.
+- [x] Library exposes a keyboard-accessible import action.
+- [x] Build gate passes.
 
 **Tests:** none, page composition layer  
 **Gate:** build  
