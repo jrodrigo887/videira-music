@@ -1,3 +1,5 @@
+import type { ImportOrigin } from "@/types/import";
+
 export type SongId = string;
 export type ChordChartId = string;
 export type SetlistId = string;
@@ -92,6 +94,7 @@ export type ChordChart = {
   capo?: number;
   sections: Section[];
   source?: string;
+  origin?: ImportOrigin;
 };
 
 export type SetlistItem = {
