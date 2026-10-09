@@ -137,7 +137,7 @@ T13
 **Gate:** quick  
 **Commit:** `feat(persistence): define local music repositories`
 
-### T4: Implement the IndexedDB music database
+### T4: Implement the IndexedDB music database ✅
 
 **What:** Implement versioned IndexedDB stores, indexes and atomic music/chart transactions behind repository contracts.  
 **Where:** `lib/persistence/music-database.ts`  
@@ -152,10 +152,10 @@ T13
 
 **Done when:**
 
-- [ ] Songs and charts survive database re-open.
-- [ ] `songId` and canonical `origin.url` queries use indexes.
-- [ ] A failed transaction does not partially persist a music/chart pair.
-- [ ] Integration tests use an isolated IndexedDB implementation and full gate passes.
+- [x] Songs and charts survive database re-open.
+- [x] `songId` and canonical `origin.url` queries use indexes.
+- [x] A failed transaction does not partially persist a music/chart pair.
+- [x] Integration tests use an isolated IndexedDB implementation and full gate passes.
 
 **Tests:** integration  
 **Gate:** full  
