@@ -239,7 +239,7 @@ T13
 **Gate:** quick  
 **Commit:** `feat(import): fetch cifra club charts locally`
 
-### T8: Expose the guarded Cifra Club route
+### T8: Expose the guarded Cifra Club route ✅
 
 **What:** Implement the Node.js Route Handler, feature-flag gate, request validation, orchestration and HTTP error mapping.  
 **Where:** `app/api/imports/cifraclub/route.ts`  
@@ -254,11 +254,11 @@ T13
 
 **Done when:**
 
-- [ ] Flag off returns `404` before parsing or browser access.
-- [ ] Malformed/missing URL returns `400`; unsupported host returns `422`.
-- [ ] Source errors map to documented `502` and `504` bodies.
-- [ ] Success returns an `ImportDraft` containing origin, meta and chord signals.
-- [ ] Route integration tests cover every response and full gate passes.
+- [x] Flag off returns `404` before parsing or browser access.
+- [x] Malformed/missing URL returns `400`; unsupported host returns `422`.
+- [x] Source errors map to documented `502` and `504` bodies.
+- [x] Success returns an `ImportDraft` containing origin, meta and chord signals.
+- [x] Route integration tests cover every response and full gate passes.
 
 **Tests:** integration  
 **Gate:** full  
