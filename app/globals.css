@@ -8,12 +8,12 @@
   [data-theme="light"] {
     color-scheme: light;
 
-    --videira-50: 132 31% 96%;
-    --videira-100: 132 27% 90%;
-    --videira-200: 132 23% 78%;
-    --videira-500: 134 40% 42%;
-    --videira-700: 134 39% 31%;
-    --videira-900: 136 50% 16%;
+    --videira-50: 120 24% 97%;
+    --videira-100: 115 25% 92%;
+    --videira-200: 111 22% 84%;
+    --videira-500: 132 28% 46%;
+    --videira-700: 136 31% 34%;
+    --videira-900: 140 34% 22%;
 
     --oracao-50: 294 22% 96%;
     --oracao-100: 292 21% 90%;
@@ -23,23 +23,23 @@
     --oracao-900: 290 30% 20%;
 
     --neutral-0: 0 0% 100%;
-    --neutral-50: 120 17% 97%;
-    --neutral-100: 120 11% 93%;
-    --neutral-200: 130 9% 86%;
+    --neutral-50: 105 18% 98%;
+    --neutral-100: 110 14% 94%;
+    --neutral-200: 115 12% 87%;
     --neutral-500: 135 6% 43%;
     --neutral-700: 136 12% 22%;
     --neutral-900: 137 29% 8%;
 
-    --color-canvas: var(--neutral-50);
+    --color-canvas: 105 22% 97%;
     --color-surface: var(--neutral-0);
-    --color-surface-elevated: 132 31% 98%;
-    --color-surface-muted: var(--videira-50);
+    --color-surface-elevated: 100 23% 99%;
+    --color-surface-muted: 110 28% 94%;
     --color-content: var(--neutral-900);
     --color-content-muted: var(--neutral-700);
     --color-content-subtle: var(--neutral-500);
     --color-content-inverse: var(--neutral-0);
-    --color-border: var(--neutral-200);
-    --color-border-strong: 132 13% 72%;
+    --color-border: 112 13% 86%;
+    --color-border-strong: 113 12% 74%;
     --color-primary: var(--videira-700);
     --color-primary-hover: var(--videira-900);
     --color-primary-foreground: var(--neutral-0);
@@ -56,20 +56,20 @@
     :root:not(.light):not([data-theme="light"]) {
       color-scheme: dark;
 
-      --color-canvas: 137 32% 7%;
-      --color-surface: 137 25% 10%;
-      --color-surface-elevated: 137 21% 13%;
-      --color-surface-muted: 136 28% 15%;
+      --color-canvas: 136 18% 11%;
+      --color-surface: 136 15% 14%;
+      --color-surface-elevated: 136 13% 17%;
+      --color-surface-muted: 136 17% 18%;
       --color-content: 130 20% 94%;
       --color-content-muted: 132 11% 76%;
       --color-content-subtle: 132 8% 62%;
       --color-content-inverse: var(--neutral-900);
-      --color-border: 137 17% 22%;
-      --color-border-strong: 136 18% 31%;
-      --color-primary: 132 37% 69%;
-      --color-primary-hover: 132 43% 78%;
+      --color-border: 136 11% 25%;
+      --color-border-strong: 136 13% 35%;
+      --color-primary: 122 34% 72%;
+      --color-primary-hover: 122 40% 80%;
       --color-primary-foreground: var(--neutral-900);
-      --color-primary-subtle: 136 34% 18%;
+      --color-primary-subtle: 136 20% 21%;
       --color-accent: 291 30% 72%;
       --color-accent-hover: 291 35% 80%;
       --color-accent-foreground: var(--neutral-900);
@@ -83,20 +83,20 @@
   [data-theme="dark"] {
     color-scheme: dark;
 
-    --color-canvas: 137 32% 7%;
-    --color-surface: 137 25% 10%;
-    --color-surface-elevated: 137 21% 13%;
-    --color-surface-muted: 136 28% 15%;
+    --color-canvas: 136 18% 11%;
+    --color-surface: 136 15% 14%;
+    --color-surface-elevated: 136 13% 17%;
+    --color-surface-muted: 136 17% 18%;
     --color-content: 130 20% 94%;
     --color-content-muted: 132 11% 76%;
     --color-content-subtle: 132 8% 62%;
     --color-content-inverse: var(--neutral-900);
-    --color-border: 137 17% 22%;
-    --color-border-strong: 136 18% 31%;
-    --color-primary: 132 37% 69%;
-    --color-primary-hover: 132 43% 78%;
+    --color-border: 136 11% 25%;
+    --color-border-strong: 136 13% 35%;
+    --color-primary: 122 34% 72%;
+    --color-primary-hover: 122 40% 80%;
     --color-primary-foreground: var(--neutral-900);
-    --color-primary-subtle: 136 34% 18%;
+    --color-primary-subtle: 136 20% 21%;
     --color-accent: 291 30% 72%;
     --color-accent-hover: 291 35% 80%;
     --color-accent-foreground: var(--neutral-900);
@@ -113,8 +113,8 @@
     margin: 0;
     min-height: 100vh;
     background:
-      radial-gradient(circle at top left, hsl(var(--color-primary) / 0.14), transparent 32rem),
-      radial-gradient(circle at bottom right, hsl(var(--color-accent) / 0.10), transparent 28rem),
+      radial-gradient(circle at top left, hsl(var(--color-primary) / 0.08), transparent 30rem),
+      radial-gradient(circle at bottom right, hsl(var(--color-accent) / 0.05), transparent 28rem),
       hsl(var(--color-canvas));
     color: hsl(var(--color-content));
   }

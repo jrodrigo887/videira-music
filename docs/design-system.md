@@ -27,7 +27,7 @@ Use `accent` com parcimonia:
 - Badges de destaque.
 - Estados especiais que precisam diferenciar do fluxo operacional.
 
-O verde representa a identidade Videira e a base de uso diario. O roxo vem da comunicacao de oracao e deve aparecer como acento, nao como cor dominante.
+O verde representa a identidade Videira e a base de uso diario, mas a interface deve favorecer verdes claros e superficies quase neutras para evitar um produto pesado. O roxo vem da comunicacao de oracao e deve aparecer como acento, nao como cor dominante.
 
 ## Light e Dark
 
