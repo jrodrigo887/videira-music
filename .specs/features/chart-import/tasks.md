@@ -332,10 +332,10 @@ T13
 
 **Done when:**
 
-- [ ] Seed records remain read-only and retain order.
-- [ ] Local songs appear once and are searchable by title, artist and key.
-- [ ] Repository failure shows a non-destructive local-data warning.
-- [ ] React integration tests cover merge, search and failure paths.
+- [x] Seed records remain read-only and retain order.
+- [x] Local songs appear once and are searchable by title, artist and key.
+- [x] Repository failure shows a non-destructive local-data warning.
+- [x] React integration tests cover merge, search and failure paths.
 
 **Tests:** integration  
 **Gate:** full  
