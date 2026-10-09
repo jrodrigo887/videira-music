@@ -51,10 +51,15 @@ export async function saveImportedChart(
     throw new Error("Selecione ou crie uma música antes de salvar.");
   }
 
-  const isNewSong = input.song.kind === "new";
-  const song = isNewSong
-    ? createLocalSong(input.song, input.confirmedKey)
-    : await repository.findSongById(input.song.songId);
+  let song: Song | undefined;
+  let songToSave: Song | undefined;
+
+  if (input.song.kind === "new") {
+    song = createLocalSong(input.song, input.confirmedKey);
+    songToSave = song;
+  } else {
+    song = await repository.findSongById(input.song.songId);
+  }
 
   if (!song) {
     throw new Error("A música selecionada não foi encontrada.");
@@ -67,7 +72,7 @@ export async function saveImportedChart(
     key: input.confirmedKey,
   };
 
-  await repository.saveSongAndChart(isNewSong ? song : undefined, chart);
+  await repository.saveSongAndChart(songToSave, chart);
 
   return { song, chart };
 }
