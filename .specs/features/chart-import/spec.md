@@ -145,13 +145,13 @@ O parser de texto já produz `ImportDraft`, mas o usuário ainda não consegue i
 | IMP-05 | Vincular e persistir | T3, T5, T9, T11 | Implemented (T3, T5, T9, T11 complete) |
 | IMP-06 | Vincular e persistir | T3, T4, T5, T12 | Implemented (T3-T5, T12 complete) |
 | IMP-07 | Vincular e persistir | T3, T4, T5, T12 | Implemented (T3-T5, T12 complete) |
-| IMP-08 | Importar URL do Cifra Club | T1, T2, T6, T7, T8, T9, T13 | In Progress (T1-T2, T6-T9 complete) |
-| IMP-09 | Importar URL do Cifra Club | T8, T9, T10, T13 | In Progress (T8-T10 complete) |
+| IMP-08 | Importar URL do Cifra Club | T1, T2, T6, T7, T8, T9, T13 | Implemented (T1-T2, T6-T9, T13 complete) |
+| IMP-09 | Importar URL do Cifra Club | T8, T9, T10, T13 | Implemented (T8-T10, T13 complete) |
 | IMP-10 | Importar URL do Cifra Club | T6, T7, T8, T9 | Implemented (T6-T9 complete) |
 | IMP-11 | Importar URL do Cifra Club | T7, T8 | Implemented (T7-T8 complete) |
 | IMP-12 | Importar URL do Cifra Club | T6, T7, T8 | Implemented (T6-T8 complete) |
 | IMP-13 | Integrar catálogo local | T1, T3, T4, T11, T12 | Implemented (T1, T3-T4, T11-T12 complete) |
-| IMP-14 | Segurança e rastreabilidade | T6, T7, T12, T13 | In Progress (T6-T7, T12 complete) |
+| IMP-14 | Segurança e rastreabilidade | T6, T7, T12, T13 | Implemented (T6-T7, T12-T13 complete) |
 
 **Coverage:** 14 total, 14 mapped to tasks, 0 unmapped.
 

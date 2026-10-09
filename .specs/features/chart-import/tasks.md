@@ -383,11 +383,11 @@ T13
 
 **Done when:**
 
-- [ ] Main docs contain one canonical discovery path.
-- [ ] Commands cover env flag, Chromium installation, dev server and import flow.
-- [ ] Public-deploy and copyright guardrails are explicit.
-- [ ] Stale “Cifra Club fora do MVP” statements are reconciled.
-- [ ] Build gate passes.
+- [x] Main docs contain one canonical discovery path.
+- [x] Commands cover env flag, Chromium installation, dev server and import flow.
+- [x] Public-deploy and copyright guardrails are explicit.
+- [x] Stale “Cifra Club fora do MVP” statements are reconciled.
+- [x] Build gate passes.
 
 **Tests:** none, documentation layer  
 **Gate:** build  
