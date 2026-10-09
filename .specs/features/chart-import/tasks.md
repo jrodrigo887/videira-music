@@ -413,7 +413,7 @@ T13
 **Gate:** build  
 **Commit:** `fix(import): enforce runtime URL import flag`
 
-### F2: Strengthen review workflow state evidence
+### F2: Strengthen review workflow state evidence ✅
 
 **What:** Make section type changes observable in preview and cover suggestion filtering, confirmation conjunction, boundary input, new-song saving and URL-origin persistence.  
 **Where:** `components/import/import-workflow.tsx`, `components/import/import-workflow.test.tsx`, `components/chord-chart/chord-chart-preview.tsx`  
@@ -422,13 +422,13 @@ T13
 
 **Done when:**
 
-- [ ] Title-only or artist-only matches are suggested, unrelated songs are excluded and no suggestion is auto-selected.
-- [ ] Save remains disabled with a song selected but no confirmed key.
-- [ ] Exactly 500 KiB advances while larger text is rejected.
-- [ ] A changed section type is visible in preview and the saved chart preserves the new type and original label.
-- [ ] The new-song UI path persists and navigates to a `song-local-*` detail.
-- [ ] Saving a URL draft preserves its complete `origin`.
-- [ ] Full gate passes.
+- [x] Title-only or artist-only matches are suggested, unrelated songs are excluded and no suggestion is auto-selected.
+- [x] Save remains disabled with a song selected but no confirmed key.
+- [x] Exactly 500 KiB advances while larger text is rejected.
+- [x] A changed section type is visible in preview and the saved chart preserves the new type and original label.
+- [x] The new-song UI path persists and navigates to a `song-local-*` detail.
+- [x] Saving a URL draft preserves its complete `origin`.
+- [x] Full gate passes.
 
 **Tests:** integration  
 **Gate:** full  

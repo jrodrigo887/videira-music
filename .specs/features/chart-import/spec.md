@@ -138,15 +138,15 @@ O parser de texto já produz `ImportDraft`, mas o usuário ainda não consegue i
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| IMP-01 | Importar texto e revisar | T1, T2, T9, T10, F1, F2 | In Progress (F1 complete; F2 pending) |
-| IMP-02 | Importar texto e revisar | T2, T9, F2 | In Progress (F2 pending) |
-| IMP-03 | Importar texto e revisar | T2, T5, T9, F2 | In Progress (F2 pending) |
-| IMP-04 | Importar texto e revisar | T9, F2 | In Progress (F2 pending) |
-| IMP-05 | Vincular e persistir | T3, T5, T9, T11, F2 | In Progress (F2 pending) |
+| IMP-01 | Importar texto e revisar | T1, T2, T9, T10, F1, F2 | Implemented (F1-F2 complete) |
+| IMP-02 | Importar texto e revisar | T2, T9, F2 | Implemented (F2 complete) |
+| IMP-03 | Importar texto e revisar | T2, T5, T9, F2 | Implemented (F2 complete) |
+| IMP-04 | Importar texto e revisar | T9, F2 | Implemented (F2 complete) |
+| IMP-05 | Vincular e persistir | T3, T5, T9, T11, F2 | Implemented (F2 complete) |
 | IMP-06 | Vincular e persistir | T3, T4, T5, T12, F3 | In Progress (F3 pending) |
 | IMP-07 | Vincular e persistir | T3, T4, T5, T12, F3 | In Progress (F3 pending) |
-| IMP-08 | Importar URL do Cifra Club | T1, T2, T6, T7, T8, T9, T13, F2, F4 | In Progress (F2, F4 pending) |
-| IMP-09 | Importar URL do Cifra Club | T8, T9, T10, T13, F1, F2 | In Progress (F1 complete; F2 pending) |
+| IMP-08 | Importar URL do Cifra Club | T1, T2, T6, T7, T8, T9, T13, F2, F4 | In Progress (F2 complete; F4 pending) |
+| IMP-09 | Importar URL do Cifra Club | T8, T9, T10, T13, F1, F2 | Implemented (F1-F2 complete) |
 | IMP-10 | Importar URL do Cifra Club | T6, T7, T8, T9, F4 | In Progress (F4 pending) |
 | IMP-11 | Importar URL do Cifra Club | T7, T8 | Implemented (T7-T8 complete) |
 | IMP-12 | Importar URL do Cifra Club | T6, T7, T8 | Implemented (T6-T8 complete) |

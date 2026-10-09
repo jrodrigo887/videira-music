@@ -21,6 +21,27 @@ const SONG: Song = {
   meta: "Artista · Tom G",
 };
 
+const TITLE_MATCH: Song = {
+  ...SONG,
+  id: "13",
+  artist: "Outra banda",
+};
+
+const ARTIST_MATCH: Song = {
+  ...SONG,
+  id: "14",
+  title: "Outro título",
+  label: "Outro título",
+};
+
+const UNRELATED_SONG: Song = {
+  ...SONG,
+  id: "15",
+  title: "Sem relação",
+  label: "Sem relação",
+  artist: "Pessoa distante",
+};
+
 const DRAFT: ImportDraft = {
   id: "import-1",
   origin: {
@@ -116,6 +137,18 @@ describe("ImportWorkflow", () => {
     expect(screen.queryByText("Revisar importação")).not.toBeInTheDocument();
   });
 
+  it("accepts pasted text at exactly the 500 KiB UTF-8 boundary", async () => {
+    renderWorkflow();
+
+    fireEvent.change(screen.getByLabelText("Texto da cifra"), {
+      target: { value: "a".repeat(500 * 1024) },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Revisar texto" }));
+
+    expect(await screen.findByText("Revisar importação")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("keeps save disabled until the key and song are explicitly confirmed", async () => {
     const onNavigate = vi.fn();
     renderWorkflow({ onNavigate });
@@ -129,12 +162,19 @@ describe("ImportWorkflow", () => {
     expect(save).toBeDisabled();
     fireEvent.click(screen.getByLabelText("Vincular Canção Teste"));
     expect(save).toBeEnabled();
+    fireEvent.click(screen.getByLabelText("Confirmar tom G"));
+    expect(screen.getByLabelText("Vincular Canção Teste")).toBeChecked();
+    expect(save).toBeDisabled();
+    fireEvent.click(screen.getByLabelText("Confirmar tom G"));
+    expect(save).toBeEnabled();
     fireEvent.click(save);
     await waitFor(() => expect(onNavigate).toHaveBeenCalledWith(`/songs/${SONG.id}`));
   });
 
-  it("updates a section type in preview without changing its original label", async () => {
-    renderWorkflow();
+  it("saves a changed section type while preserving its original label", async () => {
+    const repository = new InMemoryMusicRepository([SONG]);
+    const onNavigate = vi.fn();
+    renderWorkflow({ repository, onNavigate });
     await reachPasteReview();
 
     fireEvent.change(screen.getByLabelText("Tipo de Verso original"), {
@@ -142,7 +182,81 @@ describe("ImportWorkflow", () => {
     });
 
     expect(screen.getByLabelText("Tipo de Verso original")).toHaveValue("chorus");
+    expect(screen.getByText("Tipo: Refrão")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Verso original" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText("Confirmar tom G"));
+    fireEvent.click(screen.getByLabelText("Vincular Canção Teste"));
+    fireEvent.click(screen.getByRole("button", { name: "Salvar cifra" }));
+    await waitFor(() => expect(onNavigate).toHaveBeenCalledWith(`/songs/${SONG.id}`));
+
+    const [savedChart] = await repository.listChartsBySong(SONG.id);
+    expect(savedChart.sections[0]).toMatchObject({
+      type: "chorus",
+      label: "Verso original",
+    });
+  });
+
+  it("suggests title or artist matches, excludes unrelated songs and selects none", async () => {
+    renderWorkflow({
+      initialSongs: [TITLE_MATCH, ARTIST_MATCH, UNRELATED_SONG],
+    });
+    fireEvent.change(screen.getByLabelText("URL do Cifra Club"), {
+      target: { value: DRAFT.origin.url },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Importar URL" }));
+    await screen.findByText("Revisar importação");
+
+    expect(screen.getByLabelText("Vincular Canção Teste")).not.toBeChecked();
+    expect(screen.getByLabelText("Vincular Outro título")).not.toBeChecked();
+    expect(screen.queryByLabelText("Vincular Sem relação")).not.toBeInTheDocument();
+  });
+
+  it("creates and persists a new song from the review UI", async () => {
+    const repository = new InMemoryMusicRepository();
+    const onNavigate = vi.fn();
+    renderWorkflow({ repository, initialSongs: [], onNavigate });
+    await reachPasteReview();
+
+    fireEvent.change(screen.getByLabelText("Nova música"), {
+      target: { value: "Nova música local" },
+    });
+    fireEvent.change(screen.getByLabelText("Artista"), {
+      target: { value: "Artista local" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar nova música" }));
+    fireEvent.click(screen.getByLabelText("Confirmar tom G"));
+    fireEvent.click(screen.getByRole("button", { name: "Salvar cifra" }));
+
+    await waitFor(() => expect(onNavigate).toHaveBeenCalledWith(
+      expect.stringMatching(/^\/songs\/song-local-/),
+    ));
+    const [savedSong] = await repository.listSongs();
+    expect(savedSong).toMatchObject({
+      title: "Nova música local",
+      artist: "Artista local",
+      defaultKey: "G",
+    });
+    await expect(repository.listChartsBySong(savedSong.id)).resolves.toHaveLength(1);
+  });
+
+  it("persists the complete origin from a URL draft", async () => {
+    const repository = new InMemoryMusicRepository([SONG]);
+    const onNavigate = vi.fn();
+    renderWorkflow({ repository, onNavigate });
+    fireEvent.change(screen.getByLabelText("URL do Cifra Club"), {
+      target: { value: DRAFT.origin.url },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Importar URL" }));
+    await screen.findByText("Revisar importação");
+
+    fireEvent.click(screen.getByLabelText("Confirmar tom G"));
+    fireEvent.click(screen.getByLabelText("Vincular Canção Teste"));
+    fireEvent.click(screen.getByRole("button", { name: "Salvar cifra" }));
+    await waitFor(() => expect(onNavigate).toHaveBeenCalledWith(`/songs/${SONG.id}`));
+
+    const [savedChart] = await repository.listChartsBySong(SONG.id);
+    expect(savedChart.origin).toEqual(DRAFT.origin);
   });
 
   it("opens a saved URL without calling the external import route", async () => {
