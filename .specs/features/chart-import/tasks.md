@@ -89,7 +89,7 @@ T13
 **Gate:** build  
 **Commit:** `build(import): configure import workflow dependencies`
 
-### T2: Extend preview import for RawChart signals
+### T2: Extend preview import for RawChart signals ✅
 
 **What:** Accept `meta` and `chordTokens`, preserve source metadata and pass untrusted page key through `detectKey`.  
 **Where:** `lib/import/preview-import.ts`  
@@ -104,10 +104,10 @@ T13
 
 **Done when:**
 
-- [ ] Marked chord tokens drive classification.
-- [ ] Page title, artist, capo and key populate the draft without becoming trusted hints.
-- [ ] A page-key mismatch emits `KEY_MISMATCH`.
-- [ ] Unit tests cover all new branches and quick gate passes.
+- [x] Marked chord tokens drive classification.
+- [x] Page title, artist, capo and key populate the draft without becoming trusted hints.
+- [x] A page-key mismatch emits `KEY_MISMATCH`.
+- [x] Unit tests cover all new branches and quick gate passes.
 
 **Tests:** unit  
 **Gate:** quick  
