@@ -1,11 +1,17 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
+
+const fetchCifraClubChartMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@/lib/import/sources/cifraclub", () => ({
+  fetchCifraClubChart: (...args: unknown[]) => fetchCifraClubChartMock(...args),
+}));
 
 import { ImportSourceError } from "@/lib/import/sources/cifraclub-parse";
 import type { RawChart } from "@/types/import";
 
-import { createCifraClubPostHandler } from "./route";
+import { POST, createCifraClubPostHandler } from "./route";
 
 const URL = "https://www.cifraclub.com.br/artista/cancao/";
 const RAW_CHART: RawChart = {
@@ -141,6 +147,53 @@ describe("POST /api/imports/cifraclub", () => {
       },
       stats: { sections: 1, lyricLines: 1, chords: 2, linesIgnored: 0 },
       warnings: [],
+    });
+  });
+});
+
+describe("exported POST", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    fetchCifraClubChartMock.mockReset();
+  });
+
+  it.each([
+    ["unset", undefined],
+    ["false", "false"],
+    ["TRUE", "TRUE"],
+  ] as const)(
+    "returns 404 without calling the source when VIDEIRA_ENABLE_CIFRACLUB_IMPORT is %s",
+    async (_label, value) => {
+      if (value === undefined) {
+        vi.unstubAllEnvs();
+        delete process.env.VIDEIRA_ENABLE_CIFRACLUB_IMPORT;
+      } else {
+        vi.stubEnv("VIDEIRA_ENABLE_CIFRACLUB_IMPORT", value);
+      }
+
+      const response = await POST(request({ url: URL }));
+
+      expect(response.status).toBe(404);
+      await expect(response.json()).resolves.toEqual({
+        error: { code: "NOT_FOUND", message: "Recurso não encontrado." },
+      });
+      expect(fetchCifraClubChartMock).not.toHaveBeenCalled();
+    },
+  );
+
+  it("processes supported URLs when the flag is exactly lowercase true", async () => {
+    vi.stubEnv("VIDEIRA_ENABLE_CIFRACLUB_IMPORT", "true");
+    fetchCifraClubChartMock.mockResolvedValue(RAW_CHART);
+
+    const response = await POST(request({ url: URL }));
+    const draft = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(fetchCifraClubChartMock).toHaveBeenCalledWith(URL);
+    expect(draft).toMatchObject({
+      origin: RAW_CHART.origin,
+      rawText: RAW_CHART.text,
+      song: { title: "Canção sintética", artist: "Artista sintético" },
     });
   });
 });

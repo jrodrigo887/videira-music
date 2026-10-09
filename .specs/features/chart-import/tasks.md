@@ -469,6 +469,27 @@ T13
 **Gate:** quick  
 **Commit:** `test(import): cover missing chromium guidance`
 
+### Verifier iteration 2 fix
+
+### F5: Verify the shipped route flag ✅
+
+**What:** Exercise the exported `POST` with the real server environment predicate, keep the source mocked, and remove the remaining semantics-neutral lint warning.  
+**Where:** `app/api/imports/cifraclub/route.test.ts`, `lib/persistence/music-database.ts`  
+**Depends on:** F4  
+**Requirement:** IMP-08, IMP-09, IMP-14
+
+**Done when:**
+
+- [x] Unset, `false` and uppercase `TRUE` return `404` without invoking the source.
+- [x] Exact lowercase `true` processes a supported request and returns a synthetic `ImportDraft`.
+- [x] Replacing the shipped predicate with always-enabled behavior makes the focused test fail.
+- [x] Lint reports zero warnings.
+- [x] Build gate passes.
+
+**Tests:** integration  
+**Gate:** build  
+**Commit:** `test(api): verify runtime import flag`
+
 ## Phase Execution Map
 
 ```text

@@ -54,7 +54,8 @@ function toStoredChart(chart: ChordChart): StoredChart {
 }
 
 function fromStoredChart(record: StoredChart): ChordChart {
-  const { originUrl: _originUrl, ...chart } = record;
+  const { originUrl, ...chart } = record;
+  void originUrl;
   return chart;
 }
 
