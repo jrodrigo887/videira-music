@@ -67,7 +67,7 @@ O parser de texto já produz `ImportDraft`, mas o usuário ainda não consegue i
 
 **Acceptance Criteria**:
 
-1. WHEN título e artista produzirem correspondências no catálogo THEN o sistema SHALL sugeri-las sem selecionar automaticamente uma música.
+1. WHEN título ou artista produzir correspondência no catálogo THEN o sistema SHALL sugerir a música sem selecioná-la automaticamente.
 2. WHEN o usuário confirmar uma música existente THEN o sistema SHALL salvar a cifra com o `songId` confirmado.
 3. WHEN o usuário criar uma música THEN o sistema SHALL persistir a nova `Song` com identificador não conflitante com o seed.
 4. WHEN o salvamento terminar THEN o sistema SHALL navegar para o detalhe da música e exibir a cifra importada com transposição funcional.
@@ -138,20 +138,20 @@ O parser de texto já produz `ImportDraft`, mas o usuário ainda não consegue i
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| IMP-01 | Importar texto e revisar | T1, T2, T9, T10 | Implemented (T1-T2, T9-T10 complete) |
-| IMP-02 | Importar texto e revisar | T2, T9 | Implemented (T2, T9 complete) |
-| IMP-03 | Importar texto e revisar | T2, T5, T9 | Implemented (T2, T5, T9 complete) |
-| IMP-04 | Importar texto e revisar | T9 | Implemented (T9 complete) |
-| IMP-05 | Vincular e persistir | T3, T5, T9, T11 | Implemented (T3, T5, T9, T11 complete) |
-| IMP-06 | Vincular e persistir | T3, T4, T5, T12 | Implemented (T3-T5, T12 complete) |
-| IMP-07 | Vincular e persistir | T3, T4, T5, T12 | Implemented (T3-T5, T12 complete) |
-| IMP-08 | Importar URL do Cifra Club | T1, T2, T6, T7, T8, T9, T13 | Implemented (T1-T2, T6-T9, T13 complete) |
-| IMP-09 | Importar URL do Cifra Club | T8, T9, T10, T13 | Implemented (T8-T10, T13 complete) |
-| IMP-10 | Importar URL do Cifra Club | T6, T7, T8, T9 | Implemented (T6-T9 complete) |
+| IMP-01 | Importar texto e revisar | T1, T2, T9, T10, F1, F2 | In Progress (F1 complete; F2 pending) |
+| IMP-02 | Importar texto e revisar | T2, T9, F2 | In Progress (F2 pending) |
+| IMP-03 | Importar texto e revisar | T2, T5, T9, F2 | In Progress (F2 pending) |
+| IMP-04 | Importar texto e revisar | T9, F2 | In Progress (F2 pending) |
+| IMP-05 | Vincular e persistir | T3, T5, T9, T11, F2 | In Progress (F2 pending) |
+| IMP-06 | Vincular e persistir | T3, T4, T5, T12, F3 | In Progress (F3 pending) |
+| IMP-07 | Vincular e persistir | T3, T4, T5, T12, F3 | In Progress (F3 pending) |
+| IMP-08 | Importar URL do Cifra Club | T1, T2, T6, T7, T8, T9, T13, F2, F4 | In Progress (F2, F4 pending) |
+| IMP-09 | Importar URL do Cifra Club | T8, T9, T10, T13, F1, F2 | In Progress (F1 complete; F2 pending) |
+| IMP-10 | Importar URL do Cifra Club | T6, T7, T8, T9, F4 | In Progress (F4 pending) |
 | IMP-11 | Importar URL do Cifra Club | T7, T8 | Implemented (T7-T8 complete) |
 | IMP-12 | Importar URL do Cifra Club | T6, T7, T8 | Implemented (T6-T8 complete) |
 | IMP-13 | Integrar catálogo local | T1, T3, T4, T11, T12 | Implemented (T1, T3-T4, T11-T12 complete) |
-| IMP-14 | Segurança e rastreabilidade | T6, T7, T12, T13 | Implemented (T6-T7, T12-T13 complete) |
+| IMP-14 | Segurança e rastreabilidade | T6, T7, T12, T13, F4 | In Progress (F4 pending) |
 
 **Coverage:** 14 total, 14 mapped to tasks, 0 unmapped.
 

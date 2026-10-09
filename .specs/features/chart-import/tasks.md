@@ -266,7 +266,7 @@ T13
 
 ### Phase 3: User workflow and catalog integration
 
-### T9: Build the import review workflow
+### T9: Build the import review workflow ✅
 
 **What:** Implement input, URL/paste preview, warnings, key confirmation, section editing, song suggestion/linking and save states.  
 **Where:** `components/import/import-workflow.tsx`  
@@ -293,7 +293,7 @@ T13
 **Gate:** full  
 **Commit:** `feat(import): build review and save workflow`
 
-### T10: Add the import page and library entry point
+### T10: Add the import page and library entry point ✅
 
 **What:** Render the workflow with the server-derived feature flag and expose an “Importar cifra” action from the library.  
 **Where:** `app/import/page.tsx`  
@@ -317,7 +317,7 @@ T13
 **Gate:** build  
 **Commit:** `feat(import): add import page entry point`
 
-### T11: Merge local songs into the library
+### T11: Merge local songs into the library ✅
 
 **What:** Load local songs after hydration, merge them with seed records and search the combined catalog.  
 **Where:** `components/songs/song-library.tsx`  
@@ -341,7 +341,7 @@ T13
 **Gate:** full  
 **Commit:** `feat(catalog): include locally imported songs`
 
-### T12: Load persisted charts in song detail
+### T12: Load persisted charts in song detail ✅
 
 **What:** Resolve seed or local songs client-side and render persisted charts with source attribution and transposition.  
 **Where:** `app/songs/[songId]/page.tsx`  
@@ -392,6 +392,82 @@ T13
 **Tests:** none, documentation layer  
 **Gate:** build  
 **Commit:** `docs(import): document cifra import workflow`
+
+### Verifier iteration 1 fixes
+
+### F1: Enforce the import flag at request time ✅
+
+**What:** Prove the URL UI is hidden unless the server-only flag is exactly `true` and make the import page dynamic under `next start`.  
+**Where:** `app/import/page.tsx`, `app/import/page.test.tsx`  
+**Depends on:** T10  
+**Requirement:** IMP-01, IMP-09
+
+**Done when:**
+
+- [x] Unset and non-`true` flag values hide the URL input while preserving paste import.
+- [x] The exact value `true` displays the URL input.
+- [x] `/import` is rendered dynamically so the flag is read for each request.
+- [x] Build gate passes.
+
+**Tests:** integration  
+**Gate:** build  
+**Commit:** `fix(import): enforce runtime URL import flag`
+
+### F2: Strengthen review workflow state evidence
+
+**What:** Make section type changes observable in preview and cover suggestion filtering, confirmation conjunction, boundary input, new-song saving and URL-origin persistence.  
+**Where:** `components/import/import-workflow.tsx`, `components/import/import-workflow.test.tsx`, `components/chord-chart/chord-chart-preview.tsx`  
+**Depends on:** F1  
+**Requirement:** IMP-01, IMP-02, IMP-03, IMP-04, IMP-05, IMP-08, IMP-09
+
+**Done when:**
+
+- [ ] Title-only or artist-only matches are suggested, unrelated songs are excluded and no suggestion is auto-selected.
+- [ ] Save remains disabled with a song selected but no confirmed key.
+- [ ] Exactly 500 KiB advances while larger text is rejected.
+- [ ] A changed section type is visible in preview and the saved chart preserves the new type and original label.
+- [ ] The new-song UI path persists and navigates to a `song-local-*` detail.
+- [ ] Saving a URL draft preserves its complete `origin`.
+- [ ] Full gate passes.
+
+**Tests:** integration  
+**Gate:** full  
+**Commit:** `fix(import): strengthen review workflow states`
+
+### F3: Serialize imported chart saves
+
+**What:** Serialize writes per repository at the save use-case boundary so concurrent valid saves cannot overlap or lose records.  
+**Where:** `lib/import/save-imported-chart.ts`, `lib/import/save-imported-chart.test.ts`  
+**Depends on:** F2  
+**Requirement:** IMP-06, IMP-07
+
+**Done when:**
+
+- [ ] Two concurrent save calls execute repository writes one at a time.
+- [ ] Both valid songs and charts remain persisted after both calls finish.
+- [ ] A failed write does not block the next queued write.
+- [ ] Quick gate passes.
+
+**Tests:** unit  
+**Gate:** quick  
+**Commit:** `fix(import): serialize imported chart saves`
+
+### F4: Map missing Chromium to actionable failure
+
+**What:** Prove browser launch failure becomes `SOURCE_BLOCKED` with local Chromium installation guidance.  
+**Where:** `lib/import/sources/cifraclub.test.ts`  
+**Depends on:** F3  
+**Requirement:** IMP-08, IMP-10, IMP-14
+
+**Done when:**
+
+- [ ] A rejected Chromium launch maps to `SOURCE_BLOCKED`.
+- [ ] The message instructs the user to run `npx playwright install chromium`.
+- [ ] Quick gate passes.
+
+**Tests:** unit  
+**Gate:** quick  
+**Commit:** `test(import): cover missing chromium guidance`
 
 ## Phase Execution Map
 

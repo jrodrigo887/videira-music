@@ -1,6 +1,8 @@
 import { ImportWorkflow } from "@/components/import/import-workflow";
 import { listSongs } from "@/lib/data/songs";
 
+export const dynamic = "force-dynamic";
+
 export default function ImportPage() {
   const urlImportEnabled = process.env.VIDEIRA_ENABLE_CIFRACLUB_IMPORT === "true";
 
