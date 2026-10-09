@@ -143,8 +143,8 @@ O parser de texto já produz `ImportDraft`, mas o usuário ainda não consegue i
 | IMP-03 | Importar texto e revisar | T2, T5, T9, F2 | Implemented (F2 complete) |
 | IMP-04 | Importar texto e revisar | T9, F2 | Implemented (F2 complete) |
 | IMP-05 | Vincular e persistir | T3, T5, T9, T11, F2 | Implemented (F2 complete) |
-| IMP-06 | Vincular e persistir | T3, T4, T5, T12, F3 | In Progress (F3 pending) |
-| IMP-07 | Vincular e persistir | T3, T4, T5, T12, F3 | In Progress (F3 pending) |
+| IMP-06 | Vincular e persistir | T3, T4, T5, T12, F3 | Implemented (F3 complete) |
+| IMP-07 | Vincular e persistir | T3, T4, T5, T12, F3 | Implemented (F3 complete) |
 | IMP-08 | Importar URL do Cifra Club | T1, T2, T6, T7, T8, T9, T13, F2, F4 | In Progress (F2 complete; F4 pending) |
 | IMP-09 | Importar URL do Cifra Club | T8, T9, T10, T13, F1, F2 | Implemented (F1-F2 complete) |
 | IMP-10 | Importar URL do Cifra Club | T6, T7, T8, T9, F4 | In Progress (F4 pending) |

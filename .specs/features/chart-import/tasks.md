@@ -434,7 +434,7 @@ T13
 **Gate:** full  
 **Commit:** `fix(import): strengthen review workflow states`
 
-### F3: Serialize imported chart saves
+### F3: Serialize imported chart saves ✅
 
 **What:** Serialize writes per repository at the save use-case boundary so concurrent valid saves cannot overlap or lose records.  
 **Where:** `lib/import/save-imported-chart.ts`, `lib/import/save-imported-chart.test.ts`  
@@ -443,10 +443,10 @@ T13
 
 **Done when:**
 
-- [ ] Two concurrent save calls execute repository writes one at a time.
-- [ ] Both valid songs and charts remain persisted after both calls finish.
-- [ ] A failed write does not block the next queued write.
-- [ ] Quick gate passes.
+- [x] Two concurrent save calls execute repository writes one at a time.
+- [x] Both valid songs and charts remain persisted after both calls finish.
+- [x] A failed write does not block the next queued write.
+- [x] Quick gate passes.
 
 **Tests:** unit  
 **Gate:** quick  

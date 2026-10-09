@@ -24,6 +24,23 @@ export type SaveImportedChartResult = {
   chart: ChordChart;
 };
 
+const repositoryWriteQueues = new WeakMap<MusicRepository, Promise<void>>();
+
+function serializeRepositoryWrite(
+  repository: MusicRepository,
+  write: () => Promise<void>,
+): Promise<void> {
+  const previous = repositoryWriteQueues.get(repository) ?? Promise.resolve();
+  const current = previous.catch(() => undefined).then(write);
+  repositoryWriteQueues.set(repository, current);
+
+  return current.finally(() => {
+    if (repositoryWriteQueues.get(repository) === current) {
+      repositoryWriteQueues.delete(repository);
+    }
+  });
+}
+
 function createLocalSong(
   selection: Extract<SongSelection, { kind: "new" }>,
   confirmedKey: string,
@@ -72,7 +89,10 @@ export async function saveImportedChart(
     key: input.confirmedKey,
   };
 
-  await repository.saveSongAndChart(songToSave, chart);
+  await serializeRepositoryWrite(
+    repository,
+    () => repository.saveSongAndChart(songToSave, chart),
+  );
 
   return { song, chart };
 }

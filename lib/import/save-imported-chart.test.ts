@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { InMemoryMusicRepository } from "@/lib/persistence/music-repository";
 import type { ImportDraft } from "@/types/import";
-import type { Song } from "@/types/music";
+import type { ChordChart, Song } from "@/types/music";
 
 import { saveImportedChart } from "./save-imported-chart";
 
@@ -32,6 +32,53 @@ const DRAFT: ImportDraft = {
   warnings: [],
   stats: { sections: 1, lyricLines: 1, chords: 1, linesIgnored: 0 },
 };
+
+class ConcurrencyProbeRepository extends InMemoryMusicRepository {
+  readonly started: string[] = [];
+  maxActiveWrites = 0;
+  private activeWrites = 0;
+  private releaseFirstWrite!: () => void;
+  private readonly firstWriteGate = new Promise<void>((resolve) => {
+    this.releaseFirstWrite = resolve;
+  });
+
+  releaseFirst(): void {
+    this.releaseFirstWrite();
+  }
+
+  override async saveSongAndChart(
+    song: Song | undefined,
+    chart: ChordChart,
+  ): Promise<void> {
+    this.activeWrites += 1;
+    this.maxActiveWrites = Math.max(this.maxActiveWrites, this.activeWrites);
+    this.started.push(song?.title ?? chart.id);
+
+    try {
+      if (this.started.length === 1) {
+        await this.firstWriteGate;
+      }
+      await super.saveSongAndChart(song, chart);
+    } finally {
+      this.activeWrites -= 1;
+    }
+  }
+}
+
+class FailOnceRepository extends InMemoryMusicRepository {
+  private writes = 0;
+
+  override async saveSongAndChart(
+    song: Song | undefined,
+    chart: ChordChart,
+  ): Promise<void> {
+    this.writes += 1;
+    if (this.writes === 1) {
+      throw new Error("first write failed");
+    }
+    await super.saveSongAndChart(song, chart);
+  }
+}
 
 describe("saveImportedChart", () => {
   it("rejects drafts without explicit key confirmation", async () => {
@@ -118,5 +165,70 @@ describe("saveImportedChart", () => {
     ).rejects.toBe(failure);
 
     expect(DRAFT).toEqual(before);
+  });
+
+  it("serializes concurrent saves and preserves both valid records", async () => {
+    const repository = new ConcurrencyProbeRepository();
+    const first = saveImportedChart(
+      {
+        draft: DRAFT,
+        confirmedKey: "G",
+        song: { kind: "new", title: "Primeira" },
+      },
+      repository,
+    );
+    const second = saveImportedChart(
+      {
+        draft: { ...DRAFT, id: "import-2" },
+        confirmedKey: "A",
+        song: { kind: "new", title: "Segunda" },
+      },
+      repository,
+    );
+
+    await vi.waitFor(() => expect(repository.started).toEqual(["Primeira"]));
+    expect(repository.maxActiveWrites).toBe(1);
+    repository.releaseFirst();
+
+    const [firstResult, secondResult] = await Promise.all([first, second]);
+    expect(repository.started).toEqual(["Primeira", "Segunda"]);
+    expect(repository.maxActiveWrites).toBe(1);
+    await expect(repository.listSongs()).resolves.toEqual([
+      firstResult.song,
+      secondResult.song,
+    ]);
+    await expect(repository.listChartsBySong(firstResult.song.id)).resolves.toEqual([
+      firstResult.chart,
+    ]);
+    await expect(repository.listChartsBySong(secondResult.song.id)).resolves.toEqual([
+      secondResult.chart,
+    ]);
+  });
+
+  it("continues the serialized queue after a failed write", async () => {
+    const repository = new FailOnceRepository();
+    const first = saveImportedChart(
+      {
+        draft: DRAFT,
+        confirmedKey: "G",
+        song: { kind: "new", title: "Falha" },
+      },
+      repository,
+    );
+    const second = saveImportedChart(
+      {
+        draft: { ...DRAFT, id: "import-after-failure" },
+        confirmedKey: "A",
+        song: { kind: "new", title: "Persistida" },
+      },
+      repository,
+    );
+
+    await expect(first).rejects.toThrow("first write failed");
+    const result = await second;
+    await expect(repository.listSongs()).resolves.toEqual([result.song]);
+    await expect(repository.listChartsBySong(result.song.id)).resolves.toEqual([
+      result.chart,
+    ]);
   });
 });
