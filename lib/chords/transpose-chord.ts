@@ -1,0 +1,64 @@
+import { parseChord } from "./parse-chord";
+
+const SHARP_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+const FLAT_NOTES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+const FLAT_KEYS = new Set(["F", "Bb", "Eb", "Ab", "Db", "Gb", "Cb"]);
+
+export type TransposeOptions = {
+  preferFlats?: boolean;
+  key?: string;
+};
+
+function noteIndex(note: string): number {
+  const sharpIndex = SHARP_NOTES.indexOf(note);
+
+  if (sharpIndex >= 0) {
+    return sharpIndex;
+  }
+
+  return FLAT_NOTES.indexOf(note);
+}
+
+function normalizeIndex(index: number): number {
+  return ((index % 12) + 12) % 12;
+}
+
+function shouldUseFlats(note: string, options?: TransposeOptions): boolean {
+  if (options?.preferFlats !== undefined) {
+    return options.preferFlats;
+  }
+
+  if (options?.key && FLAT_KEYS.has(options.key)) {
+    return true;
+  }
+
+  return note.includes("b");
+}
+
+function transposeNote(note: string, semitones: number, options?: TransposeOptions): string {
+  const index = noteIndex(note);
+
+  if (index < 0) {
+    return note;
+  }
+
+  const notes = shouldUseFlats(note, options) ? FLAT_NOTES : SHARP_NOTES;
+  return notes[normalizeIndex(index + semitones)];
+}
+
+export function transposeChord(
+  chordSymbol: string,
+  semitones: number,
+  options?: TransposeOptions,
+): string {
+  const chord = parseChord(chordSymbol);
+
+  if (!chord) {
+    return chordSymbol;
+  }
+
+  const root = transposeNote(chord.root, semitones, options);
+  const bass = chord.bass ? `/${transposeNote(chord.bass, semitones, options)}` : "";
+
+  return `${root}${chord.quality}${bass}`;
+}

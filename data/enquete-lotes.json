@@ -1,0 +1,119 @@
+{
+  "whatsapp_limit_options": 12,
+  "total_songs": 63,
+  "total_polls": 6,
+  "intro_message": "🎵 *Enquete — repertório do ensaio*\n\nVamos escolher o repertório entre 63 músicas. Respondam às *6 enquetes* abaixo (marquem todas que vocês querem ensaiar).\n\n_Cada enquete tem no máximo 12 opções — é limitação do WhatsApp._",
+  "polls": [
+    {
+      "part": 1,
+      "total_parts": 6,
+      "question": "Quais destas músicas você quer no ensaio? (Parte 1/6)",
+      "options": [
+        "1. A começar em mim",
+        "2. Abraça-me",
+        "3. Aclame ao Senhor",
+        "4. Agradeço",
+        "5. Ajuntamento",
+        "6. Amigo de Deus",
+        "7. Aos Pés da Cruz",
+        "8. Aqui estamos oh Deus",
+        "9. Até aqui",
+        "10. Boa companhia",
+        "11. Bondade",
+        "12. Canção da Graça"
+      ],
+      "allow_multiple_answers": true
+    },
+    {
+      "part": 2,
+      "total_parts": 6,
+      "question": "Quais destas músicas você quer no ensaio? (Parte 2/6)",
+      "options": [
+        "13. Cantarei teu amor pra sempre",
+        "14. Comigo Estás",
+        "15. Deus Eterno",
+        "16. Deus me Ama",
+        "17. Digno é o Senhor · Aline Barros",
+        "18. Doce Nome",
+        "19. É o teu povo",
+        "20. Ele continua sendo bom",
+        "21. Ele é exaltado",
+        "22. Entre Nós",
+        "23. Entrega",
+        "24. És"
+      ],
+      "allow_multiple_answers": true
+    },
+    {
+      "part": 3,
+      "total_parts": 6,
+      "question": "Quais destas músicas você quer no ensaio? (Parte 3/6)",
+      "options": [
+        "25. Essência da adoração",
+        "26. Eterno Deus (Everlasting God)",
+        "27. Eu te agradeço",
+        "28. Eu vou construir",
+        "29. Graça sem Fim",
+        "30. Grande é o Senhor",
+        "31. Jesus em Tua Presença",
+        "32. Mais que uma voz",
+        "33. Me derramar",
+        "34. Motivos sem Fim",
+        "35. Não é mais segredo",
+        "36. Não tenhas sobre Ti"
+      ],
+      "allow_multiple_answers": true
+    },
+    {
+      "part": 4,
+      "total_parts": 6,
+      "question": "Quais destas músicas você quer no ensaio? (Parte 4/6)",
+      "options": [
+        "37. Nosso louvor",
+        "38. O Pulso, a Pulsação",
+        "39. Perdão e Graça",
+        "40. Perto Quero Estar",
+        "41. Poder do teu amor",
+        "42. Porque Ele vive",
+        "43. Preciso de Ti",
+        "44. Pulmões",
+        "45. Quebrantado",
+        "46. Recomeçar",
+        "47. Reina em Mim",
+        "48. Salvador Maravilhoso"
+      ],
+      "allow_multiple_answers": true
+    },
+    {
+      "part": 5,
+      "total_parts": 6,
+      "question": "Quais destas músicas você quer no ensaio? (Parte 5/6)",
+      "options": [
+        "49. Sol a meia-noite",
+        "50. Sonda-me, Usa-me",
+        "51. Teu amor é incrível",
+        "52. Todo Dia",
+        "53. Todo Som",
+        "54. Tributo a Yehovah",
+        "55. Tu és soberano + Senhor, formoso és",
+        "56. Tu me faz feliz (Made Me Glad)",
+        "57. Tu sondas",
+        "58. Vem",
+        "59. Vem andar comigo",
+        "60. Vem de Ti, Senhor"
+      ],
+      "allow_multiple_answers": true
+    },
+    {
+      "part": 6,
+      "total_parts": 6,
+      "question": "Quais destas músicas você quer no ensaio? (Parte 6/6)",
+      "options": [
+        "61. Venha sobre nós",
+        "62. Vim para adorar-te",
+        "63. Vou seguir com fé"
+      ],
+      "allow_multiple_answers": true
+    }
+  ]
+}

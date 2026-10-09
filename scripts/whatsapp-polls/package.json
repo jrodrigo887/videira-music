@@ -1,0 +1,13 @@
+{
+  "name": "videira-whatsapp-polls",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "send": "node send-polls.mjs",
+    "dry-run": "DRY_RUN=1 node send-polls.mjs"
+  },
+  "dependencies": {
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.26.0"
+  }
+}
