@@ -213,7 +213,7 @@ T13
 **Gate:** quick  
 **Commit:** `feat(import): parse cifra club html`
 
-### T7: Implement queued headed Cifra Club source
+### T7: Implement queued headed Cifra Club source ✅
 
 **What:** Add server-only Playwright I/O with FIFO spacing, singleton browser, idle close, cache and typed failures.  
 **Where:** `lib/import/sources/cifraclub.ts`  
@@ -228,12 +228,12 @@ T13
 
 **Done when:**
 
-- [ ] Navigations start at least 10 seconds apart and retain FIFO order.
-- [ ] Browser is headed, reused and closed after 60 seconds idle.
-- [ ] Cache keys are SHA-256 hashes of canonical URLs.
-- [ ] Final redirect host is revalidated.
-- [ ] Timeout, blocked page, corrupt cache and disconnect paths are tested without live network.
-- [ ] Unit gate passes.
+- [x] Navigations start at least 10 seconds apart and retain FIFO order.
+- [x] Browser is headed, reused and closed after 60 seconds idle.
+- [x] Cache keys are SHA-256 hashes of canonical URLs.
+- [x] Final redirect host is revalidated.
+- [x] Timeout, blocked page, corrupt cache and disconnect paths are tested without live network.
+- [x] Unit gate passes.
 
 **Tests:** unit  
 **Gate:** quick  
