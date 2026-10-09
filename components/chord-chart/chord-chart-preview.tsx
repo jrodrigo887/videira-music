@@ -35,9 +35,9 @@ function LyricsLine({
     .join("");
 
   return (
-    <div className="font-mono text-sm leading-7">
-      <pre className="overflow-x-auto whitespace-pre text-leaf-700">{chordLine || " "}</pre>
-      <pre className="overflow-x-auto whitespace-pre text-slate-950">{line.text}</pre>
+    <div className="space-y-0.5">
+      <pre className="music-chords overflow-x-auto whitespace-pre">{chordLine || " "}</pre>
+      <pre className="music-lyrics overflow-x-auto whitespace-pre">{line.text}</pre>
     </div>
   );
 }
@@ -73,7 +73,7 @@ function GridChart({ chart, semitones }: { chart: ChordChart; semitones: number 
             {section.content.measures.map((measure) => (
               <div
                 key={`${section.id}-${measure.index}`}
-                className="min-h-16 rounded-xl border border-slate-200 bg-slate-50 p-3 font-mono text-sm font-semibold text-slate-950"
+                className="music-measure"
               >
                 {measure.chords
                   .map((chord) => transpose(chord.symbol, semitones, chart.key))

@@ -1,7 +1,21 @@
 import type { Metadata } from "next";
+import { Atkinson_Hyperlegible, JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
 
 import "./globals.css";
+
+const lyricsFont = Atkinson_Hyperlegible({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-lyrics",
+  display: "swap",
+});
+
+const chordFont = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-chord",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Videira Music",
@@ -15,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className="font-sans antialiased">
+      <body className={`${lyricsFont.variable} ${chordFont.variable} font-sans antialiased`}>
         <header className="border-b border-slate-200 bg-white/80 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
             <Link href="/" className="text-lg font-bold text-leaf-900">

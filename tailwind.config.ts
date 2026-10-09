@@ -48,7 +48,10 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "Inter", "system-ui", "sans-serif"],
+        sans: ["var(--font-lyrics)", "system-ui", "sans-serif"],
+        lyrics: ["var(--font-lyrics)", "system-ui", "sans-serif"],
+        chord: ["var(--font-chord)", "ui-monospace", "SFMono-Regular", "monospace"],
+        mono: ["var(--font-chord)", "ui-monospace", "SFMono-Regular", "monospace"],
       },
     },
   },

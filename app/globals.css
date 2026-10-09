@@ -24,3 +24,18 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+
+@layer components {
+  .music-lyrics {
+    @apply font-lyrics text-[1.0625rem] leading-8 tracking-[0.01em] text-slate-950;
+  }
+
+  .music-chords {
+    @apply font-chord text-sm font-semibold leading-7 tracking-tight text-leaf-700;
+  }
+
+  .music-measure {
+    @apply min-h-16 rounded-xl border border-slate-200 bg-slate-50 p-3 font-chord text-sm font-semibold leading-7 text-slate-950;
+  }
+}
