@@ -188,7 +188,7 @@ T13
 
 ### Phase 2: Cifra Club server path
 
-### T6: Parse Cifra Club HTML into RawChart
+### T6: Parse Cifra Club HTML into RawChart ✅
 
 **What:** Validate supported URLs and extract chart text, marked chords and semantic metadata from synthetic HTML.  
 **Where:** `lib/import/sources/cifraclub-parse.ts`  
@@ -203,11 +203,11 @@ T13
 
 **Done when:**
 
-- [ ] Only HTTPS Cifra Club hosts pass validation.
-- [ ] Text and `data-chord-name` tokens preserve order.
-- [ ] JSON-LD, key, capo and YouTube metadata are extracted with documented precedence.
-- [ ] Missing chart content raises `SOURCE_LAYOUT_CHANGED`.
-- [ ] Synthetic fixtures contain no protected lyrics and unit gate passes.
+- [x] Only HTTPS Cifra Club hosts pass validation.
+- [x] Text and `data-chord-name` tokens preserve order.
+- [x] JSON-LD, key, capo and YouTube metadata are extracted with documented precedence.
+- [x] Missing chart content raises `SOURCE_LAYOUT_CHANGED`.
+- [x] Synthetic fixtures contain no protected lyrics and unit gate passes.
 
 **Tests:** unit  
 **Gate:** quick  
