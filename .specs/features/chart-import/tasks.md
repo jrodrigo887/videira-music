@@ -113,7 +113,7 @@ T13
 **Gate:** quick  
 **Commit:** `feat(import): accept raw chart metadata`
 
-### T3: Define local music repository contracts
+### T3: Define local music repository contracts ✅
 
 **What:** Define async repositories for local songs and charts, including lookup by origin URL and an atomic save boundary.  
 **Where:** `lib/persistence/music-repository.ts`  
@@ -128,10 +128,10 @@ T13
 
 **Done when:**
 
-- [ ] Interfaces expose only feature-required operations.
-- [ ] In-memory implementation supports deterministic use-case tests.
-- [ ] Repository failure can be injected without browser APIs.
-- [ ] Unit tests cover query, save and failure behavior.
+- [x] Interfaces expose only feature-required operations.
+- [x] In-memory implementation supports deterministic use-case tests.
+- [x] Repository failure can be injected without browser APIs.
+- [x] Unit tests cover query, save and failure behavior.
 
 **Tests:** unit  
 **Gate:** quick  
