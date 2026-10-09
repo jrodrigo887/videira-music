@@ -161,7 +161,7 @@ T13
 **Gate:** full  
 **Commit:** `feat(persistence): store songs and charts in indexeddb`
 
-### T5: Implement save-imported-chart use case
+### T5: Implement save-imported-chart use case ✅
 
 **What:** Validate review state, create or link a song, materialize the chart and save it atomically.  
 **Where:** `lib/import/save-imported-chart.ts`  
@@ -176,11 +176,11 @@ T13
 
 **Done when:**
 
-- [ ] Missing key confirmation or song selection is rejected.
-- [ ] Existing song linking preserves the chosen `songId`.
-- [ ] New IDs cannot collide with numeric seed IDs.
-- [ ] Storage failure returns without mutating the draft.
-- [ ] Unit tests map 1:1 to persistence ACs and quick gate passes.
+- [x] Missing key confirmation or song selection is rejected.
+- [x] Existing song linking preserves the chosen `songId`.
+- [x] New IDs cannot collide with numeric seed IDs.
+- [x] Storage failure returns without mutating the draft.
+- [x] Unit tests map 1:1 to persistence ACs and quick gate passes.
 
 **Tests:** unit  
 **Gate:** quick  
