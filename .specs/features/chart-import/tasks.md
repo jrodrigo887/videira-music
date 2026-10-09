@@ -281,13 +281,13 @@ T13
 
 **Done when:**
 
-- [ ] Paste and enabled URL paths reach the same review state.
-- [ ] Empty/oversized text cannot advance.
-- [ ] Save remains disabled until key and song are confirmed.
-- [ ] Section type changes update preview and preserve labels.
-- [ ] Existing URL opens its saved chart without calling the API.
-- [ ] Source failures expose paste fallback and storage failures preserve the draft.
-- [ ] React integration tests cover every state transition and full gate passes.
+- [x] Paste and enabled URL paths reach the same review state.
+- [x] Empty/oversized text cannot advance.
+- [x] Save remains disabled until key and song are confirmed.
+- [x] Section type changes update preview and preserve labels.
+- [x] Existing URL opens its saved chart without calling the API.
+- [x] Source failures expose paste fallback and storage failures preserve the draft.
+- [x] React integration tests cover every state transition and full gate passes.
 
 **Tests:** integration  
 **Gate:** full  
