@@ -23,6 +23,29 @@ function normalizeIndex(index: number): number {
   return ((index % 12) + 12) % 12;
 }
 
+/** Root pitch class from a key label such as `G`, `Am` or `F#`. */
+export function parseKeyRoot(key: string): string | undefined {
+  const match = key.trim().match(/^([A-G](?:#|b)?)/);
+  return match?.[1];
+}
+
+/** Semitone steps to transpose from `fromKey` so its root matches `toKey`. */
+export function semitonesBetweenKeys(fromKey: string, toKey: string): number {
+  const fromRoot = parseKeyRoot(fromKey);
+  const toRoot = parseKeyRoot(toKey);
+  if (!fromRoot || !toRoot) {
+    return 0;
+  }
+
+  const fromIndex = noteIndex(fromRoot);
+  const toIndex = noteIndex(toRoot);
+  if (fromIndex < 0 || toIndex < 0) {
+    return 0;
+  }
+
+  return normalizeIndex(toIndex - fromIndex);
+}
+
 function shouldUseFlats(note: string, options?: TransposeOptions): boolean {
   if (options?.preferFlats !== undefined) {
     return options.preferFlats;

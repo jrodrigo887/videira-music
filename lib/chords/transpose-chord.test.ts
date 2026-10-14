@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { transposeChord } from "./transpose-chord";
+import { semitonesBetweenKeys, transposeChord } from "./transpose-chord";
 
 describe("transposeChord", () => {
   it("transposes a major chord up", () => {
@@ -25,5 +25,13 @@ describe("transposeChord", () => {
 
   it("keeps invalid text unchanged", () => {
     expect(transposeChord("not a chord", 2)).toBe("not a chord");
+  });
+});
+
+describe("semitonesBetweenKeys", () => {
+  it("measures the interval between two key roots", () => {
+    expect(semitonesBetweenKeys("C", "G")).toBe(7);
+    expect(semitonesBetweenKeys("G", "C")).toBe(5);
+    expect(semitonesBetweenKeys("F#m", "G")).toBe(1);
   });
 });
