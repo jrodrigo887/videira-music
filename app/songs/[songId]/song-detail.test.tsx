@@ -2,7 +2,7 @@
 
 import "@testing-library/jest-dom/vitest";
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { InMemoryMusicRepository } from "@/lib/persistence/music-repository";
@@ -57,9 +57,64 @@ function persistedChart(songId: string): ChordChart {
   };
 }
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+});
 
 describe("SongDetail", () => {
+  it("uses setlist-scoped transpose without affecting the global song preference", async () => {
+    const chart = persistedChart(SEED_SONG.id);
+    localStorage.setItem(
+      "videira-music:song-transpose",
+      JSON.stringify({
+        [SEED_SONG.id]: { semitones: 4 },
+        "setlist:sl-1:item:item-1": { semitones: 1 },
+      }),
+    );
+
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        setlistContext={{
+          setlistId: "sl-1",
+          setlistItemId: "item-1",
+          selectedKey: "A",
+        }}
+        repository={new InMemoryMusicRepository([SEED_SONG], [chart])}
+      />,
+    );
+
+    expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
+
+    await waitFor(() => {
+      const chordLine = document.querySelector(".music-chords");
+      expect(chordLine).toHaveTextContent("G#");
+    });
+  });
+
+  it("restores the last selected transpose offset when reopening the song", async () => {
+    const chart = persistedChart(SEED_SONG.id);
+    localStorage.setItem(
+      "videira-music:song-transpose",
+      JSON.stringify({ [SEED_SONG.id]: { semitones: 2 } }),
+    );
+
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        repository={new InMemoryMusicRepository([SEED_SONG], [chart])}
+      />,
+    );
+
+    expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
+
+    await waitFor(() => {
+      const chordLine = document.querySelector(".music-chords");
+      expect(chordLine).toHaveTextContent("A");
+    });
+  });
+
   it("loads a seed song and replaces demos with persisted charts", async () => {
     const chart = persistedChart(SEED_SONG.id);
     render(
@@ -76,7 +131,7 @@ describe("SongDetail", () => {
 
     const chordLine = document.querySelector(".music-chords");
     expect(chordLine).toHaveTextContent("G");
-    fireEvent.click(screen.getByRole("button", { name: "+1" }));
+    fireEvent.click(screen.getByRole("button", { name: "Aumentar meio-tom" }));
     expect(chordLine).toHaveTextContent("G#");
   });
 

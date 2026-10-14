@@ -1,6 +1,8 @@
+import { Suspense } from "react";
+
 import { isImportModuleVisibleInUi } from "@/lib/import-access/import-module-config";
 
-import { SongDetail } from "./song-detail";
+import { SongDetailPageClient } from "./song-detail-page-client";
 
 type SongDetailPageProps = {
   params: Promise<{
@@ -13,6 +15,11 @@ export const dynamic = "force-dynamic";
 export default async function SongDetailPage({ params }: SongDetailPageProps) {
   const { songId } = await params;
   return (
-    <SongDetail songId={songId} importLinkVisible={isImportModuleVisibleInUi()} />
+    <Suspense fallback={<p className="text-content-muted">Carregando música…</p>}>
+      <SongDetailPageClient
+        songId={songId}
+        importLinkVisible={isImportModuleVisibleInUi()}
+      />
+    </Suspense>
   );
 }

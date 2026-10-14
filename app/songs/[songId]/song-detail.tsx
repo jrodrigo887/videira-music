@@ -5,16 +5,38 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ChordChartPreview } from "@/components/chord-chart/chord-chart-preview";
 import { buildExampleCharts } from "@/lib/charts/example-charts";
-import { transposeChord } from "@/lib/chords/transpose-chord";
+import { semitonesBetweenKeys, transposeChord } from "@/lib/chords/transpose-chord";
 import { HttpMusicRepository } from "@/lib/persistence/http-music-repository";
 import type { MusicRepository } from "@/lib/persistence/music-repository";
+import type { SetlistSongContext } from "@/lib/songs/setlist-song-context";
+import {
+  readTransposeSemitones,
+  writeTransposeSemitones,
+  type TransposePreferenceScope,
+} from "@/lib/songs/transpose-preference";
 import type { ChordChart, Song } from "@/types/music";
 
 type SongDetailProps = {
   songId: string;
   importLinkVisible?: boolean;
   repository?: MusicRepository;
+  setlistContext?: SetlistSongContext;
 };
+
+function transposePreferenceScope(
+  songId: string,
+  setlistContext?: SetlistSongContext,
+): TransposePreferenceScope {
+  if (setlistContext) {
+    return {
+      kind: "setlist-item",
+      setlistId: setlistContext.setlistId,
+      itemId: setlistContext.setlistItemId,
+    };
+  }
+
+  return { kind: "song", songId };
+}
 
 type DetailState =
   | { status: "loading" }
@@ -28,7 +50,13 @@ export function SongDetail({
   songId,
   importLinkVisible = false,
   repository: suppliedRepository,
+  setlistContext,
 }: SongDetailProps) {
+  const transposeScope = useMemo(
+    () => transposePreferenceScope(songId, setlistContext),
+    [songId, setlistContext],
+  );
+  const setlistSelectedKey = setlistContext?.selectedKey;
   const repository = useMemo(
     () => suppliedRepository ?? new HttpMusicRepository(),
     [suppliedRepository],
@@ -36,6 +64,7 @@ export function SongDetail({
   const [state, setState] = useState<DetailState>({ status: "loading" });
   const [reloadToken, setReloadToken] = useState(0);
   const [semitones, setSemitones] = useState(0);
+  const [transposePreferenceReady, setTransposePreferenceReady] = useState(false);
   const [showDiagrams, setShowDiagrams] = useState(true);
   const [columns, setColumns] = useState<1 | 2>(1);
   const [fontSizeIndex, setFontSizeIndex] = useState(1);
@@ -77,6 +106,38 @@ export function SongDetail({
       active = false;
     };
   }, [repository, songId, reloadToken]);
+
+  useEffect(() => {
+    if (state.status !== "ready") {
+      setTransposePreferenceReady(false);
+      return;
+    }
+
+    const baseKey =
+      state.song.defaultKey ?? state.charts[0]?.key ?? "C";
+    const saved = readTransposeSemitones(transposeScope);
+    if (saved !== undefined) {
+      setSemitones(saved);
+    } else if (setlistSelectedKey) {
+      setSemitones(semitonesBetweenKeys(baseKey, setlistSelectedKey));
+    } else {
+      setSemitones(0);
+    }
+    setTransposePreferenceReady(true);
+  }, [
+    setlistSelectedKey,
+    state,
+    transposeScope,
+    reloadToken,
+  ]);
+
+  useEffect(() => {
+    if (!transposePreferenceReady || state.status !== "ready") {
+      return;
+    }
+
+    writeTransposeSemitones(transposeScope, semitones);
+  }, [semitones, state.status, transposePreferenceReady, transposeScope]);
 
   if (state.status === "loading") {
     return <p className="text-content-muted">Carregando música…</p>;
@@ -130,6 +191,51 @@ export function SongDetail({
                 + Importar cifra
               </Link>
             ) : null}
+          </div>
+
+          <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+            <section className="px-3 py-3">
+              <p className="ds-eyebrow mb-2">Música</p>
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center rounded-full bg-content px-3 py-1 text-xs font-semibold text-content-inverse">
+                  Principal
+                </span>
+                <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold text-content-muted">
+                  {state.persistedCharts ? "Cifras importadas" : "Cifras de exemplo"}
+                </span>
+                {state.charts.length > 1 ? (
+                  <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-content-subtle">
+                    {state.charts.length} formatos
+                  </span>
+                ) : null}
+              </div>
+            </section>
+
+            {state.charts.map((chart, chartIndex) => {
+              const chartSectionLabel =
+                state.charts.length > 1
+                  ? (chart.title?.trim() || `Cifra ${chartIndex + 1}`)
+                  : "Cifra";
+
+              return (
+                <section key={chart.id} className="px-3 py-3">
+                  <p className="ds-eyebrow mb-2">{chartSectionLabel}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="inline-flex items-center rounded-full bg-content px-3 py-1 text-xs font-semibold text-content-inverse">
+                      {chart.format === "lyrics" ? "Cifra com letra" : "Grade por compassos"}
+                    </span>
+                    <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-content-muted">
+                      Compasso {chart.timeSignature}
+                    </span>
+                    {chart.capo ? (
+                      <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-content-muted">
+                        Capo {chart.capo}ª
+                      </span>
+                    ) : null}
+                  </div>
+                </section>
+              );
+            })}
           </div>
 
           <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
@@ -210,81 +316,75 @@ export function SongDetail({
           </div>
         </aside>
 
-        <div className="space-y-6">
-          <section className="ds-card p-6 sm:p-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <div className="flex items-center gap-2.5">
-                  <h1 className="text-3xl font-extrabold tracking-tight text-content sm:text-4xl">
-                    {state.song.title}
-                  </h1>
-                  <span
-                    aria-hidden="true"
-                    className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground"
-                  >
-                    ✓
-                  </span>
-                </div>
+        <article className="ds-card p-6 sm:p-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-3xl font-extrabold tracking-tight text-content sm:text-4xl">
+                  {state.song.title}
+                </h1>
+                <span
+                  aria-hidden="true"
+                  className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground"
+                >
+                  ✓
+                </span>
+              </div>
 
-                {state.song.artist ? (
-                  <p className="mt-1 text-lg font-bold text-primary">
-                    {state.song.artist}
-                  </p>
-                ) : null}
+              {state.song.artist ? (
+                <p className="mt-1 text-lg font-bold text-primary">
+                  {state.song.artist}
+                </p>
+              ) : null}
 
+              {state.song.meta ? (
                 <p className="mt-1 text-sm text-content-muted">{state.song.meta}</p>
-              </div>
-
-              {state.song.defaultKey ? (
-                <span className="ds-badge px-4 py-1.5 text-sm">
-                  Tom {state.song.defaultKey}
-                </span>
               ) : null}
             </div>
 
-            <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-border pt-4">
-              <span className="inline-flex items-center rounded-full bg-content px-3.5 py-1.5 text-xs font-semibold text-content-inverse">
-                Principal
+            {state.song.defaultKey ? (
+              <span className="ds-badge px-4 py-1.5 text-sm">
+                Tom {state.song.defaultKey}
               </span>
-              <span className="inline-flex items-center rounded-full bg-surface-muted px-3.5 py-1.5 text-xs font-semibold text-content-muted">
-                {state.persistedCharts ? "Cifras importadas" : "Cifras de exemplo"}
-              </span>
-              {state.charts.length > 1 ? (
-                <span className="inline-flex items-center rounded-full bg-surface-muted px-3.5 py-1.5 text-xs font-medium text-content-subtle">
-                  {state.charts.length} formatos
-                </span>
-              ) : null}
-            </div>
-          </section>
+            ) : null}
+          </div>
 
-          <section className="space-y-6">
-            {state.charts.map((chart) => (
-              <div key={chart.id} className="space-y-2">
-                {chart.origin?.url ? (
-                  <p className="px-1 text-sm text-content-muted">
-                    Fonte:{" "}
-                    <a
-                      href={chart.origin.url}
-                      className="ds-link"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {chart.origin.sourceName ?? "Origem"}
-                    </a>
-                  </p>
-                ) : null}
-                <ChordChartPreview
-                  chart={chart}
-                  semitones={semitones}
-                  onSemitonesChange={setSemitones}
-                  showDiagrams={showDiagrams}
-                  columns={columns}
-                  fontSizePercent={fontSizePercent}
-                />
-              </div>
-            ))}
-          </section>
-        </div>
+          {state.charts.map((chart, index) => (
+            <div
+              key={chart.id}
+              className={
+                index === 0
+                  ? "mt-6 space-y-3 border-t border-border pt-6"
+                  : "mt-8 space-y-3 border-t border-border pt-8"
+              }
+            >
+              {chart.origin?.url ? (
+                <p className="text-sm text-content-muted">
+                  Fonte:{" "}
+                  <a
+                    href={chart.origin.url}
+                    className="ds-link"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {chart.origin.sourceName ?? "Origem"}
+                  </a>
+                </p>
+              ) : null}
+              <ChordChartPreview
+                chart={chart}
+                layout="embedded"
+                semitones={semitones}
+                onSemitonesChange={setSemitones}
+                syncDisplayKeyBase={baseKey}
+                showTransposeControls
+                showDiagrams={showDiagrams}
+                columns={columns}
+                fontSizePercent={fontSizePercent}
+              />
+            </div>
+          ))}
+        </article>
       </div>
     </div>
   );
