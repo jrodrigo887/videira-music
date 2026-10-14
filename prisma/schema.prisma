@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        String       @id
+  slug      String       @unique
+  name      String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  songs     Song[]
+  charts    ChordChart[]
+}
+
+model Song {
+  id             String       @id
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  title          String
+  label          String
+  artist         String?
+  genre          String?
+  defaultKey     String?
+  alternateKeys  Json
+  notes          String?
+  meta           String
+  searchText     String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  charts         ChordChart[]
+
+  @@index([organizationId])
+}
+
+model ChordChart {
+  id             String       @id
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  songId         String
+  song           Song         @relation(fields: [songId], references: [id])
+  title          String?
+  format         String
+  key            String
+  timeSignature  String
+  tempo          Int?
+  capo           Int?
+  sections       Json
+  source         String?
+  origin         Json?
+  originUrl      String?
+  schemaVersion  Int          @default(1)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, originUrl])
+  @@index([organizationId, songId])
+}

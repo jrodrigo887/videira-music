@@ -3,7 +3,7 @@ import { classifyLines, type ClassifiedLine } from "@/lib/import/classify-lines"
 import { detectKey } from "@/lib/import/detect-key";
 import { normalizeText } from "@/lib/import/normalize-text";
 import { matchSectionType, resolveSectionType } from "@/lib/import/section-type";
-import type { ImportDraft, ImportOrigin, ImportWarning } from "@/types/import";
+import type { ImportDraft, ImportOrigin, ImportWarning, RawChartMeta } from "@/types/import";
 import type { ChordChart, Song } from "@/types/music";
 
 export type PreviewImportInput = {
@@ -14,6 +14,8 @@ export type PreviewImportInput = {
     title?: string;
     artist?: string;
   };
+  meta?: RawChartMeta;
+  chordTokens?: string[];
 };
 
 const DEFAULT_ORIGIN: ImportOrigin = { kind: "paste" };
@@ -73,12 +75,13 @@ function countChart(sections: ChordChart["sections"], linesIgnored: number): Imp
 
 function songMetadata(
   hints: PreviewImportInput["hints"],
+  meta: PreviewImportInput["meta"],
   detectedKey: string | undefined,
 ): ImportDraft["song"] {
   const song: Partial<Pick<Song, "title" | "artist" | "defaultKey">> = {};
 
-  if (hints?.title) song.title = hints.title;
-  if (hints?.artist) song.artist = hints.artist;
+  if (hints?.title ?? meta?.title) song.title = hints?.title ?? meta?.title;
+  if (hints?.artist ?? meta?.artist) song.artist = hints?.artist ?? meta?.artist;
   if (detectedKey) song.defaultKey = detectedKey;
 
   return song;
@@ -86,15 +89,17 @@ function songMetadata(
 
 export function previewImport(input: PreviewImportInput): ImportDraft {
   const origin = input.origin ?? DEFAULT_ORIGIN;
-  const classified = classifyLines(normalizeText(input.text));
+  const classified = classifyLines(normalizeText(input.text), { chordTokens: input.chordTokens });
   const assembled = assembleSections(classified.lines, { resolveSectionType });
   const keyDetection = detectKey({
     sections: assembled.sections,
     lines: classified.lines,
+    meta: input.meta,
     hints: { key: input.hints?.key },
   });
+  const title = input.hints?.title ?? input.meta?.title;
   const chart: ImportDraft["chart"] = {
-    ...(input.hints?.title ? { title: input.hints.title } : {}),
+    ...(title ? { title } : {}),
     format: "lyrics",
     key: keyDetection.key ?? "C",
     timeSignature: "4/4",
@@ -118,7 +123,7 @@ export function previewImport(input: PreviewImportInput): ImportDraft {
     id: `import-${crypto.randomUUID()}`,
     origin,
     rawText: input.text,
-    song: songMetadata(input.hints, keyDetection.key),
+    song: songMetadata(input.hints, input.meta, keyDetection.key),
     chart,
     warnings,
     stats: countChart(assembled.sections, assembled.ignoredLines.length),

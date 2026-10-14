@@ -31,7 +31,7 @@ function extractArtist(meta: string): string | undefined {
   return artist || undefined;
 }
 
-function toSong(seed: SeedSong): Song {
+export function toSong(seed: SeedSong): Song {
   const keys = extractKeys(seed.meta);
 
   return {

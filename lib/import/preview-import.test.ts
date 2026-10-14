@@ -93,4 +93,62 @@ describe("previewImport", () => {
     expect(draft.warnings).toEqual([]);
     expect(draft.stats).toEqual({ sections: 1, lyricLines: 1, chords: 1, linesIgnored: 2 });
   });
+
+  it("uses marked chord tokens instead of heuristic chord classification", () => {
+    const draft = previewImport({
+      text: "[Verso]\nC G\nAm F\nLetra inventada",
+      chordTokens: ["Am", "F"],
+    });
+
+    expect(draft.stats).toEqual({ sections: 1, lyricLines: 2, chords: 2, linesIgnored: 0 });
+    expect(draft.chart.sections[0].content).toMatchObject({
+      lines: [
+        { text: "C G", chords: [] },
+        {
+          text: "Letra inventada",
+          chords: [
+            { symbol: "Am", position: 0 },
+            { symbol: "F", position: 3 },
+          ],
+        },
+      ],
+    });
+  });
+
+  it("populates draft metadata without treating the page key as a trusted hint", () => {
+    const draft = previewImport({
+      text: "[Verso]\nTexto inventado",
+      meta: {
+        title: "Canção da página",
+        artist: "Artista da página",
+        key: "D",
+        capo: 2,
+      },
+    });
+
+    expect(draft.song).toEqual({
+      title: "Canção da página",
+      artist: "Artista da página",
+      defaultKey: "D",
+    });
+    expect(draft.chart).toMatchObject({ title: "Canção da página", key: "D", capo: 2 });
+    expect(draft.warnings).toEqual([]);
+  });
+
+  it("prefers the chord-derived key and warns when page metadata disagrees", () => {
+    const draft = previewImport({
+      text: "[Verso]\nAm F\nLetra inventada",
+      meta: { key: "C", keyLabel: "C maior" },
+      chordTokens: ["Am", "F"],
+    });
+
+    expect(draft.song.defaultKey).toBe("Am");
+    expect(draft.chart.key).toBe("Am");
+    expect(draft.warnings).toEqual([
+      {
+        code: "KEY_MISMATCH",
+        message: expect.stringContaining("C maior"),
+      },
+    ]);
+  });
 });

@@ -3,10 +3,27 @@
 import { useState } from "react";
 
 import { transposeChord } from "@/lib/chords/transpose-chord";
-import type { ChordChart, GridSectionContent, LyricsSectionContent, Section } from "@/types/music";
+import type {
+  ChordChart,
+  GridSectionContent,
+  LyricsSectionContent,
+  Section,
+  SectionType,
+} from "@/types/music";
 
 type ChordChartPreviewProps = {
   chart: ChordChart;
+};
+
+const SECTION_TYPE_LABELS: Record<SectionType, string> = {
+  intro: "Introdução",
+  verse: "Verso",
+  preChorus: "Pré-refrão",
+  chorus: "Refrão",
+  bridge: "Ponte",
+  instrumental: "Instrumental",
+  solo: "Solo",
+  ending: "Final",
 };
 
 function hasLyricsContent(section: Section): section is Section & { content: LyricsSectionContent } {
@@ -50,6 +67,9 @@ function LyricsChart({ chart, semitones }: { chart: ChordChart; semitones: numbe
           <h3 className="ds-eyebrow mb-3 text-content-subtle">
             {section.label}
           </h3>
+          <p className="mb-2 text-xs text-content-muted">
+            Tipo: {SECTION_TYPE_LABELS[section.type]}
+          </p>
           <div className="space-y-2">
             {section.content.lines.map((line, index) => (
               <LyricsLine key={`${section.id}-${index}`} line={line} semitones={semitones} chartKey={chart.key} />
@@ -69,6 +89,9 @@ function GridChart({ chart, semitones }: { chart: ChordChart; semitones: number 
           <h3 className="ds-eyebrow mb-3 text-content-subtle">
             {section.label}
           </h3>
+          <p className="mb-2 text-xs text-content-muted">
+            Tipo: {SECTION_TYPE_LABELS[section.type]}
+          </p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {section.content.measures.map((measure) => (
               <div
