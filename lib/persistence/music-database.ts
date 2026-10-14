@@ -1,7 +1,9 @@
 import type { MusicRepository } from "@/lib/persistence/music-repository";
+import { canonicalizeOriginUrl } from "@/lib/persistence/origin-url";
 import type { ChordChart, Song, SongId } from "@/types/music";
 
-const DATABASE_NAME = "videira-music";
+export const DATABASE_NAME = "videira-music";
+export const MIGRATION_MARKER_KEY = "videira-music:indexeddb-migration";
 const DATABASE_VERSION = 1;
 const SONGS_STORE = "songs";
 const CHARTS_STORE = "charts";
@@ -16,12 +18,6 @@ type DatabaseOptions = {
   databaseName?: string;
   indexedDB?: IDBFactory;
 };
-
-function canonicalizeOriginUrl(url: string): string {
-  const canonical = new URL(url);
-  canonical.hash = "";
-  return canonical.href;
-}
 
 function requestResult<T>(request: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -109,6 +105,18 @@ export class IndexedDbMusicRepository implements MusicRepository {
     const transaction = (await this.open()).transaction(CHARTS_STORE, "readwrite");
     transaction.objectStore(CHARTS_STORE).put(toStoredChart(chart));
     await transactionDone(transaction);
+  }
+
+  async exportAll(): Promise<{ songs: Song[]; charts: ChordChart[] }> {
+    const transaction = (await this.open()).transaction(
+      [SONGS_STORE, CHARTS_STORE],
+      "readonly",
+    );
+    const songs = await requestResult<Song[]>(transaction.objectStore(SONGS_STORE).getAll());
+    const charts = (
+      await requestResult<StoredChart[]>(transaction.objectStore(CHARTS_STORE).getAll())
+    ).map(fromStoredChart);
+    return { songs, charts };
   }
 
   async saveSongAndChart(song: Song | undefined, chart: ChordChart): Promise<void> {

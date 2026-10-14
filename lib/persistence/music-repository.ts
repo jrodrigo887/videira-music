@@ -1,3 +1,5 @@
+import { canonicalizeOriginUrl } from "@/lib/persistence/origin-url";
+import { SongNotFoundError } from "@/lib/persistence/repository-error";
 import type { ChordChart, Song, SongId } from "@/types/music";
 
 export type SongRepository = {
@@ -53,7 +55,13 @@ export class InMemoryMusicRepository implements MusicRepository {
 
   async findChartByOriginUrl(url: string): Promise<ChordChart | undefined> {
     this.assertAvailable();
-    return [...this.charts.values()].find((chart) => chart.origin?.url === url);
+    const canonical = canonicalizeOriginUrl(url);
+    return [...this.charts.values()].find((chart) => {
+      if (!chart.origin?.url) {
+        return false;
+      }
+      return canonicalizeOriginUrl(chart.origin.url) === canonical;
+    });
   }
 
   async saveChart(chart: ChordChart): Promise<void> {
@@ -65,7 +73,12 @@ export class InMemoryMusicRepository implements MusicRepository {
     this.assertAvailable();
 
     if (song) {
+      if (chart.songId !== song.id) {
+        throw new SongNotFoundError();
+      }
       this.songs.set(song.id, song);
+    } else if (!this.songs.has(chart.songId)) {
+      throw new SongNotFoundError();
     }
     this.charts.set(chart.id, chart);
   }
