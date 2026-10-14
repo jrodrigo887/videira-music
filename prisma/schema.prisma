@@ -60,3 +60,14 @@ model ChordChart {
   @@unique([organizationId, originUrl])
   @@index([organizationId, songId])
 }
+
+model ImportLog {
+  id         String   @id @default(cuid())
+  occurredAt DateTime
+  action     String
+  outcome    String
+  url        String?
+  chartId    String?
+
+  @@index([occurredAt])
+}
