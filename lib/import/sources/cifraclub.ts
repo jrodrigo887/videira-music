@@ -77,7 +77,7 @@ function isTimeout(error: unknown): boolean {
 }
 
 function blockedHtml(html: string): boolean {
-  return /captcha|akamai|access denied|verify you are human/i.test(html);
+  return /captcha|access denied|verify you are human/i.test(html);
 }
 
 function sourceError(error: unknown): ImportSourceError {

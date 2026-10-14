@@ -196,6 +196,16 @@ describe("createCifraClubSource", () => {
     });
   });
 
+  it("accepts a loaded chart that references the Akamai CDN", async () => {
+    const html = `${VALID_HTML}<link href="https://akamai.sscdn.co/ccn/app.css" rel="stylesheet">`;
+    const browser = new FakeBrowser([new FakePage(URL_ONE, html)]);
+    const source = createCifraClubSource(harness([browser]).dependencies);
+
+    const result = await source.fetch(URL_ONE);
+
+    expect(result.text).toContain("Letra inventada");
+  });
+
   it.each([
     { status: 403, html: VALID_HTML },
     { status: 200, html: "<html>captcha challenge</html>" },
