@@ -607,6 +607,14 @@ export function ChordChartPreview({
     showFormatTags || !embedded || Boolean(chartTitle) || showTransposeControls;
   const embeddedHeaderOnlyKey =
     embedded && !showFormatTags && !chartTitle && showTransposeControls;
+  const chartBodyClassName = [
+    "max-w-full overflow-x-auto pb-2",
+    embedded && !showChartHeader && !(showDiagrams && uniqueChords.length > 0)
+      ? undefined
+      : embedded
+        ? "mt-5"
+        : "mt-6",
+  ].filter(Boolean).join(" ");
 
   return (
     <Wrapper className={embedded ? undefined : "ds-card p-6 sm:p-8"}>
@@ -703,13 +711,7 @@ export function ChordChartPreview({
       ) : null}
 
       <div
-        className={
-          embedded && !showChartHeader && !(showDiagrams && uniqueChords.length > 0)
-            ? undefined
-            : embedded
-              ? "mt-5"
-              : "mt-6"
-        }
+        className={chartBodyClassName}
         style={fontSizePercent !== 100 ? { zoom: `${fontSizePercent}%` } : undefined}
       >
         {chart.format === "lyrics" ? (

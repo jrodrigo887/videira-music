@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ChordChartPreview } from "@/components/chord-chart/chord-chart-preview";
+import { SetlistNeighborsNav } from "@/components/setlists/setlist-neighbors-nav";
 import { buildExampleCharts } from "@/lib/charts/example-charts";
 import { semitonesBetweenKeys, transposeChord } from "@/lib/chords/transpose-chord";
 import { HttpMusicRepository } from "@/lib/persistence/http-music-repository";
@@ -65,9 +66,31 @@ export function SongDetail({
   const [reloadToken, setReloadToken] = useState(0);
   const [semitones, setSemitones] = useState(0);
   const [transposePreferenceReady, setTransposePreferenceReady] = useState(false);
-  const [showDiagrams, setShowDiagrams] = useState(true);
+  const [showDiagrams, setShowDiagrams] = useState(false);
   const [columns, setColumns] = useState<1 | 2>(1);
   const [fontSizeIndex, setFontSizeIndex] = useState(1);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
+
+  const headerRef = useRef<HTMLElement | null>(null);
+  const [headerCollapsed, setHeaderCollapsed] = useState(false);
+
+  useEffect(() => {
+    const element = headerRef.current;
+    if (state.status !== "ready" || !element) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setHeaderCollapsed(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+      },
+      // Altura aproximada do header principal (49px no mobile, 61px a partir de sm).
+      {
+        rootMargin: `-${window.innerWidth >= 640 ? 61 : 49}px 0px 0px 0px`,
+        threshold: 0,
+      },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [state.status]);
 
   const reload = useCallback(() => {
     setState({ status: "loading" });
@@ -169,160 +192,302 @@ export function SongDetail({
   const baseKey = state.song.defaultKey ?? state.charts[0]?.key ?? "C";
   const activeKey = transposeChord(baseKey, semitones, { key: baseKey });
   const fontSizePercent = FONT_SIZE_STEPS[fontSizeIndex] ?? 100;
+  const resourcesPanelId = "song-detail-resources";
 
-  return (
-    <div className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
-        <aside className="space-y-3 lg:sticky lg:top-20">
-          <div className="flex items-center gap-2">
-            <Link
-              href="/songs"
-              aria-label="Voltar para biblioteca"
-              title="Voltar para biblioteca"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-content shadow-xs transition hover:border-primary hover:text-primary"
-            >
-              ‹
-            </Link>
-            {importLinkVisible ? (
-              <Link
-                href="/import"
-                className="inline-flex h-10 flex-1 items-center justify-center rounded-full border border-border bg-surface px-4 text-xs font-semibold text-content shadow-xs transition hover:border-primary hover:text-primary"
-              >
-                + Importar cifra
-              </Link>
+  const resourcesContent = (
+    <>
+      <div className="hidden items-center gap-2 lg:flex">
+        <Link
+          href="/songs"
+          aria-label="Voltar para biblioteca"
+          title="Voltar para biblioteca"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-content shadow-xs transition hover:border-primary hover:text-primary"
+        >
+          ‹
+        </Link>
+        {importLinkVisible ? (
+          <Link
+            href="/import"
+            className="inline-flex h-10 flex-1 items-center justify-center rounded-full border border-border bg-surface px-4 text-xs font-semibold text-content shadow-xs transition hover:border-primary hover:text-primary"
+          >
+            + Importar cifra
+          </Link>
+        ) : null}
+      </div>
+
+      {importLinkVisible ? (
+        <Link
+          href="/import"
+          className="inline-flex h-10 items-center justify-center rounded-full border border-border bg-surface px-4 text-xs font-semibold text-content shadow-xs transition hover:border-primary hover:text-primary lg:hidden"
+          onClick={() => setResourcesOpen(false)}
+        >
+          + Importar cifra
+        </Link>
+      ) : null}
+
+      <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <section className="px-3 py-3">
+          <p className="ds-eyebrow mb-2">Música</p>
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center rounded-full bg-content px-3 py-1 text-xs font-semibold text-content-inverse">
+              Principal
+            </span>
+            <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold text-content-muted">
+              {state.persistedCharts ? "Cifras importadas" : "Cifras de exemplo"}
+            </span>
+            {state.charts.length > 1 ? (
+              <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-content-subtle">
+                {state.charts.length} formatos
+              </span>
             ) : null}
           </div>
+        </section>
 
-          <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-            <section className="px-3 py-3">
-              <p className="ds-eyebrow mb-2">Música</p>
+        {state.charts.map((chart, chartIndex) => {
+          const chartSectionLabel =
+            state.charts.length > 1
+              ? (chart.title?.trim() || `Cifra ${chartIndex + 1}`)
+              : "Cifra";
+
+          return (
+            <section key={chart.id} className="px-3 py-3">
+              <p className="ds-eyebrow mb-2">{chartSectionLabel}</p>
               <div className="flex flex-wrap gap-2">
                 <span className="inline-flex items-center rounded-full bg-content px-3 py-1 text-xs font-semibold text-content-inverse">
-                  Principal
+                  {chart.format === "lyrics" ? "Cifra com letra" : "Grade por compassos"}
                 </span>
-                <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold text-content-muted">
-                  {state.persistedCharts ? "Cifras importadas" : "Cifras de exemplo"}
+                <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-content-muted">
+                  Compasso {chart.timeSignature}
                 </span>
-                {state.charts.length > 1 ? (
-                  <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-content-subtle">
-                    {state.charts.length} formatos
+                {chart.capo ? (
+                  <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-content-muted">
+                    Capo {chart.capo}ª
                   </span>
                 ) : null}
               </div>
             </section>
+          );
+        })}
+      </div>
 
-            {state.charts.map((chart, chartIndex) => {
-              const chartSectionLabel =
-                state.charts.length > 1
-                  ? (chart.title?.trim() || `Cifra ${chartIndex + 1}`)
-                  : "Cifra";
+      <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <button
+          type="button"
+          onClick={() => setColumns((current) => (current === 1 ? 2 : 1))}
+          className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-medium text-content transition hover:bg-surface-muted/60"
+        >
+          <span className="font-semibold">Dividir em colunas</span>
+          <span className="text-content-subtle">{columns === 2 ? "2 col." : "1 col."} ›</span>
+        </button>
 
-              return (
-                <section key={chart.id} className="px-3 py-3">
-                  <p className="ds-eyebrow mb-2">{chartSectionLabel}</p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="inline-flex items-center rounded-full bg-content px-3 py-1 text-xs font-semibold text-content-inverse">
-                      {chart.format === "lyrics" ? "Cifra com letra" : "Grade por compassos"}
-                    </span>
-                    <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-content-muted">
-                      Compasso {chart.timeSignature}
-                    </span>
-                    {chart.capo ? (
-                      <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-content-muted">
-                        Capo {chart.capo}ª
-                      </span>
-                    ) : null}
-                  </div>
-                </section>
-              );
-            })}
+        <button
+          type="button"
+          onClick={() => setShowDiagrams((current) => !current)}
+          className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-medium text-content transition hover:bg-surface-muted/60"
+        >
+          <span className="font-semibold">Diagramas</span>
+          <span className="text-content-subtle">{showDiagrams ? "Violão" : "Oculto"} ›</span>
+        </button>
+
+        <div className="flex items-center justify-between px-4 py-2.5 text-xs">
+          <span className="font-semibold text-content">Tom</span>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              aria-label="Diminuir meio-tom"
+              onClick={() => setSemitones((value) => value - 1)}
+              className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border text-content-muted transition hover:border-primary hover:text-primary"
+            >
+              −
+            </button>
+            <span className="min-w-6 text-center font-bold text-primary">
+              {activeKey}
+            </span>
+            <button
+              type="button"
+              aria-label="Aumentar meio-tom"
+              onClick={() => setSemitones((value) => value + 1)}
+              className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border text-content-muted transition hover:border-primary hover:text-primary"
+            >
+              +
+            </button>
           </div>
+        </div>
 
-          <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-            <button
-              type="button"
-              onClick={() => setColumns((current) => (current === 1 ? 2 : 1))}
-              className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-medium text-content transition hover:bg-surface-muted/60"
-            >
-              <span className="font-semibold">Dividir em colunas</span>
-              <span className="text-content-subtle">{columns === 2 ? "2 col." : "1 col."} ›</span>
-            </button>
+        <div className="flex items-center justify-between px-4 py-3 text-xs">
+          <span className="font-semibold text-content">Capotraste</span>
+          <span className="text-content-subtle">Sem capotraste</span>
+        </div>
 
-            <button
-              type="button"
-              onClick={() => setShowDiagrams((current) => !current)}
-              className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-medium text-content transition hover:bg-surface-muted/60"
-            >
-              <span className="font-semibold">Diagramas</span>
-              <span className="text-content-subtle">{showDiagrams ? "Violão" : "Oculto"} ›</span>
-            </button>
+        <div className="flex items-center justify-between px-4 py-3 text-xs">
+          <span className="font-semibold text-content">Afinação</span>
+          <span className="text-content-subtle">Padrão</span>
+        </div>
+      </div>
 
-            <div className="flex items-center justify-between px-4 py-2.5 text-xs">
-              <span className="font-semibold text-content">Tom</span>
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  aria-label="Diminuir meio-tom"
-                  onClick={() => setSemitones((value) => value - 1)}
-                  className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border text-content-muted transition hover:border-primary hover:text-primary"
-                >
-                  −
-                </button>
-                <span className="min-w-6 text-center font-bold text-primary">
-                  {activeKey}
-                </span>
-                <button
-                  type="button"
-                  aria-label="Aumentar meio-tom"
-                  onClick={() => setSemitones((value) => value + 1)}
-                  className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border text-content-muted transition hover:border-primary hover:text-primary"
-                >
-                  +
-                </button>
-              </div>
-            </div>
+      <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <button
+          type="button"
+          onClick={() => setFontSizeIndex((current) => (current + 1) % FONT_SIZE_STEPS.length)}
+          className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-medium text-content transition hover:bg-surface-muted/60"
+        >
+          <span className="font-semibold">Texto</span>
+          <span className="text-content-subtle">{fontSizePercent}% ›</span>
+        </button>
 
-            <div className="flex items-center justify-between px-4 py-3 text-xs">
-              <span className="font-semibold text-content">Capotraste</span>
-              <span className="text-content-subtle">Sem capotraste</span>
-            </div>
+        {semitones !== 0 ? (
+          <button
+            type="button"
+            onClick={() => setSemitones(0)}
+            className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-semibold text-primary transition hover:bg-primary-subtle/50"
+          >
+            <span>Restaurar tom original</span>
+            <span>{baseKey}</span>
+          </button>
+        ) : null}
+      </div>
+    </>
+  );
 
-            <div className="flex items-center justify-between px-4 py-3 text-xs">
-              <span className="font-semibold text-content">Afinação</span>
-              <span className="text-content-subtle">Padrão</span>
-            </div>
-          </div>
-
-          <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-            <button
-              type="button"
-              onClick={() => setFontSizeIndex((current) => (current + 1) % FONT_SIZE_STEPS.length)}
-              className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-medium text-content transition hover:bg-surface-muted/60"
-            >
-              <span className="font-semibold">Texto</span>
-              <span className="text-content-subtle">{fontSizePercent}% ›</span>
-            </button>
-
-            {semitones !== 0 ? (
-              <button
-                type="button"
-                onClick={() => setSemitones(0)}
-                className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-semibold text-primary transition hover:bg-primary-subtle/50"
-              >
-                <span>Restaurar tom original</span>
-                <span>{baseKey}</span>
-              </button>
+  return (
+    <div className="space-y-3 lg:space-y-6">
+      <div
+        aria-hidden={!headerCollapsed}
+        className={`fixed inset-x-0 top-0 z-40 border-b border-border bg-surface/95 backdrop-blur transition duration-200 ${
+          headerCollapsed
+            ? "translate-y-0 opacity-100"
+            : "pointer-events-none -translate-y-2 opacity-0"
+        }`}
+      >
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2 sm:py-3.5">
+          <Link
+            href="/songs"
+            aria-label="Voltar para biblioteca"
+            tabIndex={headerCollapsed ? 0 : -1}
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-content transition hover:border-primary hover:text-primary"
+          >
+            ‹
+          </Link>
+          <div className="min-w-0 flex-1 sm:flex sm:items-baseline sm:gap-3">
+            <p className="truncate text-sm font-extrabold leading-tight tracking-tight text-content sm:text-lg">
+              {state.song.title}
+            </p>
+            {state.song.artist ? (
+              <p className="truncate text-xs font-bold leading-tight text-primary sm:text-sm">
+                {state.song.artist}
+              </p>
             ) : null}
           </div>
+          {state.song.defaultKey ? (
+            <span className="shrink-0 rounded-full bg-primary-subtle px-3 py-1 text-xs font-semibold text-primary">
+              Tom {activeKey}
+            </span>
+          ) : null}
+          <button
+            type="button"
+            tabIndex={headerCollapsed ? 0 : -1}
+            aria-controls={resourcesPanelId}
+            aria-expanded={resourcesOpen}
+            onClick={() => setResourcesOpen(true)}
+            className="inline-flex h-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface px-3 text-xs font-semibold text-content transition hover:border-primary hover:text-primary lg:hidden"
+          >
+            Recursos
+          </button>
+        </div>
+      </div>
+
+      <header
+        ref={headerRef}
+        className="-mx-4 border-b border-border bg-canvas/95 px-4 py-2.5 lg:mx-0 lg:rounded-2xl lg:border lg:bg-surface lg:px-5 lg:py-4 lg:shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/songs"
+            aria-label="Voltar para biblioteca"
+            title="Voltar para biblioteca"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-content shadow-xs transition hover:border-primary hover:text-primary lg:hidden"
+          >
+            ‹
+          </Link>
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-center gap-1.5">
+              <h1 className="truncate text-base font-extrabold tracking-tight text-content lg:text-3xl">
+                {state.song.title}
+              </h1>
+              <span
+                aria-hidden="true"
+                className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground lg:h-5 lg:w-5 lg:text-[11px]"
+              >
+                ✓
+              </span>
+            </div>
+            {state.song.artist ? (
+              <p className="truncate text-xs font-bold text-primary lg:mt-1 lg:text-lg">
+                {state.song.artist}
+              </p>
+            ) : null}
+          </div>
+          {state.song.defaultKey ? (
+            <span className="hidden shrink-0 rounded-full bg-primary-subtle px-3 py-1 text-xs font-semibold text-primary sm:inline-flex lg:px-4 lg:py-1.5 lg:text-sm">
+              Tom {state.song.defaultKey}
+            </span>
+          ) : null}
+          <button
+            type="button"
+            aria-controls={resourcesPanelId}
+            aria-expanded={resourcesOpen}
+            onClick={() => setResourcesOpen(true)}
+            className="inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface px-3 text-xs font-semibold text-content shadow-xs transition hover:border-primary hover:text-primary lg:hidden"
+          >
+            Recursos
+          </button>
+        </div>
+        {state.song.meta ? (
+          <p className="mt-2 hidden text-sm text-content-muted lg:block">{state.song.meta}</p>
+        ) : null}
+      </header>
+
+      {resourcesOpen ? (
+        <div className="fixed inset-0 z-50 bg-content/35 backdrop-blur-sm lg:hidden">
+          <div
+            id={resourcesPanelId}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Recursos da cifra"
+            className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border border-border bg-canvas p-4 shadow-2xl"
+          >
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-primary">
+                  Recursos
+                </p>
+                <p className="text-sm font-bold text-content">{state.song.title}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setResourcesOpen(false)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-sm font-bold text-content shadow-xs transition hover:border-primary hover:text-primary"
+                aria-label="Fechar recursos"
+              >
+                ×
+              </button>
+            </div>
+            <div className="space-y-3">{resourcesContent}</div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
+        <aside className="hidden space-y-3 lg:sticky lg:top-24 lg:block">
+          {resourcesContent}
         </aside>
 
-        <article className="ds-card p-6 sm:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <article className="ds-card -ml-4 rounded-l-none border-l-0 p-3 sm:mx-0 sm:rounded-2xl sm:border-l sm:p-8">
+          <div className="hidden flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <div className="flex items-center gap-2.5">
-                <h1 className="text-3xl font-extrabold tracking-tight text-content sm:text-4xl">
+                <div className="text-3xl font-extrabold tracking-tight text-content sm:text-4xl">
                   {state.song.title}
-                </h1>
+                </div>
                 <span
                   aria-hidden="true"
                   className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground"
@@ -354,8 +519,8 @@ export function SongDetail({
               key={chart.id}
               className={
                 index === 0
-                  ? "mt-6 space-y-3 border-t border-border pt-6"
-                  : "mt-8 space-y-3 border-t border-border pt-8"
+                  ? "space-y-3 sm:mt-6 sm:border-t sm:border-border sm:pt-6"
+                  : "mt-6 space-y-3 border-t border-border pt-6 sm:mt-8 sm:pt-8"
               }
             >
               {chart.origin?.url ? (
@@ -377,13 +542,15 @@ export function SongDetail({
                 semitones={semitones}
                 onSemitonesChange={setSemitones}
                 syncDisplayKeyBase={baseKey}
-                showTransposeControls
+                showTransposeControls={false}
                 showDiagrams={showDiagrams}
                 columns={columns}
                 fontSizePercent={fontSizePercent}
               />
             </div>
           ))}
+
+          {setlistContext ? <SetlistNeighborsNav setlistContext={setlistContext} /> : null}
         </article>
       </div>
     </div>

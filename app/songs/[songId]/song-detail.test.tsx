@@ -3,7 +3,22 @@
 import "@testing-library/jest-dom/vitest";
 
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+class MockIntersectionObserver implements IntersectionObserver {
+  readonly root: Element | Document | null = null;
+  readonly rootMargin = "";
+  readonly thresholds: readonly number[] = [];
+
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return [];
+  }
+}
+
+vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
 
 import { InMemoryMusicRepository } from "@/lib/persistence/music-repository";
 import type { ChordChart, Song } from "@/types/music";
@@ -60,6 +75,34 @@ function persistedChart(songId: string): ChordChart {
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  vi.restoreAllMocks();
+});
+
+function mockSetlistApi(items: Array<Record<string, unknown>>) {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo) => {
+      const url = String(input);
+      if (url.includes("/api/setlists/sl-nav")) {
+        return new Response(JSON.stringify({ setlist: { id: "sl-nav", items } }), { status: 200 });
+      }
+      if (url.includes("/api/setlists/missing")) {
+        return new Response(JSON.stringify({ error: { code: "SETLIST_NOT_FOUND" } }), { status: 404 });
+      }
+      return new Response("{}", { status: 404 });
+    }),
+  );
+}
+
+const songItem = (id: string, songId: string, title: string) => ({
+  id,
+  kind: "song",
+  position: 0,
+  songId,
+  chartId: "chart-1",
+  selectedKey: "G",
+  song: { title },
+  chart: { key: "G", imported: false },
 });
 
 describe("SongDetail", () => {
@@ -160,6 +203,117 @@ describe("SongDetail", () => {
     expect(screen.getByText("Carregando música…")).toBeInTheDocument();
     expect(screen.queryByText("Música não encontrada")).not.toBeInTheDocument();
     expect(await screen.findByText("Música não encontrada")).toBeInTheDocument();
+  });
+
+  it("shows next link for middle songs in setlist context", async () => {
+    mockSetlistApi([
+      songItem("item-1", SEED_SONG.id, "Música Seed"),
+      { id: "note-1", kind: "note", position: 1, text: "Pausa" },
+      songItem("item-2", "song-2", "Próxima"),
+    ]);
+    const chart = persistedChart(SEED_SONG.id);
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        setlistContext={{ setlistId: "sl-nav", setlistItemId: "item-1", selectedKey: "G" }}
+        repository={new InMemoryMusicRepository([SEED_SONG], [chart])}
+      />,
+    );
+    expect(await screen.findByRole("link", { name: "Próxima" })).toHaveAttribute(
+      "href",
+      "/songs/song-2?setlist=sl-nav&item=item-2&key=G",
+    );
+    expect(screen.queryByRole("link", { name: "Anterior" })).not.toBeInTheDocument();
+  });
+
+  it("shows previous link for later songs in setlist context", async () => {
+    mockSetlistApi([
+      songItem("item-1", SEED_SONG.id, "Música Seed"),
+      songItem("item-2", "song-2", "Outra"),
+    ]);
+    const chart = persistedChart("song-2");
+    render(
+      <SongDetail
+        songId="song-2"
+        setlistContext={{ setlistId: "sl-nav", setlistItemId: "item-2", selectedKey: "G" }}
+        repository={
+          new InMemoryMusicRepository(
+            [{ ...SEED_SONG, id: "song-2", title: "Outra", label: "Outra" }],
+            [chart],
+          )
+        }
+      />,
+    );
+    expect(await screen.findByRole("link", { name: "Anterior" })).toHaveAttribute(
+      "href",
+      `/songs/${SEED_SONG.id}?setlist=sl-nav&item=item-1&key=G`,
+    );
+    expect(screen.queryByRole("link", { name: "Próxima" })).not.toBeInTheDocument();
+  });
+
+  it("skips note items when linking to neighbors", async () => {
+    mockSetlistApi([
+      songItem("item-1", SEED_SONG.id, "Música Seed"),
+      { id: "note-1", kind: "note", position: 1, text: "Transição" },
+      songItem("item-3", "song-3", "Depois"),
+    ]);
+    const chart = persistedChart(SEED_SONG.id);
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        setlistContext={{ setlistId: "sl-nav", setlistItemId: "item-1" }}
+        repository={new InMemoryMusicRepository([SEED_SONG], [chart])}
+      />,
+    );
+    expect(await screen.findByRole("link", { name: "Próxima" })).toHaveAttribute(
+      "href",
+      "/songs/song-3?setlist=sl-nav&item=item-3&key=G",
+    );
+  });
+
+  it("hides navigation for invalid setlist item context", async () => {
+    mockSetlistApi([songItem("item-1", SEED_SONG.id, "Música Seed")]);
+    const chart = persistedChart(SEED_SONG.id);
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        setlistContext={{ setlistId: "sl-nav", setlistItemId: "missing-item" }}
+        repository={new InMemoryMusicRepository([SEED_SONG], [chart])}
+      />,
+    );
+    expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Navegação no setlist" })).not.toBeInTheDocument();
+  });
+
+  it("hides navigation when setlist api returns 404", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("{}", { status: 404 })),
+    );
+    const chart = persistedChart(SEED_SONG.id);
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        setlistContext={{ setlistId: "missing", setlistItemId: "item-1" }}
+        repository={new InMemoryMusicRepository([SEED_SONG], [chart])}
+      />,
+    );
+    expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByRole("navigation", { name: "Navegação no setlist" })).not.toBeInTheDocument();
+    });
+  });
+
+  it("does not show setlist navigation without context", async () => {
+    const chart = persistedChart(SEED_SONG.id);
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        repository={new InMemoryMusicRepository([SEED_SONG], [chart])}
+      />,
+    );
+    expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Navegação no setlist" })).not.toBeInTheDocument();
   });
 
   it("shows a retryable error when the repository fails", async () => {

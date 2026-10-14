@@ -1,3 +1,5 @@
+import type { SetlistItem, SetlistSongItem } from "@/types/setlist";
+
 export type SetlistSongContext = {
   setlistId: string;
   setlistItemId: string;
@@ -41,4 +43,25 @@ export function buildSetlistSongHref(
   }
 
   return `/songs/${encodeURIComponent(songId)}?${params.toString()}`;
+}
+
+export type SetlistSongNeighbors = {
+  previous?: SetlistSongItem;
+  next?: SetlistSongItem;
+};
+
+/** Vizinhos de música na ordem do setlist, ignorando anotações. */
+export function findSongNeighbors(
+  items: SetlistItem[],
+  setlistItemId: string,
+): SetlistSongNeighbors {
+  const songs = items.filter((item): item is SetlistSongItem => item.kind === "song");
+  const index = songs.findIndex((item) => item.id === setlistItemId);
+  if (index === -1) {
+    return {};
+  }
+  return {
+    ...(index > 0 ? { previous: songs[index - 1] } : {}),
+    ...(index < songs.length - 1 ? { next: songs[index + 1] } : {}),
+  };
 }
