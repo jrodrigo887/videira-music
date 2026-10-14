@@ -97,18 +97,3 @@ export type ChordChart = {
   origin?: ImportOrigin;
 };
 
-export type SetlistItem = {
-  id: string;
-  songId: SongId;
-  chartId?: ChordChartId;
-  selectedKey?: string;
-  notes?: string;
-};
-
-export type Setlist = {
-  id: SetlistId;
-  name: string;
-  date?: string;
-  items: SetlistItem[];
-  notes?: string;
-};
