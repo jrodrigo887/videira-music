@@ -33,7 +33,7 @@ Rodar o seed de novo **não sobrescreve** músicas já editadas — só insere I
 | --- | --- |
 | `npm run db:migrate` | `prisma migrate deploy` |
 | `npm run db:migrate:dev` | Cria/aplica migrations em dev |
-| `npm run db:seed` | Organização Videira + catálogo |
+| `npm run db:seed` | Organização Videira, catálogo, usuários e grupos de louvor simulados |
 | `npm run db:studio` | Prisma Studio |
 
 ## Migração do IndexedDB

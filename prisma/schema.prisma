@@ -15,6 +15,51 @@ model Organization {
   updatedAt DateTime     @updatedAt
   songs     Song[]
   charts    ChordChart[]
+  users     User[]
+  teams     WorshipTeam[]
+  setlists  Setlist[]
+}
+
+model User {
+  id              String              @id
+  organizationId  String
+  organization    Organization        @relation(fields: [organizationId], references: [id])
+  name            String
+  email           String
+  role            String
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  teamMemberships WorshipTeamMember[]
+
+  @@unique([organizationId, email])
+}
+
+model WorshipTeam {
+  id             String              @id
+  organizationId String
+  organization   Organization        @relation(fields: [organizationId], references: [id])
+  slug           String
+  name           String
+  archivedAt     DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  members        WorshipTeamMember[]
+  ownedSetlists  Setlist[]
+  setlistFollows SetlistFollow[]
+
+  @@unique([organizationId, slug])
+}
+
+model WorshipTeamMember {
+  teamId    String
+  team      WorshipTeam @relation(fields: [teamId], references: [id])
+  userId    String
+  user      User        @relation(fields: [userId], references: [id])
+  role      String
+  createdAt DateTime    @default(now())
+
+  @@id([teamId, userId])
+  @@index([userId])
 }
 
 model Song {
@@ -29,10 +74,12 @@ model Song {
   alternateKeys  Json
   notes          String?
   meta           String
-  searchText     String
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  charts         ChordChart[]
+  searchText             String
+  sourceOrganizationId   String?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  charts                 ChordChart[]
+  setlistItems           SetlistItem[]
 
   @@index([organizationId])
 }
@@ -52,13 +99,67 @@ model ChordChart {
   sections       Json
   source         String?
   origin         Json?
-  originUrl      String?
-  schemaVersion  Int          @default(1)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  originUrl              String?
+  sourceOrganizationId   String?
+  schemaVersion          Int           @default(1)
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  setlistItems           SetlistItem[]
 
   @@unique([organizationId, originUrl])
   @@index([organizationId, songId])
+}
+
+model Setlist {
+  id             String          @id
+  organizationId String
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  ownerTeamId    String?
+  ownerTeam      WorshipTeam?    @relation(fields: [ownerTeamId], references: [id])
+  ownerUserId    String?
+  title          String
+  eventType      String?
+  eventAt        DateTime?
+  status         String
+  visibility     String
+  notes          String?
+  version        Int             @default(1)
+  deletedAt      DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  items          SetlistItem[]
+  follows        SetlistFollow[]
+
+  @@index([organizationId, ownerTeamId])
+}
+
+model SetlistItem {
+  id          String      @id
+  setlistId   String
+  setlist     Setlist     @relation(fields: [setlistId], references: [id], onDelete: Cascade)
+  position    Int
+  kind        String
+  songId      String?
+  song        Song?       @relation(fields: [songId], references: [id])
+  chartId     String?
+  chart       ChordChart? @relation(fields: [chartId], references: [id])
+  selectedKey String?
+  text        String?
+  notes       String?
+
+  @@unique([setlistId, position])
+  @@index([chartId])
+}
+
+model SetlistFollow {
+  setlistId String
+  setlist   Setlist     @relation(fields: [setlistId], references: [id], onDelete: Cascade)
+  teamId    String
+  team      WorshipTeam @relation(fields: [teamId], references: [id])
+  createdAt DateTime    @default(now())
+
+  @@id([setlistId, teamId])
+  @@index([teamId])
 }
 
 model ImportLog {

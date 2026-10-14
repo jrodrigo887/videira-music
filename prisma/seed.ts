@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
 import rawSongs from "../data/musicas.json";
+import { seedSimulatedIdentities } from "../lib/auth/simulated-identities";
 import { toSong } from "../lib/data/songs";
 import {
   DEFAULT_ORGANIZATION_ID,
@@ -39,6 +40,8 @@ async function main(): Promise<void> {
       data: toPrismaSongCreate(song, organizationId),
     });
   }
+
+  await seedSimulatedIdentities(prisma);
   await prisma.$disconnect();
 }
 
