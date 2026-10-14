@@ -14,11 +14,11 @@
 - **Decision:** O Playwright rodará em um Route Handler Node.js do próprio Next, protegido por `VIDEIRA_ENABLE_CIFRACLUB_IMPORT` (renomeada para `VIDEIRA_ENABLE_IMPORT` pela AD-005).
 - **Rationale:** O spike validou Chromium headed local e ainda não existe necessidade de um backend separado.
 
-### AD-003: Conteúdo musical externo não entra em fixtures
+### AD-003: (inativo)(desconsidere)
 
-- **Status:** active
-- **Decision:** Testes de importação usarão HTML e letras sintéticas; cifras importadas não serão gravadas no seed nem versionadas.
-- **Rationale:** Preserva os guardrails de direito autoral e não redistribuição.
+- **Status:** superseded by AD-006
+- **Decision:** Testes de importação usarão HTML e letras sintéticas; cifras importadas serão gravadas no seed e versionadas.
+- **Rationale:** Preserva os guardrails de direito autoral
 
 ### AD-004: SQLite via Prisma como fonte da verdade no servidor
 
@@ -37,6 +37,31 @@
 - **Trade-off:** Um segredo compartilhado não identifica quem importou; quando houver autenticação, a mesma política passa a checar uma permissão do usuário.
 - **Scope:** `import-access`, `app/api/imports/cifraclub`, rotas de escrita usadas pelo import.
 - **Supersedes:** IMA-01 substitui IMP-09 da `chart-import`: com a flag desligada, a página `/import` inteira responde `404`, em vez de só ocultar a entrada por URL.
+- **Date:** 2026-10-14
+
+### AD-006: Distribuição isolada de cifras importadas
+
+- **Status:** active
+- **Decision:** Cifras importadas podem sair da igreja dona apenas para leitura, dentro de um setlist com visibilidade `public`, sempre com o selo "Importada" e o link para `originUrl`. Não há API aberta, exportação nem catálogo navegável de cifras importadas para outras igrejas. Seed e fixtures de teste continuam sintéticos.
+- **Rationale:** O usuário aceitou o scraping e a distribuição de forma isolada; limitar a saída ao setlist público mantém o alcance controlado e a fonte visível.
+- **Scope:** `setlists` e toda feature que exponha cifras para fora da igreja.
+- **Supersedes:** AD-003.
+- **Date:** 2026-10-14
+
+### AD-007: Identidade por `Actor` e política única de acesso
+
+- **Status:** active
+- **Decision:** Toda requisição obtém quem age só por `getCurrentActor()` (`lib/auth/current-actor.ts`), e toda decisão de acesso de domínio passa por uma função de política única do módulo (`canPerform` nos setlists). Até existir login, o `Actor` vem do usuário simulado em `VIDEIRA_SIMULATED_USER_ID`, que nunca é aceito em produção. A sessão de admin da AD-005 continua exclusiva do import.
+- **Rationale:** Trocar a autenticação simulada pela real muda só `getCurrentActor()`, sem tocar em rotas nem regras.
+- **Scope:** `setlists`, grupos de louvor e toda feature nova com regra de acesso.
+- **Date:** 2026-10-14
+
+### AD-008: Modelo de propriedade e compartilhamento de setlists
+
+- **Status:** active
+- **Decision:** O setlist pertence a um grupo de louvor (`WorshipTeam`) ou à igreja (setlist global); o dono usuário é reservado para a fase 2. A visibilidade é `private`, `team`, `organization` ou `public`. Reaproveitar um setlist alheio é **seguir** (referência só de leitura à versão atual) ou **clonar** (cópia editável sem vínculo com a origem); clonar entre igrejas copia músicas e cifras para o catálogo de destino, reaproveitando cifras pelo `originUrl`.
+- **Rationale:** Cada banda adapta tom e ordem ao seu vocal (clone), enquanto um repertório oficial pode ser acompanhado sem cópia (seguir); copiar o catálogo no clone evita acoplamento entre igrejas.
+- **Scope:** `setlists` e fases seguintes (setlist pessoal, públicos entre igrejas).
 - **Date:** 2026-10-14
 
 ## Handoff
