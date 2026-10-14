@@ -10,7 +10,7 @@ Esta pasta concentra a especificacao inicial do produto antes da implementacao d
 - [Transposicao](transposition.md): parsing e regras de transposicao de acordes.
 - [Decisao de plataforma](platform-decision.md): escolha inicial por PWA responsiva.
 - [Plano tecnico](implementation-plan.md): stack, estrutura sugerida e primeiras tarefas de codigo.
-- [Design tecnico do MVP](technical-design/videira-music-mvp-tdd.md): TDD do MVP com fronteiras modulares, riscos e plano de implementacao.
+- [Banco de dados SQLite](database.md): `DATABASE_URL`, migrations, seed e deploy.
 - [Fluxo modular do MVP](technical-design/videira-music-mvp-flow.excalidraw): diagrama Excalidraw do fluxo entre interface, modulos de dominio e persistencia.
 
 ## Ordem de leitura recomendada
@@ -21,4 +21,3 @@ Esta pasta concentra a especificacao inicial do produto antes da implementacao d
 4. `mvp-screens.md`
 5. `platform-decision.md`
 6. `implementation-plan.md`
-7. `technical-design/videira-music-mvp-tdd.md`
