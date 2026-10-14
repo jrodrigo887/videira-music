@@ -27,8 +27,8 @@ export async function ensureSqlitePragmas(client: PrismaClient): Promise<void> {
     return;
   }
   await client.$executeRawUnsafe("PRAGMA foreign_keys = ON;");
-  await client.$executeRawUnsafe("PRAGMA journal_mode = WAL;");
-  await client.$executeRawUnsafe("PRAGMA busy_timeout = 5000;");
+  await client.$queryRawUnsafe("PRAGMA journal_mode = WAL;");
+  await client.$queryRawUnsafe("PRAGMA busy_timeout = 5000;");
   pragmasApplied = true;
 }
 

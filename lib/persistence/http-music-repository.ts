@@ -24,7 +24,7 @@ export class HttpMusicRepository implements MusicRepository {
   private readonly baseUrl: string;
 
   constructor(options: HttpMusicRepositoryOptions = {}) {
-    this.fetchImpl = options.fetch ?? fetch;
+    this.fetchImpl = options.fetch ?? globalThis.fetch.bind(globalThis);
     this.baseUrl = options.baseUrl ?? "";
   }
 
