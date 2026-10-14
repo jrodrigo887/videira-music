@@ -1,7 +1,9 @@
 import {
-  assertImportWriteAllowed,
+  gateChartWriteWithOrigin,
   persistenceError,
   readJsonBody,
+  recordFailedChartSave,
+  recordSuccessfulChartSave,
   wrapPersistenceRoute,
 } from "@/lib/persistence/persistence-api";
 import {
@@ -30,24 +32,33 @@ export function createChartPutHandler(dependencies: PersistenceRouteDependencies
       return persistenceError(400, "INVALID_REQUEST", "JSON inválido.");
     }
 
+    const gateResponse = await gateChartWriteWithOrigin(request, body);
+    if (gateResponse) {
+      return gateResponse;
+    }
+
     const parsed = parseChartJson(body);
     if (!parsed.ok) {
+      await recordFailedChartSave(body, "VALIDATION_FAILED");
       return persistenceError(422, "VALIDATION_FAILED", "Dados inválidos.", {
         issues: parsed.issues,
       });
     }
     if (parsed.value.id !== chartId) {
+      await recordFailedChartSave(body, "VALIDATION_FAILED");
       return persistenceError(422, "VALIDATION_FAILED", "Dados inválidos.", {
         issues: [{ path: "id", message: "ID do corpo difere do caminho." }],
       });
     }
 
-    assertImportWriteAllowed(parsed.value);
-
     const result = await withRepository(dependencies, async (repository) => {
       await repository.saveChart(parsed.value);
+      await recordSuccessfulChartSave(body, parsed.value.id);
       return new Response(null, { status: 204 });
     });
+    if (result instanceof Response && result.status >= 400) {
+      await recordFailedChartSave(body, "PERSISTENCE_FAILED");
+    }
     return result instanceof Response ? result : persistenceError(500, "PERSISTENCE_FAILED", "Erro.");
   };
 }

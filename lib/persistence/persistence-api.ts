@@ -121,6 +121,10 @@ export function wrapPersistenceRoute(
   };
 }
 
-export function assertImportWriteAllowed(_chart: { origin?: unknown }): void {
-  // Stub until import-access feature wires real gate.
-}
+export {
+  assertImportWriteAllowed,
+  chartPayloadHasOrigin,
+  gateChartWriteWithOrigin,
+  recordFailedChartSave,
+  recordSuccessfulChartSave,
+} from "@/lib/import-access/chart-origin-gate";

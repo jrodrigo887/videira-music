@@ -1,7 +1,9 @@
 import {
-  assertImportWriteAllowed,
+  gateChartWriteWithOrigin,
   persistenceError,
   readJsonBody,
+  recordFailedChartSave,
+  recordSuccessfulChartSave,
   wrapPersistenceRoute,
 } from "@/lib/persistence/persistence-api";
 import {
@@ -29,19 +31,27 @@ export function createSongChartsPostHandler(dependencies: PersistenceRouteDepend
       return persistenceError(400, "INVALID_REQUEST", "JSON inválido.");
     }
 
+    const gateResponse = await gateChartWriteWithOrigin(request, body);
+    if (gateResponse) {
+      return gateResponse;
+    }
+
     const parsed = parseSongChartBody(body);
     if (!parsed.ok) {
+      await recordFailedChartSave(body, "VALIDATION_FAILED");
       return persistenceError(422, "VALIDATION_FAILED", "Dados inválidos.", {
         issues: parsed.issues,
       });
     }
 
-    assertImportWriteAllowed(parsed.value.chart);
-
     const result = await withRepository(dependencies, async (repository) => {
       await repository.saveSongAndChart(parsed.value.song, parsed.value.chart);
+      await recordSuccessfulChartSave(body, parsed.value.chart.id);
       return new Response(null, { status: 204 });
     });
+    if (result instanceof Response && result.status >= 400) {
+      await recordFailedChartSave(body, "PERSISTENCE_FAILED");
+    }
     return result instanceof Response ? result : persistenceError(500, "PERSISTENCE_FAILED", "Erro.");
   };
 }

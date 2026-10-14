@@ -8,12 +8,17 @@ vi.mock("@/lib/import/sources/cifraclub", () => ({
   fetchCifraClubChart: (...args: unknown[]) => fetchCifraClubChartMock(...args),
 }));
 
+import { createPreviewSlotQueue } from "@/lib/import-access/preview-slot-queue";
+import { createImportSessionToken } from "@/lib/import-access/import-session";
+import { resetImportModuleConfigForTests } from "@/lib/import-access/import-module-config";
+import { setImportLogWriterForTests } from "@/lib/import-access/import-log";
 import { ImportSourceError } from "@/lib/import/sources/cifraclub-parse";
 import type { RawChart } from "@/types/import";
 
 import { POST, createCifraClubPostHandler } from "./route";
 
 const URL = "https://www.cifraclub.com.br/artista/cancao/";
+const VALID_SECRET = "z".repeat(32);
 const RAW_CHART: RawChart = {
   text: "[Verso]\nD   A\nLetra inventada",
   chordTokens: ["D", "A"],
@@ -31,11 +36,22 @@ const RAW_CHART: RawChart = {
   },
 };
 
-function request(body: unknown): Request {
+function request(body: unknown, cookie?: string): Request {
   return new Request("http://localhost/api/imports/cifraclub", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      ...(cookie ? { cookie: `videira_import_session=${cookie}` } : {}),
+    },
     body: JSON.stringify(body),
+  });
+}
+
+function allowedHandler(fetchChart = vi.fn()): ReturnType<typeof createCifraClubPostHandler> {
+  return createCifraClubPostHandler({
+    canImport: () => "allowed",
+    fetchChart,
+    previewSlots: createPreviewSlotQueue(),
   });
 }
 
@@ -45,7 +61,11 @@ describe("POST /api/imports/cifraclub", () => {
       throw new Error("must not parse");
     });
     const fetchChart = vi.fn();
-    const handler = createCifraClubPostHandler({ enabled: () => false, fetchChart });
+    const handler = createCifraClubPostHandler({
+      canImport: () => "disabled",
+      fetchChart,
+      previewSlots: createPreviewSlotQueue(),
+    });
 
     const response = await handler({ json } as unknown as Request);
 
@@ -57,9 +77,26 @@ describe("POST /api/imports/cifraclub", () => {
     expect(fetchChart).not.toHaveBeenCalled();
   });
 
+  it("returns 401 IMPORT_LOCKED without parsing when locked", async () => {
+    const fetchChart = vi.fn();
+    const handler = createCifraClubPostHandler({
+      canImport: () => "locked",
+      fetchChart,
+      previewSlots: createPreviewSlotQueue(),
+    });
+
+    const response = await handler(request({ url: URL }));
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({
+      error: { code: "IMPORT_LOCKED", message: "Import bloqueado." },
+    });
+    expect(fetchChart).not.toHaveBeenCalled();
+  });
+
   it("returns 400 for malformed JSON without accessing the source", async () => {
     const fetchChart = vi.fn();
-    const handler = createCifraClubPostHandler({ enabled: () => true, fetchChart });
+    const handler = allowedHandler(fetchChart);
     const malformed = new Request("http://localhost/api/imports/cifraclub", {
       method: "POST",
       body: "{",
@@ -78,7 +115,7 @@ describe("POST /api/imports/cifraclub", () => {
     "returns 400 when the URL field is missing or invalid",
     async (body) => {
       const fetchChart = vi.fn();
-      const handler = createCifraClubPostHandler({ enabled: () => true, fetchChart });
+      const handler = allowedHandler(fetchChart);
 
       const response = await handler(request(body));
 
@@ -92,7 +129,7 @@ describe("POST /api/imports/cifraclub", () => {
 
   it("returns 422 UNSUPPORTED_SOURCE for URLs outside the allowlist", async () => {
     const fetchChart = vi.fn();
-    const handler = createCifraClubPostHandler({ enabled: () => true, fetchChart });
+    const handler = allowedHandler(fetchChart);
 
     const response = await handler(request({ url: "https://example.com/cancao/" }));
 
@@ -112,7 +149,7 @@ describe("POST /api/imports/cifraclub", () => {
     ["SOURCE_TIMEOUT", 504, "A origem excedeu o tempo limite."],
   ] as const)("maps %s to its documented HTTP response", async (code, status, message) => {
     const fetchChart = vi.fn().mockRejectedValue(new ImportSourceError(code, message));
-    const handler = createCifraClubPostHandler({ enabled: () => true, fetchChart });
+    const handler = allowedHandler(fetchChart);
 
     const response = await handler(request({ url: URL }));
 
@@ -124,7 +161,7 @@ describe("POST /api/imports/cifraclub", () => {
 
   it("returns an ImportDraft containing origin, metadata and marked chord signals", async () => {
     const fetchChart = vi.fn().mockResolvedValue(RAW_CHART);
-    const handler = createCifraClubPostHandler({ enabled: () => true, fetchChart });
+    const handler = allowedHandler(fetchChart);
 
     const response = await handler(request({ url: URL }));
     const draft = await response.json();
@@ -149,12 +186,36 @@ describe("POST /api/imports/cifraclub", () => {
       warnings: [],
     });
   });
+
+  it("returns 429 IMPORT_BUSY when the preview queue is full", async () => {
+    const fetchChart = vi.fn().mockImplementation(
+      () => new Promise(() => {
+        /* never resolves */
+      }),
+    );
+    const slots = createPreviewSlotQueue(1);
+    const handler = createCifraClubPostHandler({
+      canImport: () => "allowed",
+      fetchChart,
+      previewSlots: slots,
+    });
+
+    void handler(request({ url: URL }));
+    const response = await handler(request({ url: URL }));
+
+    expect(response.status).toBe(429);
+    await expect(response.json()).resolves.toEqual({
+      error: { code: "IMPORT_BUSY", message: "Import ocupado. Tente novamente." },
+    });
+  });
 });
 
 describe("exported POST", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     fetchCifraClubChartMock.mockReset();
+    resetImportModuleConfigForTests();
+    setImportLogWriterForTests(undefined);
   });
 
   it.each([
@@ -162,14 +223,15 @@ describe("exported POST", () => {
     ["false", "false"],
     ["TRUE", "TRUE"],
   ] as const)(
-    "returns 404 without calling the source when VIDEIRA_ENABLE_CIFRACLUB_IMPORT is %s",
+    "returns 404 without calling the source when VIDEIRA_ENABLE_IMPORT is %s",
     async (_label, value) => {
       if (value === undefined) {
         vi.unstubAllEnvs();
-        delete process.env.VIDEIRA_ENABLE_CIFRACLUB_IMPORT;
+        delete process.env.VIDEIRA_ENABLE_IMPORT;
       } else {
-        vi.stubEnv("VIDEIRA_ENABLE_CIFRACLUB_IMPORT", value);
+        vi.stubEnv("VIDEIRA_ENABLE_IMPORT", value);
       }
+      vi.stubEnv("VIDEIRA_IMPORT_ADMIN_SECRET", VALID_SECRET);
 
       const response = await POST(request({ url: URL }));
 
@@ -181,11 +243,48 @@ describe("exported POST", () => {
     },
   );
 
-  it("processes supported URLs when the flag is exactly lowercase true", async () => {
+  it("returns 404 when only the legacy flag is enabled", async () => {
     vi.stubEnv("VIDEIRA_ENABLE_CIFRACLUB_IMPORT", "true");
-    fetchCifraClubChartMock.mockResolvedValue(RAW_CHART);
+    vi.stubEnv("VIDEIRA_IMPORT_ADMIN_SECRET", VALID_SECRET);
 
     const response = await POST(request({ url: URL }));
+
+    expect(response.status).toBe(404);
+    expect(fetchCifraClubChartMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 without a session when the module is configured", async () => {
+    vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
+    vi.stubEnv("VIDEIRA_IMPORT_ADMIN_SECRET", VALID_SECRET);
+
+    const response = await POST(request({ url: URL }));
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({
+      error: { code: "IMPORT_LOCKED", message: "Import bloqueado." },
+    });
+    expect(fetchCifraClubChartMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 for an expired session cookie through the exported route", async () => {
+    vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
+    vi.stubEnv("VIDEIRA_IMPORT_ADMIN_SECRET", VALID_SECRET);
+    const expired = createImportSessionToken(VALID_SECRET, Date.now() - 13 * 60 * 60 * 1000);
+
+    const response = await POST(request({ url: URL }, expired));
+
+    expect(response.status).toBe(401);
+    expect(fetchCifraClubChartMock).not.toHaveBeenCalled();
+  });
+
+  it("processes supported URLs when the module is configured and the session is valid", async () => {
+    vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
+    vi.stubEnv("VIDEIRA_IMPORT_ADMIN_SECRET", VALID_SECRET);
+    setImportLogWriterForTests({ write: async () => undefined });
+    fetchCifraClubChartMock.mockResolvedValue(RAW_CHART);
+    const token = createImportSessionToken(VALID_SECRET);
+
+    const response = await POST(request({ url: URL }, token));
     const draft = await response.json();
 
     expect(response.status).toBe(200);
