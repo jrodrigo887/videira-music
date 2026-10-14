@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { parseChord } from "@/lib/chords/parse-chord";
-import { transposeChord } from "@/lib/chords/transpose-chord";
+import { semitonesBetweenKeys, transposeChord } from "@/lib/chords/transpose-chord";
 import type {
   ChordChart,
   GridSectionContent,
@@ -19,6 +19,13 @@ type ChordChartPreviewProps = {
   showDiagrams?: boolean;
   columns?: 1 | 2;
   fontSizePercent?: number;
+  /** Standalone card with transpose controls; embedded is for song detail unified header. */
+  layout?: "standalone" | "embedded";
+  showFormatTags?: boolean;
+  showTransposeControls?: boolean;
+  showKeyMetadata?: boolean;
+  /** When set, Tom label and sidebar share this base; chords offset from chart.key. */
+  syncDisplayKeyBase?: string;
 };
 
 type ChordVoicing = {
@@ -131,6 +138,173 @@ function extractUniqueChords(chart: ChordChart, semitones: number): string[] {
   }
 
   return Array.from(seen);
+}
+
+const CHEVRON_PATHS = {
+  left: "M10 4 6 8 10 12",
+  right: "M6 4 10 8 6 12",
+  down: "M4 6 8 10 12 6",
+  up: "M4 10 8 6 12 10",
+} as const;
+
+function ChevronIcon({ direction }: { direction: keyof typeof CHEVRON_PATHS }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      aria-hidden="true"
+      className="text-current"
+    >
+      <path
+        d={CHEVRON_PATHS[direction]}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+const SCROLLBAR_HIDDEN =
+  "overflow-x-auto scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
+
+function ChordDiagramsStrip({
+  chords,
+  className,
+}: {
+  chords: string[];
+  className?: string;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [scrollState, setScrollState] = useState({
+    canScrollLeft: false,
+    canScrollRight: false,
+    hasOverflow: false,
+  });
+
+  const updateScrollState = useCallback(() => {
+    const element = scrollRef.current;
+    if (!element) {
+      return;
+    }
+
+    const { scrollLeft, scrollWidth, clientWidth } = element;
+    const hasOverflow = scrollWidth > clientWidth + 1;
+    setScrollState({
+      hasOverflow,
+      canScrollLeft: hasOverflow && scrollLeft > 1,
+      canScrollRight: hasOverflow && scrollLeft + clientWidth < scrollWidth - 1,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (expanded) {
+      return;
+    }
+
+    const element = scrollRef.current;
+    if (!element) {
+      return;
+    }
+
+    updateScrollState();
+    element.addEventListener("scroll", updateScrollState, { passive: true });
+
+    let resizeObserver: ResizeObserver | undefined;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(updateScrollState);
+      resizeObserver.observe(element);
+    }
+
+    return () => {
+      element.removeEventListener("scroll", updateScrollState);
+      resizeObserver?.disconnect();
+    };
+  }, [chords, expanded, updateScrollState]);
+
+  function scrollByDirection(direction: -1 | 1) {
+    const element = scrollRef.current;
+    if (!element) {
+      return;
+    }
+
+    const step = Math.max(element.clientWidth * 0.75, 160);
+    element.scrollBy({ left: direction * step, behavior: "smooth" });
+  }
+
+  const scrollButtonClass =
+    "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-content shadow-xs transition enabled:hover:border-primary enabled:hover:text-primary disabled:cursor-default disabled:opacity-35";
+
+  const showExpandControl = expanded || scrollState.hasOverflow;
+
+  return (
+    <div className={className}>
+      {showExpandControl ? (
+        <div className="mb-2 flex justify-end">
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-label={
+              expanded ? "Recolher diagramas de acordes" : "Expandir diagramas de acordes"
+            }
+            className={scrollButtonClass}
+            onClick={() => setExpanded((current) => !current)}
+          >
+            <ChevronIcon direction={expanded ? "up" : "down"} />
+          </button>
+        </div>
+      ) : null}
+
+      {expanded ? (
+        <div className="rounded-2xl border border-border bg-surface-muted/50 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]">
+          <div className="flex flex-wrap justify-center gap-x-5 gap-y-6">
+            {chords.map((symbol) => (
+              <ChordDiagramCard key={symbol} symbol={symbol} />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-stretch gap-1.5">
+          {scrollState.hasOverflow ? (
+            <button
+              type="button"
+              aria-label="Rolar acordes para a esquerda"
+              className={`${scrollButtonClass} self-center`}
+              disabled={!scrollState.canScrollLeft}
+              onClick={() => scrollByDirection(-1)}
+            >
+              <ChevronIcon direction="left" />
+            </button>
+          ) : null}
+
+          <div
+            ref={scrollRef}
+            className={`flex min-w-0 flex-1 items-center gap-4 ${SCROLLBAR_HIDDEN}`}
+          >
+            {chords.map((symbol) => (
+              <ChordDiagramCard key={symbol} symbol={symbol} />
+            ))}
+          </div>
+
+          {scrollState.hasOverflow ? (
+            <button
+              type="button"
+              aria-label="Rolar acordes para a direita"
+              className={`${scrollButtonClass} self-center`}
+              disabled={!scrollState.canScrollRight}
+              onClick={() => scrollByDirection(1)}
+            >
+              <ChevronIcon direction="right" />
+            </button>
+          ) : null}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function ChordDiagramCard({ symbol }: { symbol: string }) {
@@ -396,9 +570,22 @@ export function ChordChartPreview({
   showDiagrams = true,
   columns = 1,
   fontSizePercent = 100,
+  layout = "standalone",
+  showFormatTags: showFormatTagsProp,
+  showTransposeControls: showTransposeControlsProp,
+  showKeyMetadata: showKeyMetadataProp,
+  syncDisplayKeyBase,
 }: ChordChartPreviewProps) {
   const [internalSemitones, setInternalSemitones] = useState(0);
   const semitones = controlledSemitones ?? internalSemitones;
+  const chartKeyOffset = syncDisplayKeyBase
+    ? semitonesBetweenKeys(chart.key, syncDisplayKeyBase)
+    : 0;
+  const renderSemitones = semitones + chartKeyOffset;
+  const embedded = layout === "embedded";
+  const showFormatTags = showFormatTagsProp ?? !embedded;
+  const showTransposeControls = showTransposeControlsProp ?? true;
+  const showKeyMetadata = showKeyMetadataProp ?? !embedded;
 
   function updateSemitones(delta: number) {
     const next = semitones + delta;
@@ -409,83 +596,128 @@ export function ChordChartPreview({
     }
   }
 
-  const activeKey = transpose(chart.key, semitones, chart.key);
-  const uniqueChords = extractUniqueChords(chart, semitones);
+  const activeKey = syncDisplayKeyBase
+    ? transposeChord(syncDisplayKeyBase, semitones, { key: syncDisplayKeyBase })
+    : transpose(chart.key, semitones, chart.key);
+  const uniqueChords = extractUniqueChords(chart, renderSemitones);
+  const Wrapper = embedded ? "div" : "article";
+  const chartTitle = chart.title?.trim();
+
+  const showChartHeader =
+    showFormatTags || !embedded || Boolean(chartTitle) || showTransposeControls;
+  const embeddedHeaderOnlyKey =
+    embedded && !showFormatTags && !chartTitle && showTransposeControls;
 
   return (
-    <article className="ds-card p-6 sm:p-8">
-      <div className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-center sm:justify-between">
+    <Wrapper className={embedded ? undefined : "ds-card p-6 sm:p-8"}>
+      {showChartHeader ? (
+      <div
+        className={
+          embedded
+            ? embeddedHeaderOnlyKey
+              ? "flex justify-end border-b border-border pb-4"
+              : "flex flex-col gap-2 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between"
+            : "flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-center sm:justify-between"
+        }
+      >
+        {!embeddedHeaderOnlyKey ? (
         <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-content px-3 py-1 text-xs font-semibold text-content-inverse">
-              {chart.format === "lyrics" ? "Cifra com letra" : "Grade por compassos"}
-            </span>
-            <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-content-muted">
-              Compasso {chart.timeSignature}
-            </span>
-          </div>
-          <h2 className="mt-2.5 text-lg font-bold text-content">
-            {chart.title ?? "Exemplo de cifra"}
-          </h2>
+          {showFormatTags ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center rounded-full bg-content px-3 py-1 text-xs font-semibold text-content-inverse">
+                {chart.format === "lyrics" ? "Cifra com letra" : "Grade por compassos"}
+              </span>
+              <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-content-muted">
+                Compasso {chart.timeSignature}
+              </span>
+              {chart.capo ? (
+                <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-content-muted">
+                  Capo {chart.capo}ª
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+          {!embedded || chartTitle ? (
+            <h2 className={showFormatTags ? "mt-2.5 text-lg font-bold text-content" : "text-lg font-bold text-content"}>
+              {chartTitle ?? "Exemplo de cifra"}
+            </h2>
+          ) : null}
         </div>
+        ) : null}
 
-        <div className="flex items-center gap-1.5 self-start rounded-full border border-border bg-surface-muted/60 p-1 sm:self-auto">
-          <button
-            type="button"
-            onClick={() => updateSemitones(-1)}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-surface text-xs font-bold text-content shadow-xs transition hover:border-primary hover:text-primary"
-          >
-            -1
-          </button>
-          <span className="min-w-16 px-2 text-center text-xs font-bold text-content">
-            {semitones === 0
-              ? `Tom ${activeKey}`
-              : `${activeKey} (${semitones > 0 ? `+${semitones}` : semitones})`}
-          </span>
-          <button
-            type="button"
-            onClick={() => updateSemitones(1)}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-surface text-xs font-bold text-content shadow-xs transition hover:border-primary hover:text-primary"
-          >
-            +1
-          </button>
-        </div>
+        {showTransposeControls ? (
+          <div className="flex items-center gap-1.5 self-start rounded-full border border-border bg-surface-muted/60 p-1 sm:self-auto">
+            <button
+              type="button"
+              onClick={() => updateSemitones(-1)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-surface text-xs font-bold text-content shadow-xs transition hover:border-primary hover:text-primary"
+            >
+              -1
+            </button>
+            <span className="min-w-16 px-2 text-center text-xs font-bold text-content">
+              {semitones === 0
+                ? `Tom ${activeKey}`
+                : `${activeKey} (${semitones > 0 ? `+${semitones}` : semitones})`}
+            </span>
+            <button
+              type="button"
+              onClick={() => updateSemitones(1)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-surface text-xs font-bold text-content shadow-xs transition hover:border-primary hover:text-primary"
+            >
+              +1
+            </button>
+          </div>
+        ) : null}
       </div>
+      ) : null}
 
       {showDiagrams && uniqueChords.length > 0 ? (
-        <div className="mt-6 flex items-center gap-4 overflow-x-auto border-b border-border pb-5">
-          {uniqueChords.map((symbol) => (
-            <ChordDiagramCard key={symbol} symbol={symbol} />
-          ))}
+        <ChordDiagramsStrip
+          chords={uniqueChords}
+          className={
+            embedded && !showChartHeader
+              ? "border-b border-border pb-5"
+              : embedded
+                ? "mt-5 border-b border-border pb-5"
+                : "mt-6 border-b border-border pb-5"
+          }
+        />
+      ) : null}
+
+      {showKeyMetadata ? (
+        <div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-content-muted">
+          <p>
+            Tom: <strong className="font-bold text-primary">{activeKey}</strong>
+          </p>
+          {semitones !== 0 ? (
+            <p className="text-xs text-content-subtle">
+              Original: {chart.key}
+            </p>
+          ) : null}
+          {chart.capo ? (
+            <p className="text-xs text-content-subtle">
+              Capotraste: {chart.capo}ª casa
+            </p>
+          ) : null}
         </div>
       ) : null}
 
-      <div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-content-muted">
-        <p>
-          Tom: <strong className="font-bold text-primary">{activeKey}</strong>
-        </p>
-        {semitones !== 0 ? (
-          <p className="text-xs text-content-subtle">
-            Original: {chart.key}
-          </p>
-        ) : null}
-        {chart.capo ? (
-          <p className="text-xs text-content-subtle">
-            Capotraste: {chart.capo}ª casa
-          </p>
-        ) : null}
-      </div>
-
       <div
-        className="mt-6"
+        className={
+          embedded && !showChartHeader && !(showDiagrams && uniqueChords.length > 0)
+            ? undefined
+            : embedded
+              ? "mt-5"
+              : "mt-6"
+        }
         style={fontSizePercent !== 100 ? { zoom: `${fontSizePercent}%` } : undefined}
       >
         {chart.format === "lyrics" ? (
-          <LyricsChart chart={chart} semitones={semitones} columns={columns} />
+          <LyricsChart chart={chart} semitones={renderSemitones} columns={columns} />
         ) : (
-          <GridChart chart={chart} semitones={semitones} />
+          <GridChart chart={chart} semitones={renderSemitones} />
         )}
       </div>
-    </article>
+    </Wrapper>
   );
 }

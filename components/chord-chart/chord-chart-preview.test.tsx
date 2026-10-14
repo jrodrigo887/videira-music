@@ -2,8 +2,8 @@
 
 import "@testing-library/jest-dom/vitest";
 
-import { cleanup, render } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ChordChart } from "@/types/music";
 
@@ -53,5 +53,41 @@ describe("ChordChartPreview", () => {
       .toEqual(["Am7", "G", "C9"]);
     expect(segments.map((segment) => segment.querySelector(".music-lyrics")?.textContent))
       .toEqual(["Minha oração só é ", "real transformação ", "se começar em mim"]);
+  });
+
+  it("hides expand control when all chord diagrams fit without scrolling", async () => {
+    const scrollWidthSpy = vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockReturnValue(320);
+    const clientWidthSpy = vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(320);
+
+    render(<ChordChartPreview chart={CHART} layout="embedded" showFormatTags={false} />);
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("button", { name: /expandir diagramas de acordes/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    scrollWidthSpy.mockRestore();
+    clientWidthSpy.mockRestore();
+  });
+
+  it("expands chord diagrams into a board view from the top-right control", async () => {
+    const scrollWidthSpy = vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockReturnValue(900);
+    const clientWidthSpy = vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(320);
+
+    render(<ChordChartPreview chart={CHART} layout="embedded" showFormatTags={false} />);
+
+    const expandButton = await waitFor(() =>
+      screen.getByRole("button", { name: /expandir diagramas de acordes/i }),
+    );
+    fireEvent.click(expandButton);
+
+    expect(screen.getByRole("button", { name: /recolher diagramas de acordes/i })).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+
+    scrollWidthSpy.mockRestore();
+    clientWidthSpy.mockRestore();
   });
 });
