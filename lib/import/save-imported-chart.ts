@@ -15,7 +15,7 @@ type SongSelection =
 
 export type SaveImportedChartInput = {
   draft: ImportDraft;
-  confirmedKey?: string;
+  selectedSongKey?: string;
   song?: SongSelection;
 };
 
@@ -43,14 +43,14 @@ function serializeRepositoryWrite(
 
 function createLocalSong(
   selection: Extract<SongSelection, { kind: "new" }>,
-  confirmedKey: string,
+  selectedSongKey: string,
 ): Song {
   return {
     id: `song-local-${crypto.randomUUID()}`,
     title: selection.title,
     label: selection.title,
     ...(selection.artist ? { artist: selection.artist } : {}),
-    defaultKey: confirmedKey,
+    defaultKey: selectedSongKey,
     alternateKeys: [],
     meta: "",
   };
@@ -60,8 +60,9 @@ export async function saveImportedChart(
   input: SaveImportedChartInput,
   repository: MusicRepository,
 ): Promise<SaveImportedChartResult> {
-  if (!input.confirmedKey?.trim()) {
-    throw new Error("Confirme o tom antes de salvar.");
+  const selectedSongKey = input.selectedSongKey?.trim();
+  if (!selectedSongKey) {
+    throw new Error("Selecione o tom da música antes de salvar.");
   }
 
   if (!input.song) {
@@ -72,10 +73,14 @@ export async function saveImportedChart(
   let songToSave: Song | undefined;
 
   if (input.song.kind === "new") {
-    song = createLocalSong(input.song, input.confirmedKey);
+    song = createLocalSong(input.song, selectedSongKey);
     songToSave = song;
   } else {
     song = await repository.findSongById(input.song.songId);
+    if (song) {
+      song = { ...song, defaultKey: selectedSongKey };
+      songToSave = song;
+    }
   }
 
   if (!song) {
@@ -86,7 +91,6 @@ export async function saveImportedChart(
     ...input.draft.chart,
     id: `chart-local-${crypto.randomUUID()}`,
     songId: song.id,
-    key: input.confirmedKey,
   };
 
   await serializeRepositoryWrite(

@@ -81,7 +81,7 @@ class FailOnceRepository extends InMemoryMusicRepository {
 }
 
 describe("saveImportedChart", () => {
-  it("rejects drafts without explicit key confirmation", async () => {
+  it("rejects drafts without a selected song key", async () => {
     const repository = new InMemoryMusicRepository([EXISTING_SONG]);
 
     await expect(
@@ -89,31 +89,34 @@ describe("saveImportedChart", () => {
         { draft: DRAFT, song: { kind: "existing", songId: EXISTING_SONG.id } },
         repository,
       ),
-    ).rejects.toThrow("Confirme o tom");
+    ).rejects.toThrow("Selecione o tom");
   });
 
   it("rejects drafts without a song selection", async () => {
     const repository = new InMemoryMusicRepository([EXISTING_SONG]);
 
     await expect(
-      saveImportedChart({ draft: DRAFT, confirmedKey: "G" }, repository),
+      saveImportedChart({ draft: DRAFT, selectedSongKey: "G" }, repository),
     ).rejects.toThrow("Selecione ou crie uma música");
   });
 
-  it("links the chart to the explicitly selected existing song", async () => {
+  it("records the selected key on an existing song without changing the imported chart key", async () => {
     const repository = new InMemoryMusicRepository([EXISTING_SONG]);
 
     const result = await saveImportedChart(
       {
         draft: DRAFT,
-        confirmedKey: "A",
+        selectedSongKey: "A",
         song: { kind: "existing", songId: EXISTING_SONG.id },
       },
       repository,
     );
 
-    expect(result.song).toEqual(EXISTING_SONG);
-    expect(result.chart).toMatchObject({ songId: EXISTING_SONG.id, key: "A" });
+    expect(result.song).toMatchObject({ ...EXISTING_SONG, defaultKey: "A" });
+    expect(result.chart).toMatchObject({ songId: EXISTING_SONG.id, key: "G" });
+    await expect(repository.findSongById(EXISTING_SONG.id)).resolves.toMatchObject({
+      defaultKey: "A",
+    });
     await expect(repository.listChartsBySong(EXISTING_SONG.id)).resolves.toEqual([result.chart]);
   });
 
@@ -126,7 +129,7 @@ describe("saveImportedChart", () => {
     const result = await saveImportedChart(
       {
         draft: DRAFT,
-        confirmedKey: "G",
+        selectedSongKey: "G",
         song: { kind: "new", title: "Canção nova", artist: "Outro artista" },
       },
       repository,
@@ -157,7 +160,7 @@ describe("saveImportedChart", () => {
       saveImportedChart(
         {
           draft: DRAFT,
-          confirmedKey: "G",
+          selectedSongKey: "G",
           song: { kind: "existing", songId: EXISTING_SONG.id },
         },
         repository,
@@ -172,7 +175,7 @@ describe("saveImportedChart", () => {
     const first = saveImportedChart(
       {
         draft: DRAFT,
-        confirmedKey: "G",
+        selectedSongKey: "G",
         song: { kind: "new", title: "Primeira" },
       },
       repository,
@@ -180,7 +183,7 @@ describe("saveImportedChart", () => {
     const second = saveImportedChart(
       {
         draft: { ...DRAFT, id: "import-2" },
-        confirmedKey: "A",
+        selectedSongKey: "A",
         song: { kind: "new", title: "Segunda" },
       },
       repository,
@@ -210,7 +213,7 @@ describe("saveImportedChart", () => {
     const first = saveImportedChart(
       {
         draft: DRAFT,
-        confirmedKey: "G",
+        selectedSongKey: "G",
         song: { kind: "new", title: "Falha" },
       },
       repository,
@@ -218,7 +221,7 @@ describe("saveImportedChart", () => {
     const second = saveImportedChart(
       {
         draft: { ...DRAFT, id: "import-after-failure" },
-        confirmedKey: "A",
+        selectedSongKey: "A",
         song: { kind: "new", title: "Persistida" },
       },
       repository,

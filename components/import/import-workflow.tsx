@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { ChordChartPreview } from "@/components/chord-chart/chord-chart-preview";
+import { ImportUnlockPanel } from "@/components/import/import-unlock-panel";
 import { previewImport } from "@/lib/import/preview-import";
 import {
   saveImportedChart,
@@ -10,6 +11,7 @@ import {
 } from "@/lib/import/save-imported-chart";
 import { HttpMusicRepository } from "@/lib/persistence/http-music-repository";
 import type { MusicRepository } from "@/lib/persistence/music-repository";
+import { RepositoryError } from "@/lib/persistence/repository-error";
 import { normalizeSearchPart } from "@/lib/persistence/search-text";
 import type { ImportDraft } from "@/types/import";
 import type { ChordChart, SectionType, Song } from "@/types/music";
@@ -27,6 +29,45 @@ const SECTION_TYPES: { value: SectionType; label: string }[] = [
   { value: "ending", label: "Final" },
 ];
 
+const TONALITY_OPTIONS = [
+  "C",
+  "C#",
+  "Db",
+  "D",
+  "D#",
+  "Eb",
+  "E",
+  "F",
+  "F#",
+  "Gb",
+  "G",
+  "G#",
+  "Ab",
+  "A",
+  "A#",
+  "Bb",
+  "B",
+  "Cm",
+  "C#m",
+  "Dbm",
+  "Dm",
+  "D#m",
+  "Ebm",
+  "Em",
+  "Fm",
+  "F#m",
+  "Gbm",
+  "Gm",
+  "G#m",
+  "Abm",
+  "Am",
+  "A#m",
+  "Bbm",
+  "Bm",
+];
+
+const EMPTY_INITIAL_SONGS: Song[] = [];
+
 type ImportWorkflowProps = {
   initialSongs?: Song[];
   urlImportEnabled: boolean;
@@ -39,6 +80,13 @@ type SongChoice =
   | { kind: "existing"; songId: string }
   | { kind: "new"; title: string; artist?: string };
 
+export class ImportSessionLockedError extends Error {
+  constructor() {
+    super("Import bloqueado.");
+    this.name = "ImportSessionLockedError";
+  }
+}
+
 async function requestCifraClubImport(url: string): Promise<ImportDraft> {
   const response = await fetch("/api/imports/cifraclub", {
     method: "POST",
@@ -48,6 +96,9 @@ async function requestCifraClubImport(url: string): Promise<ImportDraft> {
   const body = await response.json();
 
   if (!response.ok) {
+    if (response.status === 401 && body.error?.code === "IMPORT_LOCKED") {
+      throw new ImportSessionLockedError();
+    }
     throw new Error(body.error?.message ?? "Não foi possível importar a URL.");
   }
 
@@ -63,7 +114,7 @@ function chartForPreview(draft: ImportDraft): ChordChart {
 }
 
 export function ImportWorkflow({
-  initialSongs = [],
+  initialSongs = EMPTY_INITIAL_SONGS,
   urlImportEnabled,
   repository: suppliedRepository,
   requestUrlImport = requestCifraClubImport,
@@ -77,12 +128,13 @@ export function ImportWorkflow({
   const [text, setText] = useState("");
   const [url, setUrl] = useState("");
   const [draft, setDraft] = useState<ImportDraft>();
-  const [confirmedKey, setConfirmedKey] = useState<string>();
+  const [selectedSongKey, setSelectedSongKey] = useState("");
   const [songChoice, setSongChoice] = useState<SongChoice>();
   const [newSongTitle, setNewSongTitle] = useState("");
   const [newSongArtist, setNewSongArtist] = useState("");
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
+  const [sessionLocked, setSessionLocked] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -117,7 +169,7 @@ export function ImportWorkflow({
 
   function beginReview(nextDraft: ImportDraft) {
     setDraft(nextDraft);
-    setConfirmedKey(undefined);
+    setSelectedSongKey(nextDraft.song.defaultKey ?? nextDraft.chart.key);
     setSongChoice(undefined);
     setError(undefined);
   }
@@ -153,6 +205,10 @@ export function ImportWorkflow({
       }
       beginReview(await requestUrlImport(requestedUrl));
     } catch (cause) {
+      if (cause instanceof ImportSessionLockedError) {
+        setSessionLocked(true);
+        return;
+      }
       setError(cause instanceof Error ? cause.message : "Não foi possível importar a URL.");
     } finally {
       setBusy(false);
@@ -171,24 +227,54 @@ export function ImportWorkflow({
     }));
   }
 
+  function selectNewSong(title: string, artist: string) {
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
+      if (songChoice?.kind === "new") setSongChoice(undefined);
+      return;
+    }
+
+    const trimmedArtist = artist.trim();
+    setSongChoice({
+      kind: "new",
+      title: trimmedTitle,
+      ...(trimmedArtist ? { artist: trimmedArtist } : {}),
+    });
+  }
+
   async function save() {
-    if (!draft || !confirmedKey || !songChoice) return;
+    if (!draft || !selectedSongKey || !songChoice) return;
 
     setBusy(true);
     setError(undefined);
     try {
       const input: SaveImportedChartInput = {
         draft,
-        confirmedKey,
+        selectedSongKey,
         song: songChoice,
       };
       const result = await saveImportedChart(input, repository);
       onNavigate(`/songs/${result.song.id}`);
-    } catch {
+    } catch (cause) {
+      if (cause instanceof RepositoryError && cause.code === "IMPORT_LOCKED") {
+        setSessionLocked(true);
+        return;
+      }
       setError("Nada foi salvo. Revise os dados e tente novamente.");
     } finally {
       setBusy(false);
     }
+  }
+
+  if (sessionLocked) {
+    return (
+      <ImportUnlockPanel
+        onUnlocked={() => {
+          setSessionLocked(false);
+          setError(undefined);
+        }}
+      />
+    );
   }
 
   if (!draft) {
@@ -238,8 +324,10 @@ export function ImportWorkflow({
     );
   }
 
-  const key = draft.song.defaultKey ?? draft.chart.key;
-  const canSave = Boolean(confirmedKey && songChoice && !busy);
+  const tonalityOptions = TONALITY_OPTIONS.includes(selectedSongKey)
+    ? TONALITY_OPTIONS
+    : [selectedSongKey, ...TONALITY_OPTIONS].filter(Boolean);
+  const canSave = Boolean(selectedSongKey && songChoice && !busy);
 
   return (
     <section className="space-y-6">
@@ -295,14 +383,25 @@ export function ImportWorkflow({
             </select>
           </label>
         ))}
-        <label className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            checked={confirmedKey === key}
-            onChange={(event) => setConfirmedKey(event.target.checked ? key : undefined)}
-          />
-          <span>Confirmar tom {key}</span>
-        </label>
+        <div>
+          <label htmlFor="song-key" className="text-sm font-medium text-content-muted">
+            Tom da música
+          </label>
+          <select
+            id="song-key"
+            aria-describedby="song-key-help"
+            value={selectedSongKey}
+            onChange={(event) => setSelectedSongKey(event.target.value)}
+            className="ds-input mt-2"
+          >
+            {tonalityOptions.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </select>
+          <span id="song-key-help" className="mt-2 block text-xs text-content-muted">
+            Salvo apenas como registro da tonalidade da música; não altera a cifra importada.
+          </span>
+        </div>
       </section>
 
       <section className="ds-card space-y-4">
@@ -329,7 +428,11 @@ export function ImportWorkflow({
             <span className="text-sm font-medium text-content-muted">Nova música</span>
             <input
               value={newSongTitle}
-              onChange={(event) => setNewSongTitle(event.target.value)}
+              onChange={(event) => {
+                const nextTitle = event.target.value;
+                setNewSongTitle(nextTitle);
+                selectNewSong(nextTitle, newSongArtist);
+              }}
               className="ds-input mt-2"
             />
           </label>
@@ -337,23 +440,21 @@ export function ImportWorkflow({
             <span className="text-sm font-medium text-content-muted">Artista</span>
             <input
               value={newSongArtist}
-              onChange={(event) => setNewSongArtist(event.target.value)}
+              onChange={(event) => {
+                const nextArtist = event.target.value;
+                setNewSongArtist(nextArtist);
+                selectNewSong(newSongTitle, nextArtist);
+              }}
               className="ds-input mt-2"
             />
           </label>
         </div>
-        <button
-          type="button"
-          className="ds-button-secondary"
-          disabled={!newSongTitle.trim()}
-          onClick={() => setSongChoice({
-            kind: "new",
-            title: newSongTitle.trim(),
-            ...(newSongArtist.trim() ? { artist: newSongArtist.trim() } : {}),
-          })}
-        >
-          Confirmar nova música
-        </button>
+        {songChoice?.kind === "new" ? (
+          <p role="status" className="text-sm font-medium text-primary">
+            Esta nova música será criada ao salvar: {songChoice.title}
+            {songChoice.artist ? ` · ${songChoice.artist}` : ""}
+          </p>
+        ) : null}
       </section>
 
       <button type="button" className="ds-button" disabled={!canSave} onClick={save}>
