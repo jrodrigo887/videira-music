@@ -1,7 +1,7 @@
 import { parseChord } from "./parse-chord";
 
-const SHARP_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-const FLAT_NOTES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+export const SHARP_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+export const FLAT_NOTES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
 const FLAT_KEYS = new Set(["F", "Bb", "Eb", "Ab", "Db", "Gb", "Cb"]);
 
 export type TransposeOptions = {
@@ -27,6 +27,19 @@ function normalizeIndex(index: number): number {
 export function parseKeyRoot(key: string): string | undefined {
   const match = key.trim().match(/^([A-G](?:#|b)?)/);
   return match?.[1];
+}
+
+const CHROMATIC_ROOTS = new Set([...SHARP_NOTES, ...FLAT_NOTES]);
+
+/** True when the key is a supported major or minor root (SET-05). */
+export function isTransposableKey(key: string): boolean {
+  const trimmed = key.trim();
+  const root = parseKeyRoot(trimmed);
+  if (!root || !CHROMATIC_ROOTS.has(root)) {
+    return false;
+  }
+  const suffix = trimmed.slice(root.length);
+  return suffix === "" || suffix === "m";
 }
 
 /** Semitone steps to transpose from `fromKey` so its root matches `toKey`. */
