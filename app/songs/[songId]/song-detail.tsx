@@ -1,43 +1,51 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ChordChartPreview } from "@/components/chord-chart/chord-chart-preview";
 import { buildExampleCharts } from "@/lib/charts/example-charts";
-import { IndexedDbMusicRepository } from "@/lib/persistence/music-database";
+import { transposeChord } from "@/lib/chords/transpose-chord";
+import { HttpMusicRepository } from "@/lib/persistence/http-music-repository";
 import type { MusicRepository } from "@/lib/persistence/music-repository";
 import type { ChordChart, Song } from "@/types/music";
 
 type SongDetailProps = {
   songId: string;
-  seedSong?: Song;
   repository?: MusicRepository;
 };
 
 type DetailState =
   | { status: "loading" }
   | { status: "missing" }
-  | { status: "ready"; song: Song; charts: ChordChart[]; storageWarning: boolean }
+  | { status: "ready"; song: Song; charts: ChordChart[]; persistedCharts: boolean }
   | { status: "storage-error" };
 
-export function SongDetail({
-  songId,
-  seedSong,
-  repository: suppliedRepository,
-}: SongDetailProps) {
+const FONT_SIZE_STEPS = [90, 100, 110, 120];
+
+export function SongDetail({ songId, repository: suppliedRepository }: SongDetailProps) {
   const repository = useMemo(
-    () => suppliedRepository ?? new IndexedDbMusicRepository(),
+    () => suppliedRepository ?? new HttpMusicRepository(),
     [suppliedRepository],
   );
   const [state, setState] = useState<DetailState>({ status: "loading" });
+  const [reloadToken, setReloadToken] = useState(0);
+  const [semitones, setSemitones] = useState(0);
+  const [showDiagrams, setShowDiagrams] = useState(true);
+  const [columns, setColumns] = useState<1 | 2>(1);
+  const [fontSizeIndex, setFontSizeIndex] = useState(1);
+
+  const reload = useCallback(() => {
+    setState({ status: "loading" });
+    setReloadToken((value) => value + 1);
+  }, []);
 
   useEffect(() => {
     let active = true;
 
     async function load() {
       try {
-        const song = seedSong ?? await repository.findSongById(songId);
+        const song = await repository.findSongById(songId);
         if (!song) {
           if (active) setState({ status: "missing" });
           return;
@@ -49,19 +57,11 @@ export function SongDetail({
             status: "ready",
             song,
             charts: persistedCharts.length ? persistedCharts : buildExampleCharts(song),
-            storageWarning: false,
+            persistedCharts: persistedCharts.length > 0,
           });
         }
       } catch {
-        if (!active) return;
-        if (seedSong) {
-          setState({
-            status: "ready",
-            song: seedSong,
-            charts: buildExampleCharts(seedSong),
-            storageWarning: true,
-          });
-        } else {
+        if (active) {
           setState({ status: "storage-error" });
         }
       }
@@ -71,7 +71,7 @@ export function SongDetail({
     return () => {
       active = false;
     };
-  }, [repository, seedSong, songId]);
+  }, [repository, songId, reloadToken]);
 
   if (state.status === "loading") {
     return <p className="text-content-muted">Carregando música…</p>;
@@ -90,72 +90,195 @@ export function SongDetail({
     return (
       <section className="ds-card">
         <p role="alert" className="text-content-muted">
-          Não foi possível consultar os dados locais. Tente novamente.
+          Não foi possível carregar a música. Tente novamente.
         </p>
-        <Link href="/songs" className="ds-link mt-4 inline-block">Voltar para biblioteca</Link>
+        <button type="button" className="ds-link mt-4 inline-block" onClick={reload}>
+          Tentar novamente
+        </button>
+        <Link href="/songs" className="ds-link mt-4 ml-4 inline-block">Voltar para biblioteca</Link>
       </section>
     );
   }
 
-  const persisted = state.charts.some((chart) => chart.id.startsWith("chart-local-") || chart.origin);
+  const baseKey = state.song.defaultKey ?? state.charts[0]?.key ?? "C";
+  const activeKey = transposeChord(baseKey, semitones, { key: baseKey });
+  const fontSizePercent = FONT_SIZE_STEPS[fontSizeIndex] ?? 100;
 
   return (
-    <div className="space-y-8">
-      <Link href="/songs" className="ds-link text-sm">
-        Voltar para biblioteca
-      </Link>
+    <div className="space-y-6">
+      <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
+        <aside className="space-y-3 lg:sticky lg:top-20">
+          <div className="flex items-center gap-2">
+            <Link
+              href="/songs"
+              aria-label="Voltar para biblioteca"
+              title="Voltar para biblioteca"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-content shadow-xs transition hover:border-primary hover:text-primary"
+            >
+              ‹
+            </Link>
+            <Link
+              href="/import"
+              className="inline-flex h-10 flex-1 items-center justify-center rounded-full border border-border bg-surface px-4 text-xs font-semibold text-content shadow-xs transition hover:border-primary hover:text-primary"
+            >
+              + Importar cifra
+            </Link>
+          </div>
 
-      {state.storageWarning ? (
-        <p role="alert" className="ds-card-muted">
-          Cifras locais não puderam ser carregadas. Exibindo o conteúdo inicial.
-        </p>
-      ) : null}
+          <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+            <button
+              type="button"
+              onClick={() => setColumns((current) => (current === 1 ? 2 : 1))}
+              className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-medium text-content transition hover:bg-surface-muted/60"
+            >
+              <span className="font-semibold">Dividir em colunas</span>
+              <span className="text-content-subtle">{columns === 2 ? "2 col." : "1 col."} ›</span>
+            </button>
 
-      <section className="ds-card">
-        <p className="ds-eyebrow text-content-subtle">Detalhe da musica</p>
-        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-content">{state.song.title}</h1>
-            <p className="mt-2 text-content-muted">{state.song.meta}</p>
-            {state.song.artist ? (
-              <p className="mt-1 text-sm text-content-subtle">{state.song.artist}</p>
+            <button
+              type="button"
+              onClick={() => setShowDiagrams((current) => !current)}
+              className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-medium text-content transition hover:bg-surface-muted/60"
+            >
+              <span className="font-semibold">Diagramas</span>
+              <span className="text-content-subtle">{showDiagrams ? "Violão" : "Oculto"} ›</span>
+            </button>
+
+            <div className="flex items-center justify-between px-4 py-2.5 text-xs">
+              <span className="font-semibold text-content">Tom</span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  aria-label="Diminuir meio-tom"
+                  onClick={() => setSemitones((value) => value - 1)}
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border text-content-muted transition hover:border-primary hover:text-primary"
+                >
+                  −
+                </button>
+                <span className="min-w-6 text-center font-bold text-primary">
+                  {activeKey}
+                </span>
+                <button
+                  type="button"
+                  aria-label="Aumentar meio-tom"
+                  onClick={() => setSemitones((value) => value + 1)}
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border text-content-muted transition hover:border-primary hover:text-primary"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between px-4 py-3 text-xs">
+              <span className="font-semibold text-content">Capotraste</span>
+              <span className="text-content-subtle">Sem capotraste</span>
+            </div>
+
+            <div className="flex items-center justify-between px-4 py-3 text-xs">
+              <span className="font-semibold text-content">Afinação</span>
+              <span className="text-content-subtle">Padrão</span>
+            </div>
+          </div>
+
+          <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+            <button
+              type="button"
+              onClick={() => setFontSizeIndex((current) => (current + 1) % FONT_SIZE_STEPS.length)}
+              className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-medium text-content transition hover:bg-surface-muted/60"
+            >
+              <span className="font-semibold">Texto</span>
+              <span className="text-content-subtle">{fontSizePercent}% ›</span>
+            </button>
+
+            {semitones !== 0 ? (
+              <button
+                type="button"
+                onClick={() => setSemitones(0)}
+                className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-semibold text-primary transition hover:bg-primary-subtle/50"
+              >
+                <span>Restaurar tom original</span>
+                <span>{baseKey}</span>
+              </button>
             ) : null}
           </div>
-          {state.song.defaultKey ? (
-            <span className="ds-badge px-4 py-2">Tom {state.song.defaultKey}</span>
-          ) : null}
-        </div>
-      </section>
+        </aside>
 
-      <section className="space-y-4">
-        <div>
-          <p className="ds-eyebrow">Cifras</p>
-          <h2 className="mt-2 text-2xl font-bold text-content">
-            {persisted ? "Cifras importadas" : "Cifras de exemplo"}
-          </h2>
-        </div>
-
-        <div className="grid gap-6">
-          {state.charts.map((chart) => (
-            <div key={chart.id} className="space-y-2">
-              {chart.origin?.url ? (
-                <p className="text-sm text-content-muted">
-                  Fonte:{" "}
-                  <a
-                    href={chart.origin.url}
-                    className="ds-link"
-                    target="_blank"
-                    rel="noreferrer"
+        <div className="space-y-6">
+          <section className="ds-card p-6 sm:p-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2.5">
+                  <h1 className="text-3xl font-extrabold tracking-tight text-content sm:text-4xl">
+                    {state.song.title}
+                  </h1>
+                  <span
+                    aria-hidden="true"
+                    className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground"
                   >
-                    {chart.origin.sourceName ?? "Origem"}
-                  </a>
-                </p>
+                    ✓
+                  </span>
+                </div>
+
+                {state.song.artist ? (
+                  <p className="mt-1 text-lg font-bold text-primary">
+                    {state.song.artist}
+                  </p>
+                ) : null}
+
+                <p className="mt-1 text-sm text-content-muted">{state.song.meta}</p>
+              </div>
+
+              {state.song.defaultKey ? (
+                <span className="ds-badge px-4 py-1.5 text-sm">
+                  Tom {state.song.defaultKey}
+                </span>
               ) : null}
-              <ChordChartPreview chart={chart} />
             </div>
-          ))}
+
+            <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-border pt-4">
+              <span className="inline-flex items-center rounded-full bg-content px-3.5 py-1.5 text-xs font-semibold text-content-inverse">
+                Principal
+              </span>
+              <span className="inline-flex items-center rounded-full bg-surface-muted px-3.5 py-1.5 text-xs font-semibold text-content-muted">
+                {state.persistedCharts ? "Cifras importadas" : "Cifras de exemplo"}
+              </span>
+              {state.charts.length > 1 ? (
+                <span className="inline-flex items-center rounded-full bg-surface-muted px-3.5 py-1.5 text-xs font-medium text-content-subtle">
+                  {state.charts.length} formatos
+                </span>
+              ) : null}
+            </div>
+          </section>
+
+          <section className="space-y-6">
+            {state.charts.map((chart) => (
+              <div key={chart.id} className="space-y-2">
+                {chart.origin?.url ? (
+                  <p className="px-1 text-sm text-content-muted">
+                    Fonte:{" "}
+                    <a
+                      href={chart.origin.url}
+                      className="ds-link"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {chart.origin.sourceName ?? "Origem"}
+                    </a>
+                  </p>
+                ) : null}
+                <ChordChartPreview
+                  chart={chart}
+                  semitones={semitones}
+                  onSemitonesChange={setSemitones}
+                  showDiagrams={showDiagrams}
+                  columns={columns}
+                  fontSizePercent={fontSizePercent}
+                />
+              </div>
+            ))}
+          </section>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

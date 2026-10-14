@@ -1,5 +1,4 @@
 import { ImportWorkflow } from "@/components/import/import-workflow";
-import { listSongs } from "@/lib/data/songs";
 
 export const dynamic = "force-dynamic";
 
@@ -18,10 +17,7 @@ export default function ImportPage() {
         </p>
       </section>
 
-      <ImportWorkflow
-        initialSongs={listSongs()}
-        urlImportEnabled={urlImportEnabled}
-      />
+      <ImportWorkflow urlImportEnabled={urlImportEnabled} />
     </div>
   );
 }

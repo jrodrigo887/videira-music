@@ -1,5 +1,3 @@
-import { findSongById, listSongs } from "@/lib/data/songs";
-
 import { SongDetail } from "./song-detail";
 
 type SongDetailPageProps = {
@@ -8,13 +6,9 @@ type SongDetailPageProps = {
   }>;
 };
 
-export function generateStaticParams() {
-  return listSongs().map((song) => ({
-    songId: song.id,
-  }));
-}
+export const dynamic = "force-dynamic";
 
 export default async function SongDetailPage({ params }: SongDetailPageProps) {
   const { songId } = await params;
-  return <SongDetail songId={songId} seedSong={findSongById(songId)} />;
+  return <SongDetail songId={songId} />;
 }

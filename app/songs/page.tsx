@@ -1,11 +1,8 @@
 import Link from "next/link";
 
 import { SongLibrary } from "@/components/songs/song-library";
-import { listSongs } from "@/lib/data/songs";
 
 export default function SongsPage() {
-  const songs = listSongs();
-
   return (
     <div className="space-y-8">
       <section className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
@@ -17,7 +14,7 @@ export default function SongsPage() {
             Musicas do repertorio
           </h1>
           <p className="mt-3 max-w-2xl text-content-muted">
-            Busque pelo catalogo inicial e abra uma musica para ver metadados e previews
+            Busque pelo catalogo e abra uma musica para ver metadados e previews
             transponiveis de cifra.
           </p>
         </div>
@@ -26,7 +23,7 @@ export default function SongsPage() {
         </Link>
       </section>
 
-      <SongLibrary initialSongs={songs} />
+      <SongLibrary />
     </div>
   );
 }

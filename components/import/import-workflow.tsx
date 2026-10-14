@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ChordChartPreview } from "@/components/chord-chart/chord-chart-preview";
 import { previewImport } from "@/lib/import/preview-import";
@@ -8,8 +8,9 @@ import {
   saveImportedChart,
   type SaveImportedChartInput,
 } from "@/lib/import/save-imported-chart";
-import { IndexedDbMusicRepository } from "@/lib/persistence/music-database";
+import { HttpMusicRepository } from "@/lib/persistence/http-music-repository";
 import type { MusicRepository } from "@/lib/persistence/music-repository";
+import { normalizeSearchPart } from "@/lib/persistence/search-text";
 import type { ImportDraft } from "@/types/import";
 import type { ChordChart, SectionType, Song } from "@/types/music";
 
@@ -27,7 +28,7 @@ const SECTION_TYPES: { value: SectionType; label: string }[] = [
 ];
 
 type ImportWorkflowProps = {
-  initialSongs: Song[];
+  initialSongs?: Song[];
   urlImportEnabled: boolean;
   repository?: MusicRepository;
   requestUrlImport?: (url: string) => Promise<ImportDraft>;
@@ -61,21 +62,18 @@ function chartForPreview(draft: ImportDraft): ChordChart {
   };
 }
 
-function normalized(value?: string): string {
-  return value?.normalize("NFKD").replace(/\p{M}/gu, "").toLocaleLowerCase("pt-BR") ?? "";
-}
-
 export function ImportWorkflow({
-  initialSongs,
+  initialSongs = [],
   urlImportEnabled,
   repository: suppliedRepository,
   requestUrlImport = requestCifraClubImport,
   onNavigate = (path) => window.location.assign(path),
 }: ImportWorkflowProps) {
   const repository = useMemo(
-    () => suppliedRepository ?? new IndexedDbMusicRepository(),
+    () => suppliedRepository ?? new HttpMusicRepository(),
     [suppliedRepository],
   );
+  const [catalogSongs, setCatalogSongs] = useState<Song[]>(initialSongs);
   const [text, setText] = useState("");
   const [url, setUrl] = useState("");
   const [draft, setDraft] = useState<ImportDraft>();
@@ -86,17 +84,36 @@ export function ImportWorkflow({
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
 
-  const suggestions = useMemo(() => {
-    if (!draft?.song.title && !draft?.song.artist) return initialSongs;
+  useEffect(() => {
+    let active = true;
+    repository
+      .listSongs()
+      .then((songs) => {
+        if (active) {
+          setCatalogSongs(songs);
+        }
+      })
+      .catch(() => {
+        if (active && initialSongs.length) {
+          setCatalogSongs(initialSongs);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [repository, initialSongs]);
 
-    const title = normalized(draft.song.title);
-    const artist = normalized(draft.song.artist);
-    return initialSongs.filter((song) => {
-      const titleMatches = title && normalized(song.title).includes(title);
-      const artistMatches = artist && normalized(song.artist).includes(artist);
+  const suggestions = useMemo(() => {
+    if (!draft?.song.title && !draft?.song.artist) return catalogSongs;
+
+    const title = normalizeSearchPart(draft.song.title);
+    const artist = normalizeSearchPart(draft.song.artist);
+    return catalogSongs.filter((song) => {
+      const titleMatches = title && normalizeSearchPart(song.title).includes(title);
+      const artistMatches = artist && normalizeSearchPart(song.artist).includes(artist);
       return titleMatches || artistMatches;
     });
-  }, [draft, initialSongs]);
+  }, [draft, catalogSongs]);
 
   function beginReview(nextDraft: ImportDraft) {
     setDraft(nextDraft);

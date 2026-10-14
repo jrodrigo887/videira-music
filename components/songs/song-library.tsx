@@ -1,70 +1,87 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { IndexedDbMusicRepository } from "@/lib/persistence/music-database";
+import { runLocalDataMigration } from "@/lib/persistence/local-data-migration";
+import { HttpMusicRepository } from "@/lib/persistence/http-music-repository";
 import type { MusicRepository } from "@/lib/persistence/music-repository";
+import { normalizeSearchPart } from "@/lib/persistence/search-text";
 import type { Song } from "@/types/music";
 
 import { SongCard } from "./song-card";
 
 type SongLibraryProps = {
-  initialSongs: Song[];
   repository?: MusicRepository;
 };
 
 function matchesQuery(song: Song, query: string): boolean {
   const searchable = [song.title, song.artist, song.defaultKey, song.meta]
     .filter(Boolean)
-    .join(" ")
-    .toLocaleLowerCase("pt-BR");
+    .map((part) => normalizeSearchPart(part))
+    .join(" ");
 
   return searchable.includes(query);
 }
 
-export function SongLibrary({ initialSongs, repository: suppliedRepository }: SongLibraryProps) {
+export function SongLibrary({ repository: suppliedRepository }: SongLibraryProps) {
   const [query, setQuery] = useState("");
-  const [localSongs, setLocalSongs] = useState<Song[]>([]);
+  const [songs, setSongs] = useState<Song[]>([]);
   const [loadError, setLoadError] = useState(false);
+  const [migrationMessage, setMigrationMessage] = useState<string>();
   const repository = useMemo(
-    () => suppliedRepository ?? new IndexedDbMusicRepository(),
+    () => suppliedRepository ?? new HttpMusicRepository(),
     [suppliedRepository],
   );
+
+  const loadSongs = useCallback(async () => {
+    setLoadError(false);
+    try {
+      const listed = await repository.listSongs();
+      setSongs(listed);
+    } catch {
+      setLoadError(true);
+    }
+  }, [repository]);
 
   useEffect(() => {
     let active = true;
 
-    repository.listSongs()
-      .then((songs) => {
-        if (active) setLocalSongs(songs);
-      })
-      .catch(() => {
-        if (active) setLoadError(true);
-      });
+    async function bootstrap() {
+      const migration = await runLocalDataMigration();
+      if (!active) {
+        return;
+      }
+      if (migration.message) {
+        setMigrationMessage(migration.message);
+      }
+      await loadSongs();
+    }
 
+    void bootstrap();
     return () => {
       active = false;
     };
-  }, [repository]);
+  }, [loadSongs]);
 
-  const songs = useMemo(() => {
-    const seedIds = new Set(initialSongs.map((song) => song.id));
-    const combined = [
-      ...initialSongs,
-      ...localSongs.filter((song) => !seedIds.has(song.id)),
-    ];
-    const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
-
+  const filteredSongs = useMemo(() => {
+    const normalizedQuery = normalizeSearchPart(query.trim());
     return normalizedQuery
-      ? combined.filter((song) => matchesQuery(song, normalizedQuery))
-      : combined;
-  }, [initialSongs, localSongs, query]);
+      ? songs.filter((song) => matchesQuery(song, normalizedQuery))
+      : songs;
+  }, [query, songs]);
 
   return (
     <section className="space-y-6">
+      {migrationMessage ? (
+        <p className="ds-card-muted">{migrationMessage}</p>
+      ) : null}
+
       {loadError ? (
         <p role="alert" className="ds-card-muted">
-          Dados locais não puderam ser carregados. O catálogo inicial continua disponível.
+          Não foi possível carregar o catálogo.{" "}
+          <button type="button" className="ds-link" onClick={() => void loadSongs()}>
+            Tentar novamente
+          </button>
         </p>
       ) : null}
 
@@ -79,11 +96,11 @@ export function SongLibrary({ initialSongs, repository: suppliedRepository }: So
       </label>
 
       <p className="text-sm text-content-muted">
-        {songs.length} {songs.length === 1 ? "música" : "músicas"} no catálogo
+        {filteredSongs.length} {filteredSongs.length === 1 ? "música" : "músicas"} no catálogo
       </p>
 
       <div className="grid gap-4 md:grid-cols-2">
-        {songs.map((song) => (
+        {filteredSongs.map((song) => (
           <SongCard key={song.id} song={song} />
         ))}
       </div>

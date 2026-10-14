@@ -199,7 +199,7 @@ describe("ImportWorkflow", () => {
 
   it("suggests title or artist matches, excludes unrelated songs and selects none", async () => {
     renderWorkflow({
-      initialSongs: [TITLE_MATCH, ARTIST_MATCH, UNRELATED_SONG],
+      repository: new InMemoryMusicRepository([TITLE_MATCH, ARTIST_MATCH, UNRELATED_SONG]),
     });
     fireEvent.change(screen.getByLabelText("URL do Cifra Club"), {
       target: { value: DRAFT.origin.url },

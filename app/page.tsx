@@ -6,15 +6,15 @@ export default function Home() {
   const songs = listSongs();
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
-      <section>
-        <p className="ds-badge-accent mb-4">
+    <div className="grid gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-center">
+      <section className="ds-card p-8 sm:p-10">
+        <p className="ds-badge mb-4">
           MVP inicial
         </p>
-        <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-content sm:text-6xl">
+        <h1 className="max-w-3xl text-3xl font-extrabold tracking-tight text-content sm:text-5xl">
           Cifras, transposicao e repertorios para a equipe de louvor.
         </h1>
-        <p className="mt-6 max-w-2xl text-lg leading-8 text-content-muted">
+        <p className="mt-5 max-w-2xl text-base leading-7 text-content-muted sm:text-lg">
           O Videira Music comeca com uma biblioteca simples alimentada pelo catalogo existente,
           previews de cifra com letra e grade por compassos, e transposicao rapida.
         </p>
@@ -26,6 +26,12 @@ export default function Home() {
             Abrir biblioteca
           </Link>
           <Link
+            href="/import"
+            className="ds-button-secondary"
+          >
+            Importar cifra
+          </Link>
+          <Link
             href="/setlists"
             className="ds-button-secondary"
           >
@@ -34,12 +40,12 @@ export default function Home() {
         </div>
       </section>
 
-      <aside className="ds-card">
-        <p className="ds-eyebrow text-content-subtle">Catalogo seed</p>
-        <strong className="mt-3 block text-5xl text-content">{songs.length}</strong>
-        <p className="mt-2 text-content-muted">musicas carregadas de `data/musicas.json`.</p>
+      <aside className="ds-card p-8">
+        <p className="ds-eyebrow">Catalogo seed</p>
+        <strong className="mt-3 block text-5xl font-extrabold text-primary">{songs.length}</strong>
+        <p className="mt-2 text-sm text-content-muted">musicas servidas pelo SQLite no servidor.</p>
         <div className="ds-card-muted mt-6 text-sm">
-          Proxima evolucao: persistencia local de setlists, rascunhos de cifras e modo leitura sequencial.
+          Proxima evolucao: setlists, modo leitura sequencial e autenticacao multi-igreja.
         </div>
       </aside>
     </div>
