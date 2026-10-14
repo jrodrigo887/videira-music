@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 7,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "surviving_mutant::test the disabled flag branch of every feature gated ui control not only the enabled branch",
+      "text": "Test the disabled-flag branch of every feature-gated UI control, not only the enabled branch",
+      "signal": "surviving_mutant",
+      "scope": "ui",
+      "status": "candidate",
+      "features": [
+        "chart-import"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M1 components/import/import-workflow.tsx:200 (ui)"
+      ],
+      "created": "2026-10-09T21:14:59Z",
+      "last_seen": "2026-10-09T21:14:59Z"
+    },
+    {
+      "id": "L-002",
+      "key": "surviving_mutant::assert that non matching candidates are excluded from filtered or suggested lists not only that a matching one appears",
+      "text": "Assert that non-matching candidates are excluded from filtered or suggested lists, not only that a matching one appears",
+      "signal": "surviving_mutant",
+      "scope": "ui",
+      "status": "candidate",
+      "features": [
+        "chart-import"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M3 components/import/import-workflow.tsx:97 (ui)"
+      ],
+      "created": "2026-10-09T21:14:59Z",
+      "last_seen": "2026-10-09T21:14:59Z"
+    },
+    {
+      "id": "L-003",
+      "key": "ac_gap::exercise environment flag expressions through the exported handler or page not only through an injected predicate",
+      "text": "Exercise environment-flag expressions through the exported handler or page, not only through an injected predicate",
+      "signal": "ac_gap",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "chart-import"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AC Importar URL #2 (hide URL input when flag off) (routes)"
+      ],
+      "created": "2026-10-09T21:14:59Z",
+      "last_seen": "2026-10-09T21:14:59Z"
+    },
+    {
+      "id": "L-004",
+      "key": "ac_gap::give every spec concurrency or ordering edge case a test that runs the operations back to back and asserts all records survive",
+      "text": "Give every spec concurrency or ordering edge case a test that runs the operations back to back and asserts all records survive",
+      "signal": "ac_gap",
+      "scope": "persistence",
+      "status": "candidate",
+      "features": [
+        "chart-import"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "Edge case: two saves in sequence serialized (spec.md Edge Cases) (persistence)"
+      ],
+      "created": "2026-10-09T21:14:59Z",
+      "last_seen": "2026-10-09T21:14:59Z"
+    },
+    {
+      "id": "L-005",
+      "key": "spec_precision_gap::define the observable output when a spec says a ui edit updates a preview and assert the edited value reaches the saved record",
+      "text": "Define the observable output when a spec says a UI edit updates a preview, and assert the edited value reaches the saved record",
+      "signal": "spec_precision_gap",
+      "scope": "ui",
+      "status": "candidate",
+      "features": [
+        "chart-import"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AC Importar texto #4 (section type updates preview) (ui)"
+      ],
+      "created": "2026-10-09T21:14:59Z",
+      "last_seen": "2026-10-09T21:14:59Z"
+    },
+    {
+      "id": "L-006",
+      "key": "surviving_mutant::exercise environment flag expressions through the exported handler or page not only through an injected predicate",
+      "text": "Exercise environment-flag expressions through the exported handler or page, not only through an injected predicate",
+      "signal": "surviving_mutant",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "chart-import"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M3 app/api/imports/cifraclub/route.ts:90 (routes)"
+      ],
+      "created": "2026-10-09T21:22:17Z",
+      "last_seen": "2026-10-09T21:22:17Z"
+    }
+  ]
+}

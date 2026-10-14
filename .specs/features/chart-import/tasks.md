@@ -11,7 +11,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 
 ## Test Coverage Matrix
 
-> Generated from `package.json`, `vitest.config.ts`, existing co-located tests and the spec. Guidelines found: `docs/technical-design/videira-music-mvp-tdd.md`; no coverage threshold configured, so strong defaults apply.
+> Generated from `package.json`, `vitest.config.ts`, existing co-located tests and the spec. No coverage guideline document; no coverage threshold configured, so strong defaults apply.
 
 | Code Layer | Required Test Type | Coverage Expectation | Location Pattern | Run Command |
 | --- | --- | --- | --- | --- |
@@ -373,7 +373,7 @@ T13
 **What:** Move the discovery into the main docs tree, reconcile stale scope statements and document env, Chromium install, usage and fallback.  
 **Where:** `docs/discovery-importacao-cifras.md`  
 **Depends on:** T12  
-**Reuses:** Existing discovery, TDD and implementation plan.  
+**Reuses:** Existing discovery and implementation plan.  
 **Requirement:** IMP-08, IMP-09, IMP-14
 
 **Tools:**

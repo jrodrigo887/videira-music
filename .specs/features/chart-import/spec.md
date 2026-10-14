@@ -6,10 +6,10 @@ O parser de texto já produz `ImportDraft`, mas o usuário ainda não consegue i
 
 ## Goals
 
-- [ ] Permitir importar texto colado e URL do Cifra Club pelo mesmo fluxo de revisão.
-- [ ] Exigir revisão humana do tom, das seções e do vínculo com uma música antes de salvar.
-- [ ] Persistir músicas e cifras importadas no navegador e exibi-las na biblioteca e no detalhe.
-- [ ] Manter o adaptador Cifra Club local, limitado, rastreável e protegido por flag.
+- [x] Permitir importar texto colado e URL do Cifra Club pelo mesmo fluxo de revisão.
+- [x] Exigir revisão humana do tom, das seções e do vínculo com uma música antes de salvar.
+- [x] Persistir músicas e cifras importadas no navegador e exibi-las na biblioteca e no detalhe.
+- [x] Manter o adaptador Cifra Club local, limitado, rastreável e protegido por flag.
 
 ## Out of Scope
 
@@ -37,7 +37,7 @@ O parser de texto já produz `ImportDraft`, mas o usuário ainda não consegue i
 | Limite do texto de entrada | 500 KiB em UTF-8 | Evita travamento acidental sem restringir uma cifra normal. | não, default técnico |
 | Concorrência de salvamento | Escritas serializadas no cliente | Evita atualizações perdidas entre ações rápidas na mesma aba. | não, default técnico |
 | Expiração dos dados locais | Sem expiração automática | Música e cifra salvas devem sobreviver a reloads até remoção do storage. | não, default técnico |
-| Observabilidade | Erros sem letra ou cifra integral em logs | O TDD proíbe vazar conteúdo musical bruto. | sim |
+| Observabilidade | Erros sem letra ou cifra integral em logs | Evita vazar conteúdo musical bruto. | sim |
 
 **Open questions:** none.
 
@@ -143,27 +143,27 @@ O parser de texto já produz `ImportDraft`, mas o usuário ainda não consegue i
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| IMP-01 | Importar texto e revisar | T1, T2, T9, T10, F1, F2 | Implemented (F1-F2 complete) |
-| IMP-02 | Importar texto e revisar | T2, T9, F2 | Implemented (F2 complete) |
-| IMP-03 | Importar texto e revisar | T2, T5, T9, F2 | Implemented (F2 complete) |
-| IMP-04 | Importar texto e revisar | T9, F2 | Implemented (F2 complete) |
-| IMP-05 | Vincular e persistir | T3, T5, T9, T11, F2 | Implemented (F2 complete) |
-| IMP-06 | Vincular e persistir | T3, T4, T5, T12, F3 | Implemented (F3 complete) |
-| IMP-07 | Vincular e persistir | T3, T4, T5, T12, F3 | Implemented (F3 complete) |
-| IMP-08 | Importar URL do Cifra Club | T1, T2, T6, T7, T8, T9, T13, F2, F4, F5 | Implemented (F5 complete) |
-| IMP-09 | Importar URL do Cifra Club | T8, T9, T10, T13, F1, F2, F5 | Implemented (F5 complete) |
-| IMP-10 | Importar URL do Cifra Club | T6, T7, T8, T9, F4 | Implemented (F4 complete) |
-| IMP-11 | Importar URL do Cifra Club | T7, T8 | Implemented (T7-T8 complete) |
-| IMP-12 | Importar URL do Cifra Club | T6, T7, T8 | Implemented (T6-T8 complete) |
-| IMP-13 | Integrar catálogo local | T1, T3, T4, T11, T12 | Implemented (T1, T3-T4, T11-T12 complete) |
-| IMP-14 | Segurança e rastreabilidade | T6, T7, T12, T13, F4, F5 | Implemented (F5 complete) |
+| IMP-01 | Importar texto e revisar | T1, T2, T9, T10, F1, F2 | Verified |
+| IMP-02 | Importar texto e revisar | T2, T9, F2 | Verified |
+| IMP-03 | Importar texto e revisar | T2, T5, T9, F2 | Verified |
+| IMP-04 | Importar texto e revisar | T9, F2 | Verified |
+| IMP-05 | Vincular e persistir | T3, T5, T9, T11, F2 | Verified |
+| IMP-06 | Vincular e persistir | T3, T4, T5, T12, F3 | Verified |
+| IMP-07 | Vincular e persistir | T3, T4, T5, T12, F3 | Verified |
+| IMP-08 | Importar URL do Cifra Club | T1, T2, T6, T7, T8, T9, T13, F2, F4, F5 | Verified |
+| IMP-09 | Importar URL do Cifra Club | T8, T9, T10, T13, F1, F2, F5 | Verified |
+| IMP-10 | Importar URL do Cifra Club | T6, T7, T8, T9, F4 | Verified |
+| IMP-11 | Importar URL do Cifra Club | T7, T8 | Verified |
+| IMP-12 | Importar URL do Cifra Club | T6, T7, T8 | Verified |
+| IMP-13 | Integrar catálogo local | T1, T3, T4, T11, T12 | Verified |
+| IMP-14 | Segurança e rastreabilidade | T6, T7, T12, T13, F4, F5 | Verified |
 
 **Coverage:** 14 total, 14 mapped to tasks, 0 unmapped.
 
 ## Success Criteria
 
-- [ ] Texto colado chega ao detalhe de uma música como cifra persistida e transponível.
-- [ ] URL suportada gera o mesmo fluxo quando a flag local está ativa.
-- [ ] Repetir uma URL salva não realiza nova busca externa.
-- [ ] Reload preserva músicas e cifras locais.
-- [ ] Testes, lint e build passam sem conteúdo protegido em fixtures.
+- [x] Texto colado chega ao detalhe de uma música como cifra persistida e transponível.
+- [x] URL suportada gera o mesmo fluxo quando a flag local está ativa.
+- [x] Repetir uma URL salva não realiza nova busca externa.
+- [x] Reload preserva músicas e cifras locais.
+- [x] Testes, lint e build passam sem conteúdo protegido em fixtures.
