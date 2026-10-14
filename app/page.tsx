@@ -1,9 +1,11 @@
 import Link from "next/link";
 
 import { listSongs } from "@/lib/data/songs";
+import { isImportModuleVisibleInUi } from "@/lib/import-access/import-module-config";
 
 export default function Home() {
   const songs = listSongs();
+  const importLinkVisible = isImportModuleVisibleInUi();
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1.25fr_0.75fr] lg:items-center">
@@ -25,12 +27,14 @@ export default function Home() {
           >
             Abrir biblioteca
           </Link>
-          <Link
-            href="/import"
-            className="ds-button-secondary"
-          >
-            Importar cifra
-          </Link>
+          {importLinkVisible ? (
+            <Link
+              href="/import"
+              className="ds-button-secondary"
+            >
+              Importar cifra
+            </Link>
+          ) : null}
           <Link
             href="/setlists"
             className="ds-button-secondary"

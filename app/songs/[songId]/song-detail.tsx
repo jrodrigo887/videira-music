@@ -12,6 +12,7 @@ import type { ChordChart, Song } from "@/types/music";
 
 type SongDetailProps = {
   songId: string;
+  importLinkVisible?: boolean;
   repository?: MusicRepository;
 };
 
@@ -23,7 +24,11 @@ type DetailState =
 
 const FONT_SIZE_STEPS = [90, 100, 110, 120];
 
-export function SongDetail({ songId, repository: suppliedRepository }: SongDetailProps) {
+export function SongDetail({
+  songId,
+  importLinkVisible = false,
+  repository: suppliedRepository,
+}: SongDetailProps) {
   const repository = useMemo(
     () => suppliedRepository ?? new HttpMusicRepository(),
     [suppliedRepository],
@@ -117,12 +122,14 @@ export function SongDetail({ songId, repository: suppliedRepository }: SongDetai
             >
               ‹
             </Link>
-            <Link
-              href="/import"
-              className="inline-flex h-10 flex-1 items-center justify-center rounded-full border border-border bg-surface px-4 text-xs font-semibold text-content shadow-xs transition hover:border-primary hover:text-primary"
-            >
-              + Importar cifra
-            </Link>
+            {importLinkVisible ? (
+              <Link
+                href="/import"
+                className="inline-flex h-10 flex-1 items-center justify-center rounded-full border border-border bg-surface px-4 text-xs font-semibold text-content shadow-xs transition hover:border-primary hover:text-primary"
+              >
+                + Importar cifra
+              </Link>
+            ) : null}
           </div>
 
           <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.04)]">

@@ -1,8 +1,11 @@
 import Link from "next/link";
 
 import { SongLibrary } from "@/components/songs/song-library";
+import { isImportModuleVisibleInUi } from "@/lib/import-access/import-module-config";
 
 export default function SongsPage() {
+  const importLinkVisible = isImportModuleVisibleInUi();
+
   return (
     <div className="space-y-8">
       <section className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
@@ -18,9 +21,11 @@ export default function SongsPage() {
             transponiveis de cifra.
           </p>
         </div>
-        <Link href="/import" className="ds-button shrink-0">
-          Importar cifra
-        </Link>
+        {importLinkVisible ? (
+          <Link href="/import" className="ds-button shrink-0">
+            Importar cifra
+          </Link>
+        ) : null}
       </section>
 
       <SongLibrary />
