@@ -1,0 +1,1 @@
+export const SETLIST_BODY_LIMIT_BYTES = 64 * 1024;
