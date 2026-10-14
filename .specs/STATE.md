@@ -41,12 +41,9 @@
 
 ## Handoff
 
-- **Features ativas:** `import-access` (`.specs/features/import-access/spec.md` + `context.md`, IMA-xx).
-- **Phase / Task:** `server-persistence`: **Complete** (branch `feat/server-persistence`; PER-15 parcial — sem `concurrency.test.ts` dedicado). `import-access`: spec aprovada; design/tasks ainda não iniciados.
-- **Completed:** `server-persistence` MVP (SQLite/Prisma, API, HttpMusicRepository, migração IndexedDB, contrato); `chart-import` verificada (Verifier PASS 2026-10-09, `b939d15`).
-- **Próximo passo:** merge `feat/server-persistence`; depois `import-access` antes de deploy público; opcional PER-15 (testes de concorrência) e Verifier formal `validation.md`.
-- **Restrição de deploy:** `import-access` precisa ser entregue antes de qualquer deploy público; até lá as rotas de escrita da `server-persistence` ficam abertas e o app roda só local.
-- **Design (Prisma/SQLite):** Json nativo desde Prisma 6.2; adapter **não** obrigatório para arquivo local; Turso via `@prisma/adapter-libsql` documentado em P3.
+- **Features ativas:** `import-access` (`.specs/features/import-access/`): implementada, verificação **PARTIAL** (`validation.md`).
+- **Completed:** `server-persistence` implementada e mergeada (PR #1); `chart-import` verificada (PASS 2026-10-09).
+- **Próximo passo:** fechar G1-G3 de `import-access/tasks.md` (testes do gate de cifra, `ImportLog` e rota de sessão); depois auditar os testes faltantes da `server-persistence` (rotas, repositório Prisma, HttpMusicRepository, migração, PER-15).
+- **Restrição de deploy:** não publicar enquanto G1-G3 estiverem abertas.
 - **Bloqueio:** nenhum.
 - **Branch:** `main`
-- **Working tree:** specs novas não commitadas (`.specs/features/server-persistence/`, `.specs/features/import-access/`, `STATE.md`), além das pendências anteriores (`.gitignore`, `.specs/` de chart-import, `docs/`, `scripts/spike-cifraclub.mjs`, `graphify-out/`).
