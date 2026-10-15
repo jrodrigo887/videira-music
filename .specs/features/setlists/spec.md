@@ -114,8 +114,8 @@ As igrejas organizam o repertório de cultos e ensaios por grupo de louvor, mas 
 **Acceptance Criteria**:
 1. WHEN um usuário abrir `/setlists` THEN o sistema SHALL mostrar um seletor com os grupos não arquivados de que ele é membro, ou todos os grupos não arquivados se for admin, em ordem alfabética de nome. (SET-14)
 2. WHEN `?team=<slug>` apontar para um grupo do seletor THEN o sistema SHALL usá-lo como grupo atual; caso contrário, SHALL usar o primeiro grupo do seletor. (SET-14)
-3. WHEN o grupo atual estiver definido THEN o sistema SHALL mostrar as abas "Do grupo" (dono = grupo atual), "Outros grupos" (dono = outro grupo, legíveis), "Igreja" (dono = igreja, legíveis) e "Seguidos" (seguidos pelo grupo atual). (SET-15)
-4. The system SHALL exclude `draft` setlists from every tab for actors who cannot edit them, and SHALL exclude `archived` and deleted setlists from the "Do grupo", "Outros grupos" and "Igreja" tabs. (SET-15)
+3. WHEN o grupo atual estiver definido THEN o sistema SHALL mostrar as abas "<nome do grupo atual>" (dono = grupo atual), "Outros grupos" (dono = outro grupo, legíveis), "Da igreja" (dono = igreja, legíveis) e "Seguindo" (seguidos pelo grupo atual). (SET-15)
+4. The system SHALL exclude `draft` setlists from every tab for actors who cannot edit them, and SHALL exclude `archived` and deleted setlists from the team, "Outros grupos" and "Da igreja" tabs. (SET-15)
 5. WHEN o `Actor` for anônimo, ou usuário sem grupos THEN o sistema SHALL mostrar só a aba "Igreja", sem seletor. (SET-14)
 6. WHERE o `Actor` puder criar setlists para o grupo atual ou para a igreja, o sistema SHALL mostrar o botão "Novo setlist" levando a `/setlists/new`. (SET-16)
 7. The system SHALL return the same lists through `GET /api/setlists?team=<slug>&tab=team|others|organization|following` as the page renders. (SET-15)

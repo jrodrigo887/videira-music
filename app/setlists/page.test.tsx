@@ -2,7 +2,7 @@
 
 import "@testing-library/jest-dom/vitest";
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
@@ -41,6 +41,14 @@ afterEach(async () => {
   await context.cleanup();
 });
 
+function teamNav() {
+  return within(screen.getByRole("navigation", { name: "Grupos" }));
+}
+
+function tabNav() {
+  return within(screen.getByRole("navigation", { name: "Abas de setlists" }));
+}
+
 async function seedPublished(id: string, ownerTeamId: string | null, title = id) {
   await repository.create({
     id,
@@ -55,28 +63,28 @@ async function seedPublished(id: string, ownerTeamId: string | null, title = id)
 describe("SetlistsPage", () => {
   it("shows team selector for leaders", async () => {
     render(await SetlistsPage({ searchParams: Promise.resolve({}) }));
-    expect(screen.getByRole("link", { name: "Louvor" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Jovens" })).not.toBeInTheDocument();
+    expect(teamNav().getByRole("link", { name: "Louvor" })).toBeInTheDocument();
+    expect(teamNav().queryByRole("link", { name: "Jovens" })).not.toBeInTheDocument();
   });
 
   it("uses valid team slug from query", async () => {
     createDepsMock.mockReturnValue(withSimulatedUser(context, "user-musician"));
     render(await SetlistsPage({ searchParams: Promise.resolve({ team: "jovens" }) }));
-    expect(screen.getByRole("link", { name: "Jovens" })).toHaveAttribute("aria-current", "page");
+    expect(teamNav().getByRole("link", { name: "Jovens" })).toHaveAttribute("aria-current", "page");
   });
 
   it("falls back to first team when slug is invalid", async () => {
     createDepsMock.mockReturnValue(withSimulatedUser(context, "user-musician"));
     render(await SetlistsPage({ searchParams: Promise.resolve({ team: "inexistente" }) }));
-    expect(screen.getByRole("link", { name: "Jovens" })).toHaveAttribute("aria-current", "page");
+    expect(teamNav().getByRole("link", { name: "Jovens" })).toHaveAttribute("aria-current", "page");
   });
 
-  it("shows all four tabs when a team is selected", async () => {
+  it("shows all four tabs when a team is selected, naming the team tab after the team", async () => {
     render(await SetlistsPage({ searchParams: Promise.resolve({}) }));
-    expect(screen.getByRole("link", { name: "Do grupo" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Outros grupos" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Igreja" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Seguidos" })).toBeInTheDocument();
+    expect(tabNav().getByRole("link", { name: "Louvor" })).toHaveAttribute("aria-current", "page");
+    expect(tabNav().getByRole("link", { name: "Outros grupos" })).toBeInTheDocument();
+    expect(tabNav().getByRole("link", { name: "Da igreja" })).toBeInTheDocument();
+    expect(tabNav().getByRole("link", { name: "Seguindo" })).toBeInTheDocument();
   });
 
   it("lists team tab setlists", async () => {
@@ -112,16 +120,14 @@ describe("SetlistsPage", () => {
       getActor: async () => ({ kind: "anonymous" as const }),
     });
     render(await SetlistsPage({ searchParams: Promise.resolve({}) }));
-    expect(screen.getByRole("link", { name: "Igreja" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Do grupo" })).not.toBeInTheDocument();
+    expect(tabNav().getAllByRole("link").map((link) => link.textContent)).toEqual(["Da igreja"]);
     expect(screen.queryByRole("link", { name: "Novo setlist" })).not.toBeInTheDocument();
   });
 
   it("shows admin all teams alphabetically", async () => {
     createDepsMock.mockReturnValue(withSimulatedUser(context, "user-admin"));
     render(await SetlistsPage({ searchParams: Promise.resolve({}) }));
-    expect(screen.getByRole("link", { name: "Jovens" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Louvor" })).toBeInTheDocument();
+    expect(teamNav().getAllByRole("link").map((link) => link.textContent)).toEqual(["Jovens", "Louvor"]);
   });
 
   it("shows empty copy when tab has no setlists", async () => {

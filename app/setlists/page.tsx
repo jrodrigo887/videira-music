@@ -7,6 +7,7 @@ import {
   parseSetlistTab,
   resolveSelectedTeam,
   SETLIST_TAB_OPTIONS,
+  setlistTabLabel,
 } from "@/lib/setlists/setlist-page-utils";
 import { createSetlistRouteDependencies } from "@/lib/setlists/setlist-route-deps";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/persistence/organization-scope";
@@ -130,17 +131,21 @@ export default async function SetlistsPage({ searchParams }: SetlistsPageProps) 
         </nav>
       ) : null}
 
-      <nav aria-label="Abas de setlists" className="flex flex-wrap gap-2 border-b border-border pb-3">
+      <nav aria-label="Abas de setlists" className="flex flex-wrap gap-1 border-b border-border">
         {visibleTabs.map((entry) => {
           const active = tab === entry.id;
           return (
             <Link
               key={entry.id}
               href={`/setlists${buildSetlistsQuery(selectedTeam, entry.id)}`}
-              className={active ? "ds-link font-semibold text-primary" : "ds-link text-content-muted"}
+              className={`-mb-px shrink-0 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-focus/25 ${
+                active
+                  ? "border-primary text-primary"
+                  : "border-transparent text-content-muted hover:border-border hover:text-content"
+              }`}
               aria-current={active ? "page" : undefined}
             >
-              {entry.label}
+              {setlistTabLabel(entry, selectedTeam)}
             </Link>
           );
         })}

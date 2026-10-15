@@ -7,9 +7,16 @@ import type { SetlistTab } from "./setlist-service";
 export const SETLIST_TAB_OPTIONS: ReadonlyArray<{ id: SetlistTab; label: string }> = [
   { id: "team", label: "Do grupo" },
   { id: "others", label: "Outros grupos" },
-  { id: "organization", label: "Igreja" },
-  { id: "following", label: "Seguidos" },
+  { id: "organization", label: "Da igreja" },
+  { id: "following", label: "Seguindo" },
 ];
+
+export function setlistTabLabel(
+  entry: { id: SetlistTab; label: string },
+  team: WorshipTeam | null,
+): string {
+  return entry.id === "team" && team ? team.name : entry.label;
+}
 
 export function parseSetlistTab(value: string | undefined): SetlistTab {
   if (value === "others" || value === "organization" || value === "following") {
