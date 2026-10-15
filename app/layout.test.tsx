@@ -63,6 +63,22 @@ describe("RootLayout navigation", () => {
     expect(screen.queryByRole("link", { name: "Grupos" })).not.toBeInTheDocument();
   });
 
+  it("shows Grupos for custom role with teams:manage", async () => {
+    getCurrentActorMock.mockResolvedValue(
+      testUserActor({
+        userId: "user-teams-custom",
+        organizationId: DEFAULT_ORGANIZATION_ID,
+        roles: ["grupos"],
+        capabilities: ["teams:manage"],
+        teams: [],
+      }),
+    );
+
+    render(await RootLayout({ children: <p>Conteúdo</p> }));
+
+    expect(screen.getByRole("link", { name: "Grupos" })).toBeInTheDocument();
+  });
+
   it("shows Entrar for anonymous actor", async () => {
     getCurrentActorMock.mockResolvedValue({ kind: "anonymous" });
 

@@ -7,7 +7,7 @@ import {
   destroyTestPrismaClient,
 } from "@/lib/persistence/test-temp-db";
 
-import { isOrganizationAdmin, teamRoleOf } from "./actor";
+import { hasCapability, isOrganizationAdmin, teamRoleOf } from "./actor";
 import { loadActorForUser } from "./load-actor";
 import { seedSimulatedIdentities } from "./simulated-identities";
 
@@ -59,5 +59,55 @@ describe("loadActorForUser", () => {
 
   it("treats an unknown user as anonymous", async () => {
     await expect(loadActorForUser(prisma, "user-missing")).resolves.toEqual({ kind: "anonymous" });
+  });
+
+  it("loads capabilities from system roles", async () => {
+    const leader = await loadActorForUser(prisma, "user-leader");
+    if (leader.kind !== "user") throw new Error("expected user");
+    expect(hasCapability(leader, "setlists:led", "org-default")).toBe(true);
+    expect(hasCapability(leader, "users:manage", "org-default")).toBe(false);
+  });
+
+  it("loads custom role capabilities from RoleDefinition", async () => {
+    await prisma.roleDefinition.create({
+      data: {
+        organizationId: "org-default",
+        key: "import-only",
+        label: "Import Only",
+        system: false,
+        capabilities: ["import"],
+      },
+    });
+    await prisma.userRole.create({
+      data: { userId: "user-musician", role: "import-only" },
+    });
+    const actor = await loadActorForUser(prisma, "user-musician");
+    if (actor.kind !== "user") throw new Error("expected user");
+    expect(actor.roles).toContain("import-only");
+    expect(hasCapability(actor, "import", "org-default")).toBe(true);
+    await prisma.userRole.deleteMany({ where: { role: "import-only" } });
+    await prisma.roleDefinition.deleteMany({ where: { key: "import-only" } });
+  });
+
+  it("ignores unknown role keys", async () => {
+    await prisma.userRole.create({
+      data: { userId: "user-musician", role: "fantasma" },
+    });
+    const actor = await loadActorForUser(prisma, "user-musician");
+    if (actor.kind !== "user") throw new Error("expected user");
+    expect(actor.roles).not.toContain("fantasma");
+    await prisma.userRole.deleteMany({ where: { role: "fantasma" } });
+  });
+
+  it("becomes anonymous when every role key is unknown", async () => {
+    await prisma.userRole.deleteMany({ where: { userId: "user-musician" } });
+    await prisma.userRole.create({
+      data: { userId: "user-musician", role: "fantasma" },
+    });
+    await expect(loadActorForUser(prisma, "user-musician")).resolves.toEqual({ kind: "anonymous" });
+    await prisma.userRole.deleteMany({ where: { userId: "user-musician" } });
+    await prisma.userRole.create({
+      data: { userId: "user-musician", role: "musician" },
+    });
   });
 });

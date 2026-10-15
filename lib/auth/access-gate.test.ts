@@ -11,7 +11,7 @@ import {
 } from "@/lib/persistence/test-temp-db";
 import { resetPrismaClientForTests } from "@/lib/persistence/prisma-client";
 
-import { completeOAuthSignIn, validateUserInfo } from "./access-gate";
+import { completeOAuthSignIn, setAccessTicketHooksForTests, validateUserInfo } from "./access-gate";
 import { seedSimulatedIdentities } from "./simulated-identities";
 
 const oauthState = vi.hoisted(() => ({ inviteCode: undefined as string | undefined }));
@@ -68,6 +68,7 @@ describe("Google OAuth access gate", () => {
     resetPrismaClientForTests();
     process.env.DATABASE_URL = temp.url;
     oauthState.inviteCode = undefined;
+    setAccessTicketHooksForTests(undefined);
   });
 
   afterEach(async () => {
@@ -222,5 +223,53 @@ describe("Google OAuth access gate", () => {
     });
 
     expect(result).toEqual({ error: "invite_email_mismatch" });
+  });
+
+  it("ADM-18: issues access ticket on sign-in refusal for unknown email", async () => {
+    const setAccessTicket = vi.fn();
+    setAccessTicketHooksForTests({ setAccessTicket });
+    const result = await validateUserInfo(oauthProfile("novo-pedido@example.com"));
+    expect(result).toEqual({ error: "no_access" });
+    expect(setAccessTicket).toHaveBeenCalledOnce();
+  });
+
+  it("ADM-20: does not issue ticket for unverified email", async () => {
+    const setAccessTicket = vi.fn();
+    setAccessTicketHooksForTests({ setAccessTicket });
+    await validateUserInfo(oauthProfile("novo@example.com", false));
+    expect(setAccessTicket).not.toHaveBeenCalled();
+  });
+
+  it("ADM-28: allows create-user for active member without authUserId", async () => {
+    await prisma.user.create({
+      data: {
+        id: "member-precreated",
+        organizationId: "org-default",
+        email: "precreated@videira.test",
+        name: "Pre",
+        status: "active",
+        authUserId: null,
+      },
+    });
+    const result = await validateUserInfo({
+      user: { email: "precreated@videira.test", name: "Pre" },
+      source: {
+        action: "create-user",
+        method: "oauth",
+        oauth: {
+          providerId: "google",
+          profile: { email: "precreated@videira.test", email_verified: true },
+        },
+      },
+    });
+    expect(result).toBeUndefined();
+    await prisma.user.deleteMany({ where: { id: "member-precreated" } });
+  });
+
+  it("clears ticket on successful sign-in", async () => {
+    const clearAccessTicket = vi.fn();
+    setAccessTicketHooksForTests({ clearAccessTicket });
+    await validateUserInfo(oauthProfile("musico@videira.test"));
+    expect(clearAccessTicket).toHaveBeenCalled();
   });
 });

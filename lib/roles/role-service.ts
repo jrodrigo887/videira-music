@@ -1,4 +1,6 @@
-import type { PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
+
+type RoleDb = PrismaClient | Prisma.TransactionClient;
 
 import type { UserActor } from "@/lib/auth/actor";
 import { hasRole } from "@/lib/auth/actor";
@@ -93,7 +95,7 @@ export async function listRoles(prisma: PrismaClient, actor: UserActor): Promise
 }
 
 export async function isAssignableRole(
-  prisma: PrismaClient,
+  prisma: RoleDb,
   organizationId: string,
   key: string,
 ): Promise<boolean> {
@@ -108,7 +110,7 @@ export async function isAssignableRole(
 }
 
 export async function resolveCapabilitiesForRoleKeys(
-  prisma: PrismaClient,
+  prisma: RoleDb,
   organizationId: string,
   keys: readonly string[],
 ): Promise<Capability[]> {

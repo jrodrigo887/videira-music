@@ -27,9 +27,18 @@ export function RolesPanel({
   const [roles, setRoles] = useState(initialRoles);
   const [label, setLabel] = useState("");
   const [capabilities, setCapabilities] = useState<string[]>([]);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState("");
+  const [editCapabilities, setEditCapabilities] = useState<string[]>([]);
 
   function toggleCapability(cap: string) {
     setCapabilities((current) =>
+      current.includes(cap) ? current.filter((item) => item !== cap) : [...current, cap],
+    );
+  }
+
+  function toggleEditCapability(cap: string) {
+    setEditCapabilities((current) =>
       current.includes(cap) ? current.filter((item) => item !== cap) : [...current, cap],
     );
   }
@@ -39,6 +48,33 @@ export function RolesPanel({
     if (response.ok) {
       const body = (await response.json()) as { roles: RoleRecord[] };
       setRoles(body.roles);
+    }
+  }
+
+  function startEdit(role: RoleRecord) {
+    setEditingKey(role.key);
+    setEditLabel(role.label);
+    setEditCapabilities([...role.capabilities]);
+  }
+
+  async function saveEdit(key: string) {
+    setBusy(true);
+    onMessage(null);
+    try {
+      const response = await fetch(`/api/roles/${encodeURIComponent(key)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ label: editLabel, capabilities: editCapabilities }),
+      });
+      if (!response.ok) {
+        onMessage(await readErrorMessage(response, "Não foi possível salvar o papel."));
+        return;
+      }
+      setEditingKey(null);
+      await onRefresh();
+      await reloadRoles();
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -125,32 +161,90 @@ export function RolesPanel({
         <ul className="divide-y divide-border">
           {roles.map((role) => (
             <li key={role.key} className="space-y-2 py-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-medium text-content">
-                    {role.label}
-                    {role.system ? (
-                      <span className="ml-2 text-xs font-normal text-content-muted">(sistema)</span>
-                    ) : null}
-                  </p>
-                  <p className="text-xs text-content-muted font-mono">{role.key}</p>
+              {editingKey === role.key && canEditCatalog && !role.system ? (
+                <div className="space-y-3">
+                  <label className="block">
+                    <span className="text-sm font-medium text-content-muted">Nome</span>
+                    <input
+                      className="ds-input mt-2"
+                      value={editLabel}
+                      onChange={(event) => setEditLabel(event.target.value)}
+                    />
+                  </label>
+                  <fieldset>
+                    <legend className="text-sm font-medium text-content-muted">Capacidades</legend>
+                    <div className="mt-2 flex flex-col gap-2">
+                      {CAPABILITIES.map((cap) => (
+                        <label key={cap} className="flex items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={editCapabilities.includes(cap)}
+                            onChange={() => toggleEditCapability(cap)}
+                          />
+                          {CAPABILITY_LABELS[cap] ?? cap}
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className="ds-button text-sm"
+                      disabled={busy}
+                      onClick={() => void saveEdit(role.key)}
+                    >
+                      Salvar
+                    </button>
+                    <button
+                      type="button"
+                      className="ds-button-secondary text-sm"
+                      disabled={busy}
+                      onClick={() => setEditingKey(null)}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
                 </div>
-                {canEditCatalog && !role.system ? (
-                  <button
-                    type="button"
-                    className="ds-button-secondary text-sm"
-                    disabled={busy}
-                    onClick={() => void deleteRole(role.key)}
-                  >
-                    Apagar
-                  </button>
-                ) : null}
-              </div>
-              <p className="text-sm text-content-muted">
-                {role.capabilities.length
-                  ? role.capabilities.map((cap) => CAPABILITY_LABELS[cap] ?? cap).join(", ")
-                  : "Somente leitura"}
-              </p>
+              ) : (
+                <>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="font-medium text-content">
+                        {role.label}
+                        {role.system ? (
+                          <span className="ml-2 text-xs font-normal text-content-muted">(sistema)</span>
+                        ) : null}
+                      </p>
+                      <p className="text-xs text-content-muted font-mono">{role.key}</p>
+                    </div>
+                    {canEditCatalog && !role.system ? (
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          className="ds-button-secondary text-sm"
+                          disabled={busy}
+                          onClick={() => startEdit(role)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="ds-button-secondary text-sm"
+                          disabled={busy}
+                          onClick={() => void deleteRole(role.key)}
+                        >
+                          Apagar
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                  <p className="text-sm text-content-muted">
+                    {role.capabilities.length
+                      ? role.capabilities.map((cap) => CAPABILITY_LABELS[cap] ?? cap).join(", ")
+                      : "Somente leitura"}
+                  </p>
+                </>
+              )}
             </li>
           ))}
         </ul>

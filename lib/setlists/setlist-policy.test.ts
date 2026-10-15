@@ -64,6 +64,14 @@ const otherOrgUser: Actor = testUserActor({
 
 const anonymous: Actor = { kind: "anonymous" };
 
+const customSetlistEditor: Actor = testUserActor({
+  userId: "user-custom-setlist",
+  organizationId: ORG,
+  roles: ["setlist-editor"],
+  capabilities: ["setlists:all"],
+  teams: [],
+});
+
 function setlist(overrides: Partial<SetlistAccess> = {}): SetlistAccess {
   return {
     organizationId: ORG,
@@ -151,5 +159,30 @@ describe("canPerform matrix", () => {
 
   it("has at least 40 table cases", () => {
     expect(matrix.length).toBeGreaterThanOrEqual(40);
+  });
+
+  it("custom role with setlists:all edits any team setlist", () => {
+    expect(
+      canPerform(customSetlistEditor, "edit", {
+        type: "setlist",
+        setlist: setlist({ ownerTeamId: "team-jovens" }),
+      }),
+    ).toBe(true);
+  });
+
+  it("custom role with only setlists:led cannot edit without team leadership", () => {
+    const ledOnly = testUserActor({
+      userId: "led-only",
+      organizationId: ORG,
+      roles: ["led-only"],
+      capabilities: ["setlists:led"],
+      teams: [{ teamId: "team-louvor", role: "member" }],
+    });
+    expect(
+      canPerform(ledOnly, "edit", {
+        type: "setlist",
+        setlist: setlist({ ownerTeamId: "team-louvor" }),
+      }),
+    ).toBe(false);
   });
 });
