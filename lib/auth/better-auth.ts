@@ -2,6 +2,7 @@ import "server-only";
 
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { nextCookies } from "better-auth/next-js";
 import { getPrisma } from "@/lib/persistence/prisma-client";
 
 import { completeOAuthSignIn, invalidateAuthSessions, validateUserInfo } from "./access-gate";
@@ -58,6 +59,7 @@ export function getAuth(): AuthServer | undefined {
         disableImplicitSignUp: true,
       },
     },
+    plugins: [nextCookies()],
     databaseHooks: {
       session: {
         create: {
