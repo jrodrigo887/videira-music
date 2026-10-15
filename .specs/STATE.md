@@ -100,7 +100,8 @@
 
 ## Handoff
 
-- **Feature em execução:** `auth`: T1–T17 fechadas; Verifier **FAIL** só por lint; AUTH-15/AUTH-23 fechados.
+- **Feature em execução:** nenhuma (admin-access fechada com Verifier **PASS** em 2026-10-15).
+- **Completed (recente):** `admin-access` — catálogo de papéis, pedido de acesso, política por capacidade (`validation.md` PASS).
 - **Features ativas:** `import-access` (`.specs/features/import-access/`): implementada, verificação **PARTIAL** (`validation.md`).
 - **Completed:** `server-persistence` implementada e mergeada (PR #1); `chart-import` verificada (PASS 2026-10-09).
 - **Próximo passo:** fechar G1-G3 de `import-access/tasks.md` (testes do gate de cifra, `ImportLog` e rota de sessão); depois auditar os testes faltantes da `server-persistence` (rotas, repositório Prisma, HttpMusicRepository, migração, PER-15).

@@ -222,62 +222,62 @@ Conceder ou retirar `admin`, e a trava do último admin, continuam exigindo o pa
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| ADM-01 | P1: Catálogo de papéis | Tasks | In Tasks |
-| ADM-02 | P1: Catálogo de papéis | Tasks | In Tasks |
-| ADM-03 | P1: Catálogo de papéis | Tasks | In Tasks |
-| ADM-04 | P1: Catálogo de papéis | Tasks | In Tasks |
-| ADM-05 | P1: Catálogo de papéis | Tasks | In Tasks |
-| ADM-06 | P1: Catálogo de papéis | Tasks | In Tasks |
-| ADM-07 | P1: Catálogo de papéis | Tasks | In Tasks |
-| ADM-08 | P1: Catálogo de papéis | Tasks | In Tasks |
-| ADM-09 | P1: Catálogo de papéis | Tasks | In Tasks |
-| ADM-40 | P1: Catálogo de papéis | Tasks | In Tasks |
-| ADM-10 | P1: Política pelas capacidades | Tasks | In Tasks |
-| ADM-11 | P1: Política pelas capacidades | Tasks | In Tasks |
-| ADM-12 | P1: Política pelas capacidades | Tasks | In Tasks |
-| ADM-13 | P1: Política pelas capacidades | Tasks | In Tasks |
-| ADM-14 | P1: Política pelas capacidades | Tasks | In Tasks |
-| ADM-15 | P1: Política pelas capacidades | Tasks | In Tasks |
-| ADM-16 | P1: Política pelas capacidades | Tasks | In Tasks |
-| ADM-17 | P1: Política pelas capacidades | Tasks | In Tasks |
-| ADM-18 | P1: Pedir acesso na recusa do login | Tasks | In Tasks |
-| ADM-19 | P1: Pedir acesso na recusa do login | Tasks | In Tasks |
-| ADM-20 | P1: Pedir acesso na recusa do login | Tasks | In Tasks |
-| ADM-21 | P1: Pedir acesso na recusa do login | Tasks | In Tasks |
-| ADM-22 | P1: Pedir acesso na recusa do login | Tasks | In Tasks |
-| ADM-23 | P1: Pedir acesso na recusa do login | Tasks | In Tasks |
-| ADM-24 | P1: Pedir acesso na recusa do login | Tasks | In Tasks |
-| ADM-25 | P1: Pedir acesso na recusa do login | Tasks | In Tasks |
-| ADM-26 | P1: Liberar ou recusar o pedido | Tasks | In Tasks |
-| ADM-27 | P1: Liberar ou recusar o pedido | Tasks | In Tasks |
-| ADM-28 | P1: Liberar ou recusar o pedido | Tasks | In Tasks |
-| ADM-29 | P1: Liberar ou recusar o pedido | Tasks | In Tasks |
-| ADM-30 | P1: Liberar ou recusar o pedido | Tasks | In Tasks |
-| ADM-31 | P1: Liberar ou recusar o pedido | Tasks | In Tasks |
-| ADM-32 | P1: Liberar ou recusar o pedido | Tasks | In Tasks |
-| ADM-33 | P1: Liberar ou recusar o pedido | Tasks | In Tasks |
-| ADM-34 | P1: Liberar ou recusar o pedido | Tasks | In Tasks |
-| ADM-35 | P1: Abas de usuários | Tasks | In Tasks |
-| ADM-36 | P1: Abas de usuários | Tasks | In Tasks |
-| ADM-37 | P1: Abas de usuários | Tasks | In Tasks |
-| ADM-38 | P1: Abas de usuários | Tasks | In Tasks |
-| ADM-39 | P2: Auditoria de papéis e pedidos | Tasks | In Tasks |
-| ADM-41 | P1: Política pelas capacidades | Tasks | In Tasks |
-| ADM-42 | P1: Política pelas capacidades | Tasks | In Tasks |
-| ADM-43 | P1: Pedir acesso na recusa do login | Tasks | In Tasks |
-| ADM-44 | P1: Pedir acesso na recusa do login | Tasks | In Tasks |
-| ADM-45 | P1: Liberar ou recusar o pedido | Tasks | In Tasks |
-| ADM-46 | P1: Liberar ou recusar o pedido | Tasks | In Tasks |
-| ADM-47 | Edge Cases | Tasks | In Tasks |
-| ADM-48 | Edge Cases | Tasks | In Tasks |
-| ADM-49 | Edge Cases | Tasks | In Tasks |
+| ADM-01 | P1: Catálogo de papéis | Tasks | Verified |
+| ADM-02 | P1: Catálogo de papéis | Tasks | Verified |
+| ADM-03 | P1: Catálogo de papéis | Tasks | Verified |
+| ADM-04 | P1: Catálogo de papéis | Tasks | Verified |
+| ADM-05 | P1: Catálogo de papéis | Tasks | Verified |
+| ADM-06 | P1: Catálogo de papéis | Tasks | Verified |
+| ADM-07 | P1: Catálogo de papéis | Tasks | Verified |
+| ADM-08 | P1: Catálogo de papéis | Tasks | Verified |
+| ADM-09 | P1: Catálogo de papéis | Tasks | Verified |
+| ADM-40 | P1: Catálogo de papéis | Tasks | Verified |
+| ADM-10 | P1: Política pelas capacidades | Tasks | Verified |
+| ADM-11 | P1: Política pelas capacidades | Tasks | Verified |
+| ADM-12 | P1: Política pelas capacidades | Tasks | Verified |
+| ADM-13 | P1: Política pelas capacidades | Tasks | Verified |
+| ADM-14 | P1: Política pelas capacidades | Tasks | Verified |
+| ADM-15 | P1: Política pelas capacidades | Tasks | Verified |
+| ADM-16 | P1: Política pelas capacidades | Tasks | Verified |
+| ADM-17 | P1: Política pelas capacidades | Tasks | Verified |
+| ADM-18 | P1: Pedir acesso na recusa do login | Tasks | Verified |
+| ADM-19 | P1: Pedir acesso na recusa do login | Tasks | Verified |
+| ADM-20 | P1: Pedir acesso na recusa do login | Tasks | Verified |
+| ADM-21 | P1: Pedir acesso na recusa do login | Tasks | Verified |
+| ADM-22 | P1: Pedir acesso na recusa do login | Tasks | Verified |
+| ADM-23 | P1: Pedir acesso na recusa do login | Tasks | Verified |
+| ADM-24 | P1: Pedir acesso na recusa do login | Tasks | Verified |
+| ADM-25 | P1: Pedir acesso na recusa do login | Tasks | Verified |
+| ADM-26 | P1: Liberar ou recusar o pedido | Tasks | Verified |
+| ADM-27 | P1: Liberar ou recusar o pedido | Tasks | Verified |
+| ADM-28 | P1: Liberar ou recusar o pedido | Tasks | Verified |
+| ADM-29 | P1: Liberar ou recusar o pedido | Tasks | Verified |
+| ADM-30 | P1: Liberar ou recusar o pedido | Tasks | Verified |
+| ADM-31 | P1: Liberar ou recusar o pedido | Tasks | Verified |
+| ADM-32 | P1: Liberar ou recusar o pedido | Tasks | Verified |
+| ADM-33 | P1: Liberar ou recusar o pedido | Tasks | Verified |
+| ADM-34 | P1: Liberar ou recusar o pedido | Tasks | Verified |
+| ADM-35 | P1: Abas de usuários | Tasks | Verified |
+| ADM-36 | P1: Abas de usuários | Tasks | Verified |
+| ADM-37 | P1: Abas de usuários | Tasks | Verified |
+| ADM-38 | P1: Abas de usuários | Tasks | Verified |
+| ADM-39 | P2: Auditoria de papéis e pedidos | Tasks | Verified |
+| ADM-41 | P1: Política pelas capacidades | Tasks | Verified |
+| ADM-42 | P1: Política pelas capacidades | Tasks | Verified |
+| ADM-43 | P1: Pedir acesso na recusa do login | Tasks | Verified |
+| ADM-44 | P1: Pedir acesso na recusa do login | Tasks | Verified |
+| ADM-45 | P1: Liberar ou recusar o pedido | Tasks | Verified |
+| ADM-46 | P1: Liberar ou recusar o pedido | Tasks | Verified |
+| ADM-47 | Edge Cases | Tasks | Verified |
+| ADM-48 | Edge Cases | Tasks | Verified |
+| ADM-49 | Edge Cases | Tasks | Verified |
 
-**Coverage:** 49 total, 0 mapped to tasks, 49 unmapped.
+**Coverage:** 49 total, 49 verified (see `validation.md`).
 
 ---
 
 ## Success Criteria
 
-- [ ] O admin cria um papel, atribui a um membro, e a próxima ação desse membro respeita só as capacidades marcadas.
-- [ ] Da recusa do Google até a liberação e o segundo login, a pessoa entra sem convite manual.
-- [ ] Gestor, líder de louvor e músico de sistema continuam com os mesmos acessos da matriz da spec `auth`.
+- [x] O admin cria um papel, atribui a um membro, e a próxima ação desse membro respeita só as capacidades marcadas.
+- [x] Da recusa do Google até a liberação e o segundo login, a pessoa entra sem convite manual.
+- [x] Gestor, líder de louvor e músico de sistema continuam com os mesmos acessos da matriz da spec `auth`.
