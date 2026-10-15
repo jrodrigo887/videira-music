@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   getInviteTokenRateLimiter,
@@ -15,12 +15,8 @@ function conviteRequest(ip: string): NextRequest {
 }
 
 describe("proxy login wall", () => {
-  const previousDevLocalhost = process.env.DEV_LOCALHOST;
-  const previousNodeEnv = process.env.NODE_ENV;
-
   afterEach(() => {
-    process.env.DEV_LOCALHOST = previousDevLocalhost;
-    process.env.NODE_ENV = previousNodeEnv;
+    vi.unstubAllEnvs();
   });
 
   function songsRequest(): NextRequest {
@@ -28,8 +24,8 @@ describe("proxy login wall", () => {
   }
 
   it("redirects to /entrar when login is required", () => {
-    process.env.NODE_ENV = "development";
-    process.env.DEV_LOCALHOST = "false";
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("DEV_LOCALHOST", "false");
 
     const response = proxy(songsRequest());
 
@@ -39,8 +35,8 @@ describe("proxy login wall", () => {
   });
 
   it("lets protected routes through when DEV_LOCALHOST is true", () => {
-    process.env.NODE_ENV = "development";
-    process.env.DEV_LOCALHOST = "true";
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("DEV_LOCALHOST", "true");
 
     const response = proxy(songsRequest());
 
@@ -49,8 +45,8 @@ describe("proxy login wall", () => {
   });
 
   it("keeps the login wall in production even when DEV_LOCALHOST is true", () => {
-    process.env.NODE_ENV = "production";
-    process.env.DEV_LOCALHOST = "true";
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("DEV_LOCALHOST", "true");
 
     const response = proxy(songsRequest());
 
