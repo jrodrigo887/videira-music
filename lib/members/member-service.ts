@@ -2,14 +2,10 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 
 import type { UserActor } from "@/lib/auth/actor";
 import { can } from "@/lib/auth/permissions";
+import { hasCapability } from "@/lib/auth/actor";
+import { loadActorForUser } from "@/lib/auth/load-actor";
+import { isAssignableRole } from "@/lib/roles/role-service";
 import type { OrganizationRole } from "@/types/identity";
-
-const ORGANIZATION_ROLES: ReadonlySet<string> = new Set([
-  "admin",
-  "manager",
-  "worship_leader",
-  "musician",
-]);
 
 type Tx = Prisma.TransactionClient;
 
@@ -71,13 +67,18 @@ export async function setMemberRoles(
   prisma: PrismaClient,
   actor: UserActor,
   userId: string,
-  roles: OrganizationRole[],
+  roles: string[],
 ): Promise<void> {
   if (!can(actor, "users:manage", { organizationId: actor.organizationId })) {
     throw memberError(403, "FORBIDDEN");
   }
-  if (roles.length === 0 || roles.some((role) => !ORGANIZATION_ROLES.has(role))) {
-    throw memberError(400, "INVALID_REQUEST");
+  if (roles.length === 0) {
+    throw memberError(400, "INVALID_ROLE");
+  }
+  for (const role of roles) {
+    if (!(await isAssignableRole(prisma, actor.organizationId, role))) {
+      throw memberError(400, "INVALID_ROLE");
+    }
   }
 
   const target = await prisma.user.findFirst({
@@ -168,7 +169,8 @@ export async function setTeamLeaders(
       throw memberError(400, "INVALID_REQUEST");
     }
     for (const user of users) {
-      if (!user.roles.some((role) => role.role === "worship_leader")) {
+      const userActor = await loadActorForUser(prisma, user.id);
+      if (!hasCapability(userActor, "setlists:led", actor.organizationId)) {
         throw memberError(400, "NOT_A_WORSHIP_LEADER");
       }
     }

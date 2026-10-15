@@ -1,5 +1,6 @@
 import type { Actor } from "@/lib/auth/actor";
-import { isOrganizationManager, teamRoleOf } from "@/lib/auth/actor";
+import { hasCapability, teamRoleOf } from "@/lib/auth/actor";
+
 export type SetlistAction =
   | "read"
   | "create"
@@ -50,11 +51,11 @@ function canEditSetlist(actor: Actor, setlist: SetlistAccess): boolean {
   if (!isSameOrganization(actor, setlist.organizationId)) {
     return false;
   }
-  if (isOrganizationManager(actor, setlist.organizationId)) {
+  if (hasCapability(actor, "setlists:all", setlist.organizationId)) {
     return true;
   }
   if (setlist.ownerTeamId && teamRoleOf(actor, setlist.ownerTeamId) === "leader") {
-    return true;
+    return hasCapability(actor, "setlists:led", setlist.organizationId);
   }
   return false;
 }
@@ -63,11 +64,11 @@ function canActOnDestination(actor: Actor, organizationId: string, teamId: strin
   if (!isSameOrganization(actor, organizationId)) {
     return false;
   }
-  if (isOrganizationManager(actor, organizationId)) {
+  if (hasCapability(actor, "setlists:all", organizationId)) {
     return true;
   }
   if (teamId && teamRoleOf(actor, teamId) === "leader") {
-    return true;
+    return hasCapability(actor, "setlists:led", organizationId);
   }
   return false;
 }
@@ -125,7 +126,7 @@ export function canPerform(actor: Actor, action: SetlistAction, target: PolicyTa
   if (action === "manageTeams") {
     return (
       target.type === "organization" &&
-      isOrganizationManager(actor, target.organizationId)
+      hasCapability(actor, "teams:manage", target.organizationId)
     );
   }
 
@@ -135,7 +136,7 @@ export function canPerform(actor: Actor, action: SetlistAction, target: PolicyTa
     }
     if (action === "create" || action === "clone") {
       if (target.teamId === null) {
-        return isOrganizationManager(actor, target.organizationId);
+        return hasCapability(actor, "setlists:all", target.organizationId);
       }
     }
     return canActOnDestination(actor, target.organizationId, target.teamId);

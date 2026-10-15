@@ -22,6 +22,7 @@ vi.mock("@/lib/auth/current-actor", () => ({
   getCurrentActor: getCurrentActorMock,
 }));
 
+import { testUserActor } from "@/lib/auth/test-actor";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/persistence/organization-scope";
 
 import RootLayout from "./layout";
@@ -33,13 +34,14 @@ afterEach(() => {
 
 describe("RootLayout navigation", () => {
   it("shows Grupos for organization admin", async () => {
-    getCurrentActorMock.mockResolvedValue({
-      kind: "user",
-      userId: "user-admin",
-      organizationId: DEFAULT_ORGANIZATION_ID,
-      roles: ["admin"],
-      teams: [],
-    });
+    getCurrentActorMock.mockResolvedValue(
+      testUserActor({
+        userId: "user-admin",
+        organizationId: DEFAULT_ORGANIZATION_ID,
+        roles: ["admin"],
+        teams: [],
+      }),
+    );
 
     render(await RootLayout({ children: <p>Conteúdo</p> }));
 
@@ -47,13 +49,14 @@ describe("RootLayout navigation", () => {
   });
 
   it("hides Grupos for non-admin members", async () => {
-    getCurrentActorMock.mockResolvedValue({
-      kind: "user",
-      userId: "user-musician",
-      organizationId: DEFAULT_ORGANIZATION_ID,
-      roles: ["musician"],
-      teams: [],
-    });
+    getCurrentActorMock.mockResolvedValue(
+      testUserActor({
+        userId: "user-musician",
+        organizationId: DEFAULT_ORGANIZATION_ID,
+        roles: ["musician"],
+        teams: [],
+      }),
+    );
 
     render(await RootLayout({ children: <p>Conteúdo</p> }));
 

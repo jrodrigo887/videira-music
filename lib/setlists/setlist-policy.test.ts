@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Actor } from "@/lib/auth/actor";
+import { testUserActor } from "@/lib/auth/test-actor";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/persistence/organization-scope";
 
 import {
@@ -12,61 +13,54 @@ import {
 const ORG = DEFAULT_ORGANIZATION_ID;
 const OTHER_ORG = "org-other";
 
-const admin: Actor = {
-  kind: "user",
+const admin: Actor = testUserActor({
   userId: "user-admin",
   organizationId: ORG,
   roles: ["admin"],
   teams: [],
-};
+});
 
-const ownerLeader: Actor = {
-  kind: "user",
+const ownerLeader: Actor = testUserActor({
   userId: "user-leader",
   organizationId: ORG,
   roles: ["worship_leader"],
   teams: [{ teamId: "team-louvor", role: "leader" }],
-};
+});
 
-const otherLeader: Actor = {
-  kind: "user",
+const otherLeader: Actor = testUserActor({
   userId: "user-jovens-leader",
   organizationId: ORG,
   roles: ["worship_leader"],
   teams: [{ teamId: "team-jovens", role: "leader" }],
-};
+});
 
-const ownerMember: Actor = {
-  kind: "user",
+const ownerMember: Actor = testUserActor({
   userId: "user-musician",
   organizationId: ORG,
   roles: ["musician"],
   teams: [{ teamId: "team-louvor", role: "member" }],
-};
+});
 
-const followerMember: Actor = {
-  kind: "user",
+const followerMember: Actor = testUserActor({
   userId: "user-follower",
   organizationId: ORG,
   roles: ["musician"],
   teams: [{ teamId: "team-jovens", role: "member" }],
-};
+});
 
-const orgMember: Actor = {
-  kind: "user",
+const orgMember: Actor = testUserActor({
   userId: "user-org",
   organizationId: ORG,
   roles: ["musician"],
   teams: [],
-};
+});
 
-const otherOrgUser: Actor = {
-  kind: "user",
+const otherOrgUser: Actor = testUserActor({
   userId: "user-other",
   organizationId: OTHER_ORG,
   roles: ["admin"],
   teams: [],
-};
+});
 
 const anonymous: Actor = { kind: "anonymous" };
 

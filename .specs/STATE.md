@@ -66,7 +66,7 @@
 
 ### AD-009: Login Google só por convite, com papéis acumuláveis
 
-- **Status:** active
+- **Status:** superseded by AD-012
 - **Decision:** O único login é Google, e só entra quem tem usuário ativo ou convite válido gerado por admin ou gestor; o convite só é aceito pela conta Google com o mesmo e-mail. O usuário tem um conjunto de papéis da igreja (`admin`, `manager`, `worship_leader`, `musician`); a liderança de grupo exige `worship_leader` e uma atribuição ao grupo, com um ou mais líderes por grupo. Com um único líder de louvor na igreja, ele lidera todos os grupos. O admin é da igreja. Quando o import passar a checar permissão (AUTH-49 a AUTH-51), a AD-005 fica superada.
 - **Rationale:** O app vai para produção com dados da igreja; um link vazado não pode dar acesso a outra conta.
 - **Scope:** `auth` e toda feature com regra de acesso; evolui a AD-007 sem mudar o ponto único `getCurrentActor()`.
@@ -86,6 +86,16 @@
 - **Decision:** Login e sessões usam Better Auth com Prisma/SQLite. A identidade Google fica nas tabelas `AuthUser`, `AuthSession`, `AuthAccount` e `AuthVerification`, separadas do `User` da igreja (papéis e grupos), ligadas por `User.authUserId`. Toda regra de entrada roda no callback do Google; toda regra de ação continua em `getCurrentActor()` e na política única.
 - **Rationale:** Auth.js v5 segue em beta e em modo manutenção; separar identidade de membro não mistura o schema da biblioteca com o domínio e permite, depois, uma conta em várias igrejas.
 - **Scope:** `auth` e toda feature que lide com usuários ou sessão.
+- **Date:** 2026-10-15
+
+### AD-012: Catálogo de papéis e pedido de acesso na recusa do Google
+
+- **Status:** active
+- **Decision:** Os papéis da igreja formam um catálogo. `admin`, `manager`, `worship_leader` e `musician` continuam papéis de sistema, com capacidades fixas no código. O admin pode criar papéis personalizados com um subconjunto fechado de capacidades. A liderança de grupo exige a capacidade `setlists:led` e uma atribuição ao grupo. O líder único automático continua só para o papel de sistema `worship_leader`. Além do convite, um pedido gravado na recusa do Google e liberado por admin ou gestor cria o membro ativo. O login seguinte liga a conta Google. Entrada e ação continuam em `validateUserInfo` e em `getCurrentActor()`.
+- **Rationale:** A igreja precisa de papéis novos sem um editor livre de permissões, e precisa liberar quem já tentou entrar com o e-mail verificado.
+- **Trade-off:** Um papel personalizado não herda as regras especiais do admin nem do líder único. Quem só tem `setlists:led` não lidera todos os grupos.
+- **Scope:** `admin-access` e toda feature que conceda papel, convide ou decida acesso.
+- **Supersedes:** AD-009.
 - **Date:** 2026-10-15
 
 ## Handoff

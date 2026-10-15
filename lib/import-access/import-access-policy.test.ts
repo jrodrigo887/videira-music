@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
+import { testUserActor } from "@/lib/auth/test-actor";
+
 import { canImport } from "./import-access-policy";
 import { resetImportModuleConfigForTests } from "./import-module-config";
 
@@ -35,25 +37,27 @@ describe("canImport", () => {
 
   it("returns allowed for worship leader with flag on", async () => {
     process.env.VIDEIRA_ENABLE_IMPORT = "true";
-    vi.mocked(getCurrentActor).mockResolvedValue({
-      kind: "user",
-      userId: "user-leader",
-      organizationId: "org-default",
-      roles: ["worship_leader"],
-      teams: [],
-    });
+    vi.mocked(getCurrentActor).mockResolvedValue(
+      testUserActor({
+        userId: "user-leader",
+        organizationId: "org-default",
+        roles: ["worship_leader"],
+        teams: [],
+      }),
+    );
     await expect(canImport(new Request("http://local"))).resolves.toBe("allowed");
   });
 
   it("returns locked for musician without import permission", async () => {
     process.env.VIDEIRA_ENABLE_IMPORT = "true";
-    vi.mocked(getCurrentActor).mockResolvedValue({
-      kind: "user",
-      userId: "user-musician",
-      organizationId: "org-default",
-      roles: ["musician"],
-      teams: [],
-    });
+    vi.mocked(getCurrentActor).mockResolvedValue(
+      testUserActor({
+        userId: "user-musician",
+        organizationId: "org-default",
+        roles: ["musician"],
+        teams: [],
+      }),
+    );
     await expect(canImport(new Request("http://local"))).resolves.toBe("locked");
   });
 });

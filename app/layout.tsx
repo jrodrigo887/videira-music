@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Atkinson_Hyperlegible, JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
 
-import { isOrganizationManager } from "@/lib/auth/actor";
+import { hasCapability } from "@/lib/auth/actor";
 import { getCurrentActor } from "@/lib/auth/current-actor";
 import { can } from "@/lib/auth/permissions";
 import { signOut } from "@/lib/auth/auth-actions";
@@ -36,7 +36,7 @@ export default async function RootLayout({
   let actor = await getCurrentActor().catch(() => ({ kind: "anonymous" as const }));
   const loggedIn = actor.kind === "user";
   const groupsLinkVisible =
-    loggedIn && isOrganizationManager(actor, DEFAULT_ORGANIZATION_ID);
+    loggedIn && hasCapability(actor, "teams:manage", DEFAULT_ORGANIZATION_ID);
   const usersLinkVisible =
     loggedIn && can(actor, "users:manage", { organizationId: actor.organizationId });
   const importLinkVisible =

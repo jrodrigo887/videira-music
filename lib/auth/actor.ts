@@ -1,3 +1,4 @@
+import type { Capability } from "@/lib/auth/capabilities";
 import type {
   OrganizationRole,
   UserId,
@@ -12,7 +13,8 @@ export type Actor =
       kind: "user";
       userId: UserId;
       organizationId: string;
-      roles: ReadonlyArray<OrganizationRole>;
+      roles: ReadonlyArray<string>;
+      capabilities: ReadonlyArray<Capability>;
       teams: ReadonlyArray<{ teamId: WorshipTeamId; role: WorshipTeamRole }>;
     };
 
@@ -29,6 +31,18 @@ export function hasRole(
     actor.kind === "user" &&
     actor.organizationId === organizationId &&
     actor.roles.includes(role)
+  );
+}
+
+export function hasCapability(
+  actor: Actor,
+  capability: Capability,
+  organizationId: string,
+): boolean {
+  return (
+    actor.kind === "user" &&
+    actor.organizationId === organizationId &&
+    actor.capabilities.includes(capability)
   );
 }
 

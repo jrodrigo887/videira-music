@@ -1,7 +1,5 @@
-import type { OrganizationRole } from "@/types/identity";
-
 import type { Actor } from "./actor";
-import { hasRole, isOrganizationManager } from "./actor";
+import { hasCapability, hasRole } from "./actor";
 
 export type Permission =
   | "users:invite"
@@ -15,7 +13,7 @@ export type Permission =
 export function can(
   actor: Actor,
   permission: Permission,
-  target: { organizationId: string; role?: OrganizationRole },
+  target: { organizationId: string; role?: string },
 ): boolean {
   if (actor.kind !== "user" || actor.organizationId !== target.organizationId) {
     return false;
@@ -23,9 +21,11 @@ export function can(
 
   switch (permission) {
     case "users:invite":
+      return hasCapability(actor, "users:invite", target.organizationId);
     case "users:manage":
+      return hasCapability(actor, "users:manage", target.organizationId);
     case "teams:manage":
-      return isOrganizationManager(actor, target.organizationId);
+      return hasCapability(actor, "teams:manage", target.organizationId);
     case "users:grantRole":
       if (!target.role) {
         return false;
@@ -33,16 +33,13 @@ export function can(
       if (target.role === "admin") {
         return hasRole(actor, "admin", target.organizationId);
       }
-      return isOrganizationManager(actor, target.organizationId);
+      return hasCapability(actor, "users:manage", target.organizationId);
     case "music:read":
       return actor.roles.length > 0;
     case "music:write":
+      return hasCapability(actor, "music:write", target.organizationId);
     case "import":
-      return (
-        hasRole(actor, "admin", target.organizationId) ||
-        hasRole(actor, "manager", target.organizationId) ||
-        hasRole(actor, "worship_leader", target.organizationId)
-      );
+      return hasCapability(actor, "import", target.organizationId);
     default:
       return false;
   }

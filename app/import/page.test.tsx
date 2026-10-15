@@ -20,6 +20,7 @@ vi.mock("@/lib/auth/current-actor", () => ({
   getCurrentActor: getCurrentActorMock,
 }));
 
+import { testUserActor } from "@/lib/auth/test-actor";
 import { resetImportModuleConfigForTests } from "@/lib/import-access/import-module-config";
 
 import ImportPage, { dynamic } from "./page";
@@ -48,13 +49,14 @@ describe("ImportPage", () => {
 
   it("shows permission message for musician", async () => {
     vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
-    getCurrentActorMock.mockResolvedValue({
-      kind: "user",
-      userId: "user-musician",
-      organizationId: "org-default",
-      roles: ["musician"],
-      teams: [],
-    });
+    getCurrentActorMock.mockResolvedValue(
+      testUserActor({
+        userId: "user-musician",
+        organizationId: "org-default",
+        roles: ["musician"],
+        teams: [],
+      }),
+    );
 
     render(await ImportPage());
 
@@ -63,13 +65,14 @@ describe("ImportPage", () => {
 
   it("shows the import workflow for worship leader", async () => {
     vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
-    getCurrentActorMock.mockResolvedValue({
-      kind: "user",
-      userId: "user-leader",
-      organizationId: "org-default",
-      roles: ["worship_leader"],
-      teams: [],
-    });
+    getCurrentActorMock.mockResolvedValue(
+      testUserActor({
+        userId: "user-leader",
+        organizationId: "org-default",
+        roles: ["worship_leader"],
+        teams: [],
+      }),
+    );
 
     render(await ImportPage());
 

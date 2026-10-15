@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 
 import type { Actor } from "@/lib/auth/actor";
+import { testUserActor } from "@/lib/auth/test-actor";
 import { isTransposableKey } from "@/lib/chords/transpose-chord";
 import { canonicalizeOriginUrl } from "@/lib/persistence/origin-url";
 import type { MusicRepository } from "@/lib/persistence/music-repository";
@@ -154,13 +155,12 @@ function assertOrganizationVisibility(
 }
 
 function followerMemberActor(organizationId: string, teamId: string): Actor {
-  return {
-    kind: "user",
+  return testUserActor({
     userId: "follower-check",
     organizationId,
     roles: ["musician"],
     teams: [{ teamId, role: "member" }],
-  };
+  });
 }
 
 function countAffectedFollowers(

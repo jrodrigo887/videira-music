@@ -8,13 +8,7 @@ import type { OrganizationRole } from "@/types/identity";
 
 import { generateInviteCode, hashInviteCode } from "./invite-token";
 import { reconcileSoleWorshipLeader } from "@/lib/members/member-service";
-
-const ORGANIZATION_ROLES: ReadonlySet<string> = new Set([
-  "admin",
-  "manager",
-  "worship_leader",
-  "musician",
-]);
+import { isAssignableRole, resolveCapabilitiesForRoleKeys } from "@/lib/roles/role-service";
 
 const MIN_EXPIRY_MS = 60 * 60 * 1000;
 const MAX_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000;
@@ -22,7 +16,7 @@ const MAX_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000;
 export type InviteSummary = {
   id: string;
   email: string;
-  roles: OrganizationRole[];
+  roles: string[];
   teamIds: string[];
   expiresAt: string;
   createdByUserId: string;
@@ -31,16 +25,16 @@ export type InviteSummary = {
 
 export type InvitePreview = {
   email: string;
-  roles: OrganizationRole[];
+  roles: string[];
   teamIds: string[];
   expiresAt: string;
 };
 
-function parseRoles(raw: unknown): OrganizationRole[] {
+function parseRoles(raw: unknown): string[] {
   if (!Array.isArray(raw)) {
     return [];
   }
-  return raw.filter((role): role is OrganizationRole => ORGANIZATION_ROLES.has(String(role)));
+  return raw.map(String);
 }
 
 function parseTeamIds(raw: unknown): string[] {
@@ -76,7 +70,7 @@ export async function createInvite(
   actor: UserActor,
   input: {
     email: string;
-    roles: OrganizationRole[];
+    roles: string[];
     teamIds: string[];
     expiresInHours: number;
   },
@@ -87,8 +81,13 @@ export async function createInvite(
   if (input.roles.some((role) => role === "admin") && !can(actor, "users:grantRole", { organizationId: actor.organizationId, role: "admin" })) {
     throw inviteError(403, "FORBIDDEN");
   }
-  if (input.roles.length === 0 || input.roles.some((role) => !ORGANIZATION_ROLES.has(role))) {
-    throw inviteError(400, "INVALID_REQUEST");
+  if (input.roles.length === 0) {
+    throw inviteError(400, "INVALID_ROLE");
+  }
+  for (const role of input.roles) {
+    if (!(await isAssignableRole(prisma, actor.organizationId, role))) {
+      throw inviteError(400, "INVALID_ROLE");
+    }
   }
 
   const expiresMs = input.expiresInHours * 60 * 60 * 1000;
@@ -284,6 +283,8 @@ export async function acceptInvite(
 
     const roles = parseRoles(invite.roles);
     const teamIds = parseTeamIds(invite.teamIds);
+    const capabilities = await resolveCapabilitiesForRoleKeys(tx, invite.organizationId, roles);
+    const teamMembershipRole = capabilities.includes("setlists:led") ? "leader" : "member";
     const activeTeams = await tx.worshipTeam.findMany({
       where: {
         organizationId: invite.organizationId,
@@ -306,7 +307,7 @@ export async function acceptInvite(
         teamMemberships: {
           create: activeTeams.map((team) => ({
             teamId: team.id,
-            role: roles.includes("worship_leader") ? "leader" : "member",
+            role: teamMembershipRole,
           })),
         },
       },
@@ -378,10 +379,10 @@ export async function findActiveMemberByEmail(
   prisma: PrismaClient,
   organizationId: string,
   email: string,
-): Promise<{ id: string; status: string } | undefined> {
+): Promise<{ id: string; status: string; authUserId: string | null } | undefined> {
   const user = await prisma.user.findFirst({
     where: { organizationId, email: normalizeEmail(email) },
-    select: { id: true, status: true },
+    select: { id: true, status: true, authUserId: true },
   });
   return user ?? undefined;
 }

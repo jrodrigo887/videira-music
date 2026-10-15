@@ -20,6 +20,14 @@ vi.mock("better-auth/api", () => ({
   getOAuthState: vi.fn(async () => oauthState),
 }));
 
+vi.mock("next/headers", () => ({
+  cookies: vi.fn(async () => ({
+    set: vi.fn(),
+    delete: vi.fn(),
+    get: vi.fn(),
+  })),
+}));
+
 vi.mock("./auth-config", () => ({
   readAuthEnvConfig: vi.fn(() => ({
     secret: "test-secret-at-least-32-characters-long",

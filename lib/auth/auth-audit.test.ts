@@ -23,14 +23,15 @@ import {
 
 import { seedSimulatedIdentities } from "./simulated-identities";
 
+import { testUserActor } from "./test-actor";
+
 function adminActor(): UserActor {
-  return {
-    kind: "user",
+  return testUserActor({
     userId: "user-admin",
     organizationId: DEFAULT_ORGANIZATION_ID,
     roles: ["admin"],
     teams: [],
-  };
+  });
 }
 
 function auditPayload(log: {

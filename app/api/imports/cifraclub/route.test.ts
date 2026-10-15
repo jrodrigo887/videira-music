@@ -13,6 +13,7 @@ vi.mock("@/lib/auth/current-actor", () => ({
   getCurrentActor: getCurrentActorMock,
 }));
 
+import { testUserActor } from "@/lib/auth/test-actor";
 import { createPreviewSlotQueue } from "@/lib/import-access/preview-slot-queue";
 import { resetImportModuleConfigForTests } from "@/lib/import-access/import-module-config";
 import { setImportLogWriterForTests } from "@/lib/import-access/import-log";
@@ -268,13 +269,14 @@ describe("exported POST", () => {
 
   it("returns 401 for musician without import permission", async () => {
     vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
-    getCurrentActorMock.mockResolvedValue({
-      kind: "user",
-      userId: "user-musician",
-      organizationId: "org-default",
-      roles: ["musician"],
-      teams: [],
-    });
+    getCurrentActorMock.mockResolvedValue(
+      testUserActor({
+        userId: "user-musician",
+        organizationId: "org-default",
+        roles: ["musician"],
+        teams: [],
+      }),
+    );
 
     const response = await POST(request({ url: URL }));
 
@@ -284,13 +286,14 @@ describe("exported POST", () => {
 
   it("processes supported URLs when the module is configured and the user may import", async () => {
     vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
-    getCurrentActorMock.mockResolvedValue({
-      kind: "user",
-      userId: "user-leader",
-      organizationId: "org-default",
-      roles: ["worship_leader"],
-      teams: [],
-    });
+    getCurrentActorMock.mockResolvedValue(
+      testUserActor({
+        userId: "user-leader",
+        organizationId: "org-default",
+        roles: ["worship_leader"],
+        teams: [],
+      }),
+    );
     setImportLogWriterForTests({ write: async () => undefined });
     fetchCifraClubChartMock.mockResolvedValue(RAW_CHART);
 

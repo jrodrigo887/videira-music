@@ -19,7 +19,9 @@ model Organization {
   users     User[]
   teams     WorshipTeam[]
   setlists  Setlist[]
-  invites   Invite[]
+  invites         Invite[]
+  roleDefinitions RoleDefinition[]
+  accessRequests  AccessRequest[]
 }
 
 model User {
@@ -109,6 +111,39 @@ model AuthVerification {
   updatedAt  DateTime @updatedAt
 
   @@map("auth_verification")
+}
+
+model RoleDefinition {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  key            String
+  label          String
+  system         Boolean      @default(false)
+  capabilities   Json         @default("[]")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, key])
+  @@index([organizationId])
+}
+
+model AccessRequest {
+  id               String       @id @default(cuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id])
+  email            String
+  name             String
+  status           String       @default("pending")
+  requestedAt      DateTime     @default(now())
+  resolvedAt       DateTime?
+  resolvedByUserId String?
+  createdUserId    String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@unique([organizationId, email])
+  @@index([organizationId, status])
 }
 
 model Invite {
