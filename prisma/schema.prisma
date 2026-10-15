@@ -83,6 +83,7 @@ model AuthAccount {
   id                    String    @id
   accountId             String
   providerId            String
+  issuer                String
   userId                String
   user                  AuthUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
@@ -95,6 +96,7 @@ model AuthAccount {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
+  @@unique([issuer, accountId])
   @@map("auth_account")
 }
 
