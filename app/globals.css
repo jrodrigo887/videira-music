@@ -137,16 +137,43 @@
     @apply font-semibold text-primary transition hover:text-primary-hover focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-focus/25;
   }
 
+  .music-chart {
+    --chart-font-family: var(--font-chord), ui-monospace, SFMono-Regular, monospace;
+    --chart-font-size: 0.875rem;
+    --chart-line-height: 1.6;
+    --chart-line-gap: 0px;
+    --chart-letter-spacing: 0px;
+    --chart-lyrics-color: hsl(var(--color-content));
+    --chart-chord-color: hsl(var(--color-chord));
+
+    font-family: var(--chart-font-family);
+    font-size: var(--chart-font-size);
+    line-height: var(--chart-line-height);
+    letter-spacing: var(--chart-letter-spacing);
+  }
+
+  .music-sections {
+    row-gap: calc(var(--chart-font-size, 0.875rem) * var(--chart-line-height, 1.6));
+  }
+
+  .music-lines {
+    @apply flex flex-col;
+    row-gap: var(--chart-line-gap, 0px);
+  }
+
   .music-lyrics {
-    @apply block whitespace-pre font-chord text-[0.9375rem] leading-6 text-content;
+    @apply block whitespace-pre;
+    color: var(--chart-lyrics-color, hsl(var(--color-content)));
   }
 
   .music-chords {
-    @apply block whitespace-pre font-chord text-[0.9375rem] font-bold leading-6 text-chord;
+    @apply block whitespace-pre font-bold;
+    padding-right: 0.5em;
+    color: var(--chart-chord-color, hsl(var(--color-chord)));
   }
 
   .music-line {
-    @apply flex flex-wrap items-start leading-snug;
+    @apply flex flex-wrap items-start;
   }
 
   .music-segment {
@@ -154,6 +181,7 @@
   }
 
   .music-measure {
-    @apply min-h-14 rounded-xl border border-border bg-surface-muted/70 px-3.5 py-2.5 font-chord text-sm font-bold leading-7 text-chord;
+    @apply min-h-14 rounded-xl border border-border bg-surface-muted/70 px-3.5 py-2.5 font-bold;
+    color: var(--chart-chord-color, hsl(var(--color-chord)));
   }
 }

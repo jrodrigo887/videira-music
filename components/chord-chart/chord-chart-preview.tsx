@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { parseChord } from "@/lib/chords/parse-chord";
 import { semitonesBetweenKeys, transposeChord } from "@/lib/chords/transpose-chord";
+import { chartDisplayStyle, type ChartDisplaySettings } from "@/lib/songs/chart-display-preference";
 import type {
   ChordChart,
   GridSectionContent,
@@ -18,7 +19,7 @@ type ChordChartPreviewProps = {
   onSemitonesChange?: (next: number) => void;
   showDiagrams?: boolean;
   columns?: 1 | 2;
-  fontSizePercent?: number;
+  displaySettings?: ChartDisplaySettings;
   /** Standalone card with transpose controls; embedded is for song detail unified header. */
   layout?: "standalone" | "embedded";
   showFormatTags?: boolean;
@@ -505,18 +506,22 @@ function LyricsChart({
   columns?: 1 | 2;
 }) {
   return (
-    <div className={columns === 2 ? "grid gap-8 md:grid-cols-2" : "space-y-7"}>
+    <div
+      className={
+        columns === 2 ? "music-sections grid gap-x-8 md:grid-cols-2" : "music-sections flex flex-col"
+      }
+    >
       {chart.sections.filter(hasLyricsContent).map((section) => (
         <section key={section.id}>
-          <div className="mb-3 flex flex-wrap items-center gap-2.5">
-            <h3 className="font-chord text-sm font-bold text-content before:content-['['] after:content-[']']">
+          <div className="mb-2 flex flex-wrap items-center gap-2.5">
+            <h3 className="font-bold text-content before:content-['['] after:content-[']']">
               {section.label}
             </h3>
-            <p className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium text-content-subtle">
+            <p className="rounded-full bg-surface-muted px-2.5 py-0.5 font-lyrics text-xs font-medium tracking-normal text-content-subtle">
               Tipo: {SECTION_TYPE_LABELS[section.type]}
             </p>
           </div>
-          <div className="space-y-3">
+          <div className="music-lines">
             {section.content.lines.map((line, index) => (
               <LyricsLine
                 key={`${section.id}-${index}`}
@@ -534,14 +539,14 @@ function LyricsChart({
 
 function GridChart({ chart, semitones }: { chart: ChordChart; semitones: number }) {
   return (
-    <div className="space-y-7">
+    <div className="music-sections flex flex-col">
       {chart.sections.filter(hasGridContent).map((section) => (
         <section key={section.id}>
-          <div className="mb-3 flex flex-wrap items-center gap-2.5">
-            <h3 className="font-chord text-sm font-bold text-content before:content-['['] after:content-[']']">
+          <div className="mb-2 flex flex-wrap items-center gap-2.5">
+            <h3 className="font-bold text-content before:content-['['] after:content-[']']">
               {section.label}
             </h3>
-            <p className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium text-content-subtle">
+            <p className="rounded-full bg-surface-muted px-2.5 py-0.5 font-lyrics text-xs font-medium tracking-normal text-content-subtle">
               Tipo: {SECTION_TYPE_LABELS[section.type]}
             </p>
           </div>
@@ -569,7 +574,7 @@ export function ChordChartPreview({
   onSemitonesChange,
   showDiagrams = true,
   columns = 1,
-  fontSizePercent = 100,
+  displaySettings,
   layout = "standalone",
   showFormatTags: showFormatTagsProp,
   showTransposeControls: showTransposeControlsProp,
@@ -608,7 +613,7 @@ export function ChordChartPreview({
   const embeddedHeaderOnlyKey =
     embedded && !showFormatTags && !chartTitle && showTransposeControls;
   const chartBodyClassName = [
-    "max-w-full overflow-x-auto pb-2",
+    "music-chart max-w-full overflow-x-auto pb-2",
     embedded && !showChartHeader && !(showDiagrams && uniqueChords.length > 0)
       ? undefined
       : embedded
@@ -712,7 +717,7 @@ export function ChordChartPreview({
 
       <div
         className={chartBodyClassName}
-        style={fontSizePercent !== 100 ? { zoom: `${fontSizePercent}%` } : undefined}
+        style={displaySettings ? chartDisplayStyle(displaySettings) : undefined}
       >
         {chart.format === "lyrics" ? (
           <LyricsChart chart={chart} semitones={renderSemitones} columns={columns} />

@@ -178,6 +178,35 @@ describe("SongDetail", () => {
     expect(chordLine).toHaveTextContent("G#");
   });
 
+  it("adjusts and persists chart text settings from the resources sidebar", async () => {
+    const chart = persistedChart(SEED_SONG.id);
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        repository={new InMemoryMusicRepository([SEED_SONG], [chart])}
+      />,
+    );
+
+    expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
+    const chartBody = document.querySelector<HTMLElement>(".music-chart");
+    expect(chartBody?.style.getPropertyValue("--chart-font-size")).toBe("14px");
+
+    fireEvent.click(screen.getAllByRole("button", { name: /Texto/ })[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Aumentar tamanho" }));
+    fireEvent.click(screen.getByRole("button", { name: "Serifa" }));
+
+    expect(chartBody?.style.getPropertyValue("--chart-font-size")).toBe("15px");
+    expect(chartBody?.style.getPropertyValue("--chart-font-family")).toContain("serif");
+    expect(JSON.parse(localStorage.getItem("videira-music:chart-display") ?? "{}")).toMatchObject({
+      fontSize: 15,
+      fontFamily: "serif",
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Restaurar padrão" }));
+    expect(chartBody?.style.getPropertyValue("--chart-font-size")).toBe("14px");
+    expect(localStorage.getItem("videira-music:chart-display")).toBeNull();
+  });
+
   it("loads a local song and its persisted chart", async () => {
     const chart = persistedChart(LOCAL_SONG.id);
     render(

@@ -5,10 +5,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ChordChartPreview } from "@/components/chord-chart/chord-chart-preview";
 import { SetlistNeighborsNav } from "@/components/setlists/setlist-neighbors-nav";
+import { ChartDisplaySettingsPanel } from "@/components/songs/chart-display-settings-panel";
 import { buildExampleCharts } from "@/lib/charts/example-charts";
 import { semitonesBetweenKeys, transposeChord } from "@/lib/chords/transpose-chord";
 import { HttpMusicRepository } from "@/lib/persistence/http-music-repository";
 import type { MusicRepository } from "@/lib/persistence/music-repository";
+import {
+  readChartDisplay,
+  writeChartDisplay,
+  type ChartDisplaySettings,
+} from "@/lib/songs/chart-display-preference";
 import type { SetlistSongContext } from "@/lib/songs/setlist-song-context";
 import {
   readTransposeSemitones,
@@ -45,8 +51,6 @@ type DetailState =
   | { status: "ready"; song: Song; charts: ChordChart[]; persistedCharts: boolean }
   | { status: "storage-error" };
 
-const FONT_SIZE_STEPS = [90, 100, 110, 120];
-
 export function SongDetail({
   songId,
   importLinkVisible = false,
@@ -68,8 +72,13 @@ export function SongDetail({
   const [transposePreferenceReady, setTransposePreferenceReady] = useState(false);
   const [showDiagrams, setShowDiagrams] = useState(false);
   const [columns, setColumns] = useState<1 | 2>(1);
-  const [fontSizeIndex, setFontSizeIndex] = useState(1);
+  const [displaySettings, setDisplaySettings] = useState<ChartDisplaySettings>(readChartDisplay);
   const [resourcesOpen, setResourcesOpen] = useState(false);
+
+  const updateDisplaySettings = useCallback((next: ChartDisplaySettings) => {
+    setDisplaySettings(next);
+    writeChartDisplay(next);
+  }, []);
 
   const headerRef = useRef<HTMLElement | null>(null);
   const [headerCollapsed, setHeaderCollapsed] = useState(false);
@@ -191,7 +200,6 @@ export function SongDetail({
 
   const baseKey = state.song.defaultKey ?? state.charts[0]?.key ?? "C";
   const activeKey = transposeChord(baseKey, semitones, { key: baseKey });
-  const fontSizePercent = FONT_SIZE_STEPS[fontSizeIndex] ?? 100;
   const resourcesPanelId = "song-detail-resources";
 
   const resourcesContent = (
@@ -326,14 +334,7 @@ export function SongDetail({
       </div>
 
       <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
-        <button
-          type="button"
-          onClick={() => setFontSizeIndex((current) => (current + 1) % FONT_SIZE_STEPS.length)}
-          className="flex w-full items-center justify-between px-4 py-3 text-left text-xs font-medium text-content transition hover:bg-surface-muted/60"
-        >
-          <span className="font-semibold">Texto</span>
-          <span className="text-content-subtle">{fontSizePercent}% ›</span>
-        </button>
+        <ChartDisplaySettingsPanel value={displaySettings} onChange={updateDisplaySettings} />
 
         {semitones !== 0 ? (
           <button
@@ -545,7 +546,7 @@ export function SongDetail({
                 showTransposeControls={false}
                 showDiagrams={showDiagrams}
                 columns={columns}
-                fontSizePercent={fontSizePercent}
+                displaySettings={displaySettings}
               />
             </div>
           ))}
