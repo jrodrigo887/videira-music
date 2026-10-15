@@ -1,5 +1,22 @@
 "use client";
 
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -53,6 +70,75 @@ function toEditorItems(items: SetlistItem[]): EditorItem[] {
       label: `${item.song.title}${artist} (${item.selectedKey})`,
     };
   });
+}
+
+export function reorderEditorItems(items: EditorItem[], fromIndex: number, toIndex: number): EditorItem[] {
+  if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= items.length || toIndex >= items.length) {
+    return items;
+  }
+  return arrayMove(items, fromIndex, toIndex);
+}
+
+type SortableSetlistItemProps = {
+  item: EditorItem;
+  index: number;
+  busy: boolean;
+  onSelectedKeyChange: (index: number, key: string) => void;
+};
+
+function DragHandleIcon() {
+  return (
+    <svg aria-hidden className="h-5 w-5 text-content-muted" viewBox="0 0 20 20" fill="currentColor">
+      <circle cx="7" cy="5" r="1.25" />
+      <circle cx="13" cy="5" r="1.25" />
+      <circle cx="7" cy="10" r="1.25" />
+      <circle cx="13" cy="10" r="1.25" />
+      <circle cx="7" cy="15" r="1.25" />
+      <circle cx="13" cy="15" r="1.25" />
+    </svg>
+  );
+}
+
+function SortableSetlistItem({ item, index, busy, onSelectedKeyChange }: SortableSetlistItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: item.id,
+    disabled: busy,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={`flex flex-col gap-2 rounded-xl border border-border px-3 py-2 sm:flex-row sm:items-center ${
+        isDragging ? "z-10 bg-surface shadow-md ring-2 ring-primary/30" : "bg-surface"
+      }`}
+    >
+      <button
+        type="button"
+        className="flex shrink-0 cursor-grab touch-none items-center rounded-lg p-1 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
+        aria-label={`Arrastar item: ${item.label}`}
+        disabled={busy}
+        {...attributes}
+        {...listeners}
+      >
+        <DragHandleIcon />
+      </button>
+      <span className="flex-1 text-sm text-content">{item.label}</span>
+      {item.kind === "song" ? (
+        <input
+          className="ds-input w-24"
+          value={item.selectedKey}
+          aria-label={`Tom de ${item.label}`}
+          onChange={(event) => onSelectedKeyChange(index, event.target.value)}
+        />
+      ) : null}
+    </li>
+  );
 }
 
 function toReplacePayload(items: EditorItem[]): ReplaceSetlistItemInput[] {
@@ -169,14 +255,18 @@ export function SetlistEditor({ setlist: initialSetlist, teamQuery }: SetlistEdi
     setMessage(null);
   }
 
-  function moveItem(index: number, direction: -1 | 1) {
+  const sortableSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
     setItems((current) => {
-      const target = index + direction;
-      if (target < 0 || target >= current.length) return current;
-      const copy = [...current];
-      const [entry] = copy.splice(index, 1);
-      copy.splice(target, 0, entry);
-      return copy;
+      const fromIndex = current.findIndex((entry) => entry.id === active.id);
+      const toIndex = current.findIndex((entry) => entry.id === over.id);
+      return reorderEditorItems(current, fromIndex, toIndex);
     });
   }
 
@@ -319,34 +409,21 @@ export function SetlistEditor({ setlist: initialSetlist, teamQuery }: SetlistEdi
         {items.length === 0 ? (
           <p className="text-content-muted">Nenhum item ainda.</p>
         ) : (
-          <ol className="space-y-2">
-            {items.map((item, index) => (
-              <li key={item.id} className="flex flex-col gap-2 rounded-xl border border-border px-3 py-2 sm:flex-row sm:items-center">
-                <span className="flex-1 text-sm text-content">{item.label}</span>
-                {item.kind === "song" ? (
-                  <input
-                    className="ds-input w-24"
-                    value={item.selectedKey}
-                    aria-label={`Tom de ${item.label}`}
-                    onChange={(event) => updateSelectedKey(index, event.target.value)}
+          <DndContext sensors={sortableSensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={items.map((item) => item.id)} strategy={verticalListSortingStrategy}>
+              <ol className="space-y-2">
+                {items.map((item, index) => (
+                  <SortableSetlistItem
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    busy={busy}
+                    onSelectedKeyChange={updateSelectedKey}
                   />
-                ) : null}
-                <div className="flex gap-2">
-                  <button type="button" className="ds-button-secondary" disabled={busy || index === 0} onClick={() => moveItem(index, -1)}>
-                    Subir
-                  </button>
-                  <button
-                    type="button"
-                    className="ds-button-secondary"
-                    disabled={busy || index === items.length - 1}
-                    onClick={() => moveItem(index, 1)}
-                  >
-                    Descer
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ol>
+                ))}
+              </ol>
+            </SortableContext>
+          </DndContext>
         )}
         <button type="button" className="ds-button" disabled={busy} onClick={saveItems}>
           Salvar itens

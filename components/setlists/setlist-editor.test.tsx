@@ -12,7 +12,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock, refresh: refreshMock }),
 }));
 
-import { SetlistEditor } from "./setlist-editor";
+import { SetlistEditor, reorderEditorItems } from "./setlist-editor";
 import type { Setlist } from "@/types/setlist";
 
 const editableSetlist: Setlist = {
@@ -142,30 +142,25 @@ describe("SetlistEditor", () => {
     expect(screen.getByText("Pausa")).toBeInTheDocument();
   });
 
-  it("reorders items with up and down controls", () => {
+  it("reorders items when moving an entry to another position", () => {
+    const items = [
+      { id: "a", kind: "note" as const, text: "Primeiro", label: "Primeiro" },
+      { id: "b", kind: "note" as const, text: "Segundo", label: "Segundo" },
+    ];
+    const reordered = reorderEditorItems(items, 0, 1);
+    expect(reordered.map((item) => item.label)).toEqual(["Segundo", "Primeiro"]);
+  });
+
+  it("shows drag handles for reordering items", () => {
     render(
       <SetlistEditor
         setlist={{
           ...editableSetlist,
-          items: [
-            {
-              id: "a",
-              kind: "note",
-              position: 0,
-              text: "Primeiro",
-            },
-            {
-              id: "b",
-              kind: "note",
-              position: 1,
-              text: "Segundo",
-            },
-          ],
+          items: [{ id: "only", kind: "note", position: 0, text: "Único" }],
         }}
       />,
     );
-    fireEvent.click(screen.getAllByRole("button", { name: "Descer" })[0]);
-    expect(screen.getByText("Segundo")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Arrastar item: Único" })).toBeInTheDocument();
   });
 
   it("saves items through the items api", async () => {
@@ -268,18 +263,6 @@ describe("SetlistEditor", () => {
     );
     fireEvent.change(screen.getByLabelText(/Tom de/), { target: { value: "A" } });
     expect(screen.getByDisplayValue("A")).toBeInTheDocument();
-  });
-
-  it("disables move up on first item", () => {
-    render(
-      <SetlistEditor
-        setlist={{
-          ...editableSetlist,
-          items: [{ id: "only", kind: "note", position: 0, text: "Único" }],
-        }}
-      />,
-    );
-    expect(screen.getByRole("button", { name: "Subir" })).toBeDisabled();
   });
 
   it("validates empty note text", () => {
