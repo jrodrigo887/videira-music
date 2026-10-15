@@ -13,12 +13,12 @@ import { PrismaWorshipTeamRepository } from "./prisma-worship-team-repository";
 import { resolveTeamSlugCollision, slugifyTeamName } from "./team-slug";
 
 describe("PrismaWorshipTeamRepository", () => {
-  let cleanup: () => void;
+  let cleanup: () => Promise<void>;
   let prisma: PrismaClient;
   let repository: PrismaWorshipTeamRepository;
 
   beforeEach(async () => {
-    const temp = createTempDatabaseUrl();
+    const temp = await createTempDatabaseUrl();
     cleanup = temp.cleanup;
     prisma = await createTestPrismaClient(temp.url);
     await seedSimulatedIdentities(prisma);
@@ -27,7 +27,7 @@ describe("PrismaWorshipTeamRepository", () => {
 
   afterEach(async () => {
     await destroyTestPrismaClient(prisma);
-    cleanup();
+    await cleanup();
   });
 
   it("lists active teams alphabetically", async () => {

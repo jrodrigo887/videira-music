@@ -1,5 +1,5 @@
 import { forbiddenResponse, requireActor } from "@/lib/auth/api-guard";
-import { ensureSqlitePragmas, getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
+import { getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
 import { isMemberServiceError, listMembers } from "@/lib/members/member-service";
 
 export const runtime = "nodejs";
@@ -15,7 +15,6 @@ export async function GET(): Promise<Response> {
   }
 
   const prisma = getPrisma();
-  await ensureSqlitePragmas(prisma);
 
   try {
     const members = await listMembers(prisma, gate.actor);

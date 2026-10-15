@@ -3,7 +3,7 @@
 import "@testing-library/jest-dom/vitest";
 
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { InMemoryMusicRepository } from "@/lib/persistence/music-repository";
 import type { Song } from "@/types/music";
@@ -29,10 +29,6 @@ const LOCAL_SONG: Song = {
   alternateKeys: [],
   meta: "Importada",
 };
-
-vi.mock("@/lib/persistence/local-data-migration", () => ({
-  runLocalDataMigration: vi.fn(async () => ({ status: "skipped" as const })),
-}));
 
 afterEach(cleanup);
 

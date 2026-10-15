@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { runLocalDataMigration } from "@/lib/persistence/local-data-migration";
 import { HttpMusicRepository } from "@/lib/persistence/http-music-repository";
 import type { MusicRepository } from "@/lib/persistence/music-repository";
 import { normalizeSearchPart } from "@/lib/persistence/search-text";
@@ -27,7 +26,6 @@ export function SongLibrary({ repository: suppliedRepository }: SongLibraryProps
   const [query, setQuery] = useState("");
   const [songs, setSongs] = useState<Song[]>([]);
   const [loadError, setLoadError] = useState(false);
-  const [migrationMessage, setMigrationMessage] = useState<string>();
   const repository = useMemo(
     () => suppliedRepository ?? new HttpMusicRepository(),
     [suppliedRepository],
@@ -44,23 +42,7 @@ export function SongLibrary({ repository: suppliedRepository }: SongLibraryProps
   }, [repository]);
 
   useEffect(() => {
-    let active = true;
-
-    async function bootstrap() {
-      const migration = await runLocalDataMigration();
-      if (!active) {
-        return;
-      }
-      if (migration.message) {
-        setMigrationMessage(migration.message);
-      }
-      await loadSongs();
-    }
-
-    void bootstrap();
-    return () => {
-      active = false;
-    };
+    void loadSongs();
   }, [loadSongs]);
 
   const filteredSongs = useMemo(() => {
@@ -72,10 +54,6 @@ export function SongLibrary({ repository: suppliedRepository }: SongLibraryProps
 
   return (
     <section className="space-y-6">
-      {migrationMessage ? (
-        <p className="ds-card-muted">{migrationMessage}</p>
-      ) : null}
-
       {loadError ? (
         <p role="alert" className="ds-card-muted">
           Não foi possível carregar o catálogo.{" "}

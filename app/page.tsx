@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { getCurrentActor } from "@/lib/auth/current-actor";
-import { ensureSqlitePragmas, getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
+import { getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
 import { listPublicSongs } from "@/lib/public-lyrics/public-lyrics";
 import { can } from "@/lib/auth/permissions";
 
@@ -37,7 +37,6 @@ export default async function Home() {
   let publicSongs: Awaited<ReturnType<typeof listPublicSongs>> = [];
   if (isDatabaseConfigured()) {
     const prisma = getPrisma();
-    await ensureSqlitePragmas(prisma);
     publicSongs = await listPublicSongs(prisma);
   }
 

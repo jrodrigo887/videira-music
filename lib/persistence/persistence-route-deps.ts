@@ -4,9 +4,7 @@ import type { MusicRepository } from "./music-repository";
 import {
   DatabaseNotConfiguredError,
   DatabaseUnavailableError,
-  ensureSqlitePragmas,
   getPrisma,
-  isDatabaseBusyError,
   isDatabaseConfigured,
 } from "./prisma-client";
 import { getDefaultOrganizationId } from "./organization-scope";
@@ -24,7 +22,6 @@ export function createPersistenceRouteDependencies(): PersistenceRouteDependenci
     isConfigured: () => isDatabaseConfigured(),
     getRepository: async () => {
       const prisma = getPrisma();
-      await ensureSqlitePragmas(prisma);
       const organizationId = await getDefaultOrganizationId(prisma);
       return new PrismaMusicRepository(prisma, { organizationId });
     },
@@ -35,7 +32,7 @@ export async function mapPersistenceFailure(error: unknown): Promise<Response> {
   if (error instanceof DatabaseNotConfiguredError) {
     return persistenceError(503, "DATABASE_NOT_CONFIGURED", "Banco de dados não configurado.");
   }
-  if (error instanceof DatabaseUnavailableError || isDatabaseBusyError(error)) {
+  if (error instanceof DatabaseUnavailableError) {
     return persistenceError(503, "DATABASE_UNAVAILABLE", "Banco de dados indisponível.", {
       headers: { "Retry-After": "2" },
     });

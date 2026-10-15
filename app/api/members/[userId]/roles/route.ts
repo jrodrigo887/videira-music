@@ -1,5 +1,5 @@
 import { forbiddenResponse, requireActor } from "@/lib/auth/api-guard";
-import { ensureSqlitePragmas, getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
+import { getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
 import { isMemberServiceError, setMemberRoles } from "@/lib/members/member-service";
 import type { OrganizationRole } from "@/types/identity";
 
@@ -29,7 +29,6 @@ export async function PUT(request: Request, context: RouteContext): Promise<Resp
   const roles = Array.isArray(record.roles) ? (record.roles as OrganizationRole[]) : [];
 
   const prisma = getPrisma();
-  await ensureSqlitePragmas(prisma);
 
   try {
     await setMemberRoles(prisma, gate.actor, userId, roles);

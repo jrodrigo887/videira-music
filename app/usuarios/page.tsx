@@ -4,7 +4,7 @@ import { requirePageActor } from "@/lib/auth/page-gate";
 import { UsersAdmin } from "@/components/users/users-admin";
 import { listPendingInvites } from "@/lib/invites/invite-service";
 import { listMembers } from "@/lib/members/member-service";
-import { ensureSqlitePragmas, getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
+import { getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +28,6 @@ export default async function UsuariosPage() {
   }
 
   const prisma = getPrisma();
-  await ensureSqlitePragmas(prisma);
 
   const [members, invites, teams] = await Promise.all([
     listMembers(prisma, actor),

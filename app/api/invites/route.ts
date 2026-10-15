@@ -1,6 +1,6 @@
 import { forbiddenResponse, requireActor } from "@/lib/auth/api-guard";
 import { can } from "@/lib/auth/permissions";
-import { ensureSqlitePragmas, getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
+import { getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
 import {
   createInvite,
   isInviteServiceError,
@@ -23,7 +23,6 @@ export async function GET(): Promise<Response> {
     return forbiddenResponse();
   }
   const prisma = getPrisma();
-  await ensureSqlitePragmas(prisma);
   const invites = await listPendingInvites(prisma, gate.actor);
   return Response.json({ invites });
 }
@@ -54,7 +53,6 @@ export async function POST(request: Request): Promise<Response> {
   const expiresInHours = Number(record.expiresInHours ?? 24 * 7);
 
   const prisma = getPrisma();
-  await ensureSqlitePragmas(prisma);
 
   try {
     const result = await createInvite(prisma, gate.actor, {

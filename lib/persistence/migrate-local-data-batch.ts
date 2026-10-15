@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getDefaultOrganizationId } from "./organization-scope";
-import { ensureSqlitePragmas, getPrisma } from "./prisma-client";
+import { getPrisma } from "./prisma-client";
 import { PrismaMusicRepository } from "./prisma-music-repository";
 import type { ChordChart, Song } from "@/types/music";
 
@@ -10,7 +10,6 @@ export async function migrateLocalDataBatch(input: {
   charts: ChordChart[];
 }) {
   const prisma = getPrisma();
-  await ensureSqlitePragmas(prisma);
   const organizationId = await getDefaultOrganizationId(prisma);
   const repository = new PrismaMusicRepository(prisma, { organizationId });
   return repository.migrateBatch(input);

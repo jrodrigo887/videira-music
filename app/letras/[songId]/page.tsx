@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ImportedBadge } from "@/components/setlists/imported-badge";
-import { ensureSqlitePragmas, getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
+import { getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
 import { getPublicLyrics } from "@/lib/public-lyrics/public-lyrics";
 
 type PageProps = {
@@ -15,7 +15,6 @@ export default async function LetrasPublicasPage({ params }: PageProps) {
     notFound();
   }
   const prisma = getPrisma();
-  await ensureSqlitePragmas(prisma);
   const lyrics = await getPublicLyrics(prisma, songId);
   if (!lyrics) {
     notFound();

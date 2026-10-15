@@ -15,12 +15,12 @@ import { PrismaWorshipTeamRepository } from "./prisma-worship-team-repository";
 import { createWorshipTeamService } from "./worship-team-service";
 
 describe("WorshipTeamService", () => {
-  let cleanup: () => void;
+  let cleanup: () => Promise<void>;
   let prisma: PrismaClient;
   let service: ReturnType<typeof createWorshipTeamService>;
 
   beforeEach(async () => {
-    const temp = createTempDatabaseUrl();
+    const temp = await createTempDatabaseUrl();
     cleanup = temp.cleanup;
     prisma = await createTestPrismaClient(temp.url);
     await seedSetlistFixture(prisma);
@@ -33,7 +33,7 @@ describe("WorshipTeamService", () => {
 
   afterEach(async () => {
     await destroyTestPrismaClient(prisma);
-    cleanup();
+    await cleanup();
   });
 
   it("lists teams for admin including archived when requested", async () => {

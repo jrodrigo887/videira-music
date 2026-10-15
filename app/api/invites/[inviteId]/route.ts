@@ -1,6 +1,6 @@
 import { forbiddenResponse, requireActor } from "@/lib/auth/api-guard";
 import { can } from "@/lib/auth/permissions";
-import { ensureSqlitePragmas, getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
+import { getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
 import { isInviteServiceError, revokeInvite } from "@/lib/invites/invite-service";
 
 export const runtime = "nodejs";
@@ -22,7 +22,6 @@ export async function DELETE(_request: Request, context: RouteContext): Promise<
 
   const { inviteId } = await context.params;
   const prisma = getPrisma();
-  await ensureSqlitePragmas(prisma);
 
   try {
     await revokeInvite(prisma, gate.actor, inviteId);

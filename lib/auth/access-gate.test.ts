@@ -42,17 +42,18 @@ function oauthProfile(email: string, verified = true) {
 }
 
 describe("Google OAuth access gate", () => {
-  const temp = createTempDatabaseUrl();
+  let temp!: { url: string; cleanup: () => Promise<void> };
   let prisma: PrismaClient;
 
   beforeAll(async () => {
+    temp = await createTempDatabaseUrl();
     prisma = await createTestPrismaClient(temp.url);
     await seedSimulatedIdentities(prisma);
   });
 
   afterAll(async () => {
     await destroyTestPrismaClient(prisma);
-    temp.cleanup();
+    await temp.cleanup();
   });
 
   beforeEach(() => {

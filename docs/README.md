@@ -10,7 +10,7 @@ Esta pasta concentra a especificacao inicial do produto antes da implementacao d
 - [Transposicao](transposition.md): parsing e regras de transposicao de acordes.
 - [Decisao de plataforma](platform-decision.md): escolha inicial por PWA responsiva.
 - [Plano tecnico](implementation-plan.md): stack, estrutura sugerida e primeiras tarefas de codigo.
-- [Banco de dados SQLite](database.md): `DATABASE_URL`, migrations, seed e deploy.
+- [Banco de dados Postgres](database.md): `DATABASE_URL`, `DIRECT_URL`, migrations, seed e deploy na Vercel.
 - [Fluxo modular do MVP](technical-design/videira-music-mvp-flow.excalidraw): diagrama Excalidraw do fluxo entre interface, modulos de dominio e persistencia.
 
 ## Ordem de leitura recomendada

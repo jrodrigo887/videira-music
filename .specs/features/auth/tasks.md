@@ -63,12 +63,12 @@
 **Reqs:** AUTH-14, AUTH-19, AUTH-44  
 **Done when:** `app/usuarios/page.tsx`, `components/users/users-admin.tsx`.
 
-### T7: Testes de rota convite e rate limit ⏳
+### T7: Testes de rota convite e rate limit ✅
 
 **Reqs:** AUTH-11..13, AUTH-20  
 **Done when:** `app/api/invites/route.test.ts` cobre 403 gestor+admin, 409, 429.
 
-**Status parcial:** `route.test.ts` + `[inviteId]/route.test.ts` cobrem 403, 409, 400, revoke; **AUTH-20 (429)** ainda sem teste de rota.
+**Feito:** rotas invites + `convite-rate-limit-http.test.ts`, `proxy.test.ts` (429 + `Retry-After`).
 
 ---
 
@@ -105,10 +105,12 @@
 **Reqs:** AUTH-40, AUTH-41  
 **Done when:** `PublicVisibilityField` no import e detalhe da música; `publicLyrics` na API.
 
-### T13: Testes public-lyrics e campo UI ⏳
+### T13: Testes public-lyrics e campo UI ✅
 
 **Reqs:** AUTH-37, AUTH-41  
 **Done when:** `lib/public-lyrics/*.test.ts`, teste do componente de ajuda.
+
+**Feito:** `public-lyrics.test.ts`, `public-visibility-field.test.tsx`; `toPublicLyrics` lê `content.lines`.
 
 ---
 
@@ -137,10 +139,12 @@
 **Reqs:** AUTH-01..04, AUTH-16..17, AUTH-42  
 **Done when:** `lib/auth/access-gate.test.ts` verde com SQLite temporário.
 
-### T17: Auditoria AuthAuditLog ⏳
+### T17: Auditoria AuthAuditLog ✅
 
 **Reqs:** AUTH-53..54  
 **Done when:** testes assertam ações sem token.
+
+**Feito:** `lib/auth/auth-audit.test.ts` (create/revoke/accept, roles, deactivate; sem token nos registros).
 
 ---
 

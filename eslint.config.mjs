@@ -8,7 +8,6 @@ const eslintConfig = [
     ignores: [
       ".next/**",
       "node_modules/**",
-      "scripts/whatsapp-polls/node_modules/**",
       ".cursor/**",
       ".claude/**",
       ".windsurf/**",

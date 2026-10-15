@@ -12,17 +12,18 @@ import { loadActorForUser } from "./load-actor";
 import { seedSimulatedIdentities } from "./simulated-identities";
 
 describe("loadActorForUser", () => {
-  const temp = createTempDatabaseUrl();
+  let temp!: { url: string; cleanup: () => Promise<void> };
   let prisma: PrismaClient;
 
   beforeAll(async () => {
+    temp = await createTempDatabaseUrl();
     prisma = await createTestPrismaClient(temp.url);
     await seedSimulatedIdentities(prisma);
   });
 
   afterAll(async () => {
     await destroyTestPrismaClient(prisma);
-    temp.cleanup();
+    await temp.cleanup();
   });
 
   it("loads the organization role and team memberships", async () => {

@@ -90,7 +90,7 @@
 
 ## Handoff
 
-- **Feature em execução:** `auth` (`.specs/features/auth/`): spec fechado; `validation.md` **PARTIAL**. Import por permissão (AUTH-49..52) fechado; rotas invites/members testadas; OAuth em `access-gate.test.ts`. Aberto: rate limit convite (AUTH-20), auditoria (T17), Verifier PASS final.
+- **Feature em execução:** `auth`: T1–T17 fechadas; Verifier **FAIL** só por lint; AUTH-15/AUTH-23 fechados.
 - **Features ativas:** `import-access` (`.specs/features/import-access/`): implementada, verificação **PARTIAL** (`validation.md`).
 - **Completed:** `server-persistence` implementada e mergeada (PR #1); `chart-import` verificada (PASS 2026-10-09).
 - **Próximo passo:** fechar G1-G3 de `import-access/tasks.md` (testes do gate de cifra, `ImportLog` e rota de sessão); depois auditar os testes faltantes da `server-persistence` (rotas, repositório Prisma, HttpMusicRepository, migração, PER-15).

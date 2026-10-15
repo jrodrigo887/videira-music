@@ -2,9 +2,13 @@ import { notFound } from "next/navigation";
 
 import { signInWithGoogle } from "@/lib/auth/auth-actions";
 import { readAuthEnvConfig } from "@/lib/auth/auth-config";
-import { ensureSqlitePragmas, getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
+import { getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
 import { findValidInviteByCode } from "@/lib/invites/invite-service";
 import { resolveClientIp } from "@/lib/http/client-ip";
+import {
+  createInviteRateLimitResponse,
+  INVITE_RATE_LIMIT_MESSAGE,
+} from "@/lib/invites/convite-rate-limit-http";
 import { getInviteTokenRateLimiter } from "@/lib/invites/invite-rate-limit";
 import { headers } from "next/headers";
 
@@ -22,19 +26,31 @@ export default async function ConvitePage({ params }: PageProps) {
 
   const requestHeaders = await headers();
   const ip = resolveClientIp(new Request("http://local", { headers: requestHeaders }));
-  const limiter = getInviteTokenRateLimiter();
-  const decision = limiter.check(ip, Date.now());
-  if (!decision.allowed) {
+  const rateLimited = createInviteRateLimitResponse(ip, Date.now());
+  if (rateLimited) {
     return (
       <div className="mx-auto max-w-md ds-card p-8">
-        <p className="text-sm text-content">Muitas tentativas. Tente novamente em alguns minutos.</p>
+        <p className="text-sm text-content">{INVITE_RATE_LIMIT_MESSAGE}</p>
       </div>
     );
   }
 
+  const limiter = getInviteTokenRateLimiter();
+
   const prisma = getPrisma();
-  await ensureSqlitePragmas(prisma);
   const invite = await findValidInviteByCode(prisma, code);
+  const inviteTeams =
+    invite && invite.teamIds.length > 0
+      ? await prisma.worshipTeam.findMany({
+          where: {
+            organizationId: invite.organizationId,
+            archivedAt: null,
+            id: { in: invite.teamIds },
+          },
+          select: { name: true },
+          orderBy: { name: "asc" },
+        })
+      : [];
   if (!invite) {
     limiter.recordFailure(ip, Date.now());
     return (
@@ -53,8 +69,16 @@ export default async function ConvitePage({ params }: PageProps) {
         Você foi convidado como <strong>{invite.email}</strong>.
       </p>
       <p className="mt-2 text-xs text-content-muted">
-        Papéis: {invite.roles.join(", ")} · válido até{" "}
-        {new Date(invite.expiresAt).toLocaleString("pt-BR")}
+        Papéis: {invite.roles.join(", ")}
+      </p>
+      <p className="mt-1 text-xs text-content-muted">
+        Grupos:{" "}
+        {inviteTeams.length > 0
+          ? inviteTeams.map((team) => team.name).join(", ")
+          : "Nenhum"}
+      </p>
+      <p className="mt-1 text-xs text-content-muted">
+        Válido até {new Date(invite.expiresAt).toLocaleString("pt-BR")}
       </p>
       {configured ? (
         <form

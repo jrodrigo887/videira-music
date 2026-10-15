@@ -38,7 +38,7 @@ async function seedManagerUser(prisma: PrismaClient): Promise<void> {
 export async function createAuthApiTestContext(
   initialUserId = "user-admin",
 ): Promise<AuthApiTestContext> {
-  const temp = createTempDatabaseUrl();
+  const temp = await createTempDatabaseUrl();
   process.env.DATABASE_URL = temp.url;
   resetPrismaClientForTests();
 
@@ -56,7 +56,7 @@ export async function createAuthApiTestContext(
     asUser,
     cleanup: async () => {
       await destroyTestPrismaClient(prisma);
-      temp.cleanup();
+      await temp.cleanup();
       resetPrismaClientForTests();
       delete process.env.VIDEIRA_SIMULATED_USER_ID;
     },

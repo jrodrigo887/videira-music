@@ -13,10 +13,23 @@ export type PublicLyrics = {
   sections: { label: string; lines: string[] }[];
 };
 
+type LyricLineInput = { text?: string; chords?: unknown };
+
 type ChartSection = {
   label?: string;
-  lines?: { text?: string; chords?: unknown }[];
+  lines?: LyricLineInput[];
+  content?: { lines?: LyricLineInput[] };
 };
+
+function sectionLyricLines(section: ChartSection): LyricLineInput[] {
+  if (Array.isArray(section.lines)) {
+    return section.lines;
+  }
+  if (Array.isArray(section.content?.lines)) {
+    return section.content.lines;
+  }
+  return [];
+}
 
 export function toPublicLyrics(input: {
   title: string;
@@ -28,7 +41,7 @@ export function toPublicLyrics(input: {
   const sectionsRaw = Array.isArray(input.sections) ? (input.sections as ChartSection[]) : [];
   const sections = sectionsRaw.map((section) => ({
     label: section.label ?? "",
-    lines: (section.lines ?? [])
+    lines: sectionLyricLines(section)
       .map((line) => String(line.text ?? "").trim())
       .filter(Boolean),
   }));

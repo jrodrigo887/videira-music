@@ -1,11 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, onTestFinished } from "vitest";
 
 import type { ChordChart, Song } from "@/types/music";
 
 import { HttpMusicRepository } from "./http-music-repository";
 import { InMemoryMusicRepository, type MusicRepository } from "./music-repository";
 import { PrismaMusicRepository } from "./prisma-music-repository";
-import { createTestPrismaClient, createTempDatabaseUrl } from "./test-temp-db";
+import { createTestPrismaClient, createTempDatabaseUrl, destroyTestPrismaClient } from "./test-temp-db";
 
 const SONG: Song = {
   id: "song-local-contract",
@@ -62,8 +62,12 @@ function runContractSuite(name: string, createRepository: () => Promise<MusicRep
 runContractSuite("InMemoryMusicRepository", () => new InMemoryMusicRepository());
 
 runContractSuite("PrismaMusicRepository", async () => {
-  const temp = createTempDatabaseUrl();
+  const temp = await createTempDatabaseUrl();
   const prisma = await createTestPrismaClient(temp.url);
+  onTestFinished(async () => {
+    await destroyTestPrismaClient(prisma);
+    await temp.cleanup();
+  });
   return new PrismaMusicRepository(prisma, { organizationId: "org-default" });
 });
 

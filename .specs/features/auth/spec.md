@@ -291,70 +291,70 @@ Papéis se somam: o usuário pode tudo que qualquer um dos seus papéis permite.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| AUTH-01 | P1: Entrar com Google | Specify | Pending |
-| AUTH-02 | P1: Entrar com Google | Specify | Pending |
-| AUTH-03 | P1: Entrar com Google | Specify | Pending |
-| AUTH-04 | P1: Entrar com Google | Specify | Pending |
-| AUTH-05 | P1: Entrar com Google | Specify | Pending |
-| AUTH-06 | P1: Entrar com Google | Specify | Pending |
-| AUTH-07 | P1: Entrar com Google | Specify | Pending |
-| AUTH-08 | P1: Entrar com Google | Specify | Pending |
-| AUTH-09 | P1: Convidar uma pessoa | Specify | Pending |
-| AUTH-10 | P1: Convidar uma pessoa | Specify | Pending |
-| AUTH-11 | P1: Convidar uma pessoa | Specify | Pending |
-| AUTH-12 | P1: Convidar uma pessoa | Specify | Pending |
-| AUTH-13 | P1: Convidar uma pessoa | Specify | Pending |
-| AUTH-14 | P1: Convidar uma pessoa | Specify | Pending |
-| AUTH-15 | P1: Convidar uma pessoa | Specify | Pending |
-| AUTH-16 | P1: Convidar uma pessoa | Specify | Pending |
-| AUTH-17 | P1: Convidar uma pessoa | Specify | Pending |
-| AUTH-18 | P1: Convidar uma pessoa | Specify | Pending |
-| AUTH-19 | P1: Convidar uma pessoa | Specify | Pending |
-| AUTH-20 | P1: Convidar uma pessoa | Specify | Pending |
-| AUTH-21 | P1: Papéis acumuláveis e liderança de grupo | Specify | Pending |
-| AUTH-22 | P1: Papéis acumuláveis e liderança de grupo | Specify | Pending |
-| AUTH-23 | P1: Papéis acumuláveis e liderança de grupo | Specify | Pending |
-| AUTH-24 | P1: Papéis acumuláveis e liderança de grupo | Specify | Pending |
-| AUTH-25 | P1: Papéis acumuláveis e liderança de grupo | Specify | Pending |
-| AUTH-26 | P1: Papéis acumuláveis e liderança de grupo | Specify | Pending |
-| AUTH-27 | P1: Papéis acumuláveis e liderança de grupo | Specify | Pending |
-| AUTH-28 | P1: Papéis acumuláveis e liderança de grupo | Specify | Pending |
-| AUTH-29 | P1: Proteger páginas e APIs | Specify | Pending |
-| AUTH-30 | P1: Proteger páginas e APIs | Specify | Pending |
-| AUTH-31 | P1: Proteger páginas e APIs | Specify | Pending |
-| AUTH-32 | P1: Proteger páginas e APIs | Specify | Pending |
-| AUTH-33 | P1: Proteger páginas e APIs | Specify | Pending |
-| AUTH-34 | P1: Proteger páginas e APIs | Specify | Pending |
-| AUTH-35 | P1: Página pública de letras | Specify | Pending |
-| AUTH-36 | P1: Página pública de letras | Specify | Pending |
-| AUTH-37 | P1: Página pública de letras | Specify | Pending |
-| AUTH-38 | P1: Página pública de letras | Specify | Pending |
-| AUTH-39 | P1: Página pública de letras | Specify | Pending |
-| AUTH-40 | P1: Página pública de letras | Specify | Pending |
-| AUTH-41 | P1: Página pública de letras | Specify | Pending |
-| AUTH-42 | P1: Primeiro admin | Specify | Pending |
-| AUTH-43 | P1: Primeiro admin | Specify | Pending |
-| AUTH-44 | P2: Gerenciar usuários | Specify | Pending |
-| AUTH-45 | P2: Gerenciar usuários | Specify | Pending |
-| AUTH-46 | P2: Gerenciar usuários | Specify | Pending |
-| AUTH-47 | P2: Gerenciar usuários | Specify | Pending |
-| AUTH-48 | P2: Gerenciar usuários | Specify | Pending |
-| AUTH-49 | P2: Import por permissão | Specify | Pending |
-| AUTH-50 | P2: Import por permissão | Specify | Pending |
-| AUTH-51 | P2: Import por permissão | Specify | Pending |
-| AUTH-52 | P2: Import por permissão | Specify | Pending |
-| AUTH-53 | P2: Auditoria de acesso | Specify | Pending |
-| AUTH-54 | P2: Auditoria de acesso | Specify | Pending |
-| AUTH-55 | P3: Enviar convite por e-mail | Specify | Pending |
-| AUTH-56 | P3: Enviar convite por e-mail | Specify | Pending |
-| AUTH-57 | Edge Cases | Specify | Pending |
-| AUTH-58 | Edge Cases | Specify | Pending |
-| AUTH-59 | Edge Cases | Specify | Pending |
-| AUTH-60 | Edge Cases | Specify | Pending |
-| AUTH-61 | Edge Cases | Specify | Pending |
-| AUTH-62 | P1: Convidar uma pessoa | Specify | Pending |
+| AUTH-01 | P1: Entrar com Google | Verify | Verified |
+| AUTH-02 | P1: Entrar com Google | Verify | Verified |
+| AUTH-03 | P1: Entrar com Google | Verify | Verified |
+| AUTH-04 | P1: Entrar com Google | Verify | Verified |
+| AUTH-05 | P1: Entrar com Google | Verify | Implemented |
+| AUTH-06 | P1: Entrar com Google | Verify | Implemented |
+| AUTH-07 | P1: Entrar com Google | Verify | Verified |
+| AUTH-08 | P1: Entrar com Google | Verify | Implemented |
+| AUTH-09 | P1: Convidar uma pessoa | Verify | Verified |
+| AUTH-10 | P1: Convidar uma pessoa | Verify | Implemented |
+| AUTH-11 | P1: Convidar uma pessoa | Verify | Verified |
+| AUTH-12 | P1: Convidar uma pessoa | Verify | Verified |
+| AUTH-13 | P1: Convidar uma pessoa | Verify | Implemented |
+| AUTH-14 | P1: Convidar uma pessoa | Verify | Implemented |
+| AUTH-15 | P1: Convidar uma pessoa | Verify | Verified |
+| AUTH-16 | P1: Convidar uma pessoa | Verify | Verified |
+| AUTH-17 | P1: Convidar uma pessoa | Verify | Implemented |
+| AUTH-18 | P1: Convidar uma pessoa | Verify | Implemented |
+| AUTH-19 | P1: Convidar uma pessoa | Verify | Implemented |
+| AUTH-20 | P1: Convidar uma pessoa | Verify | Verified |
+| AUTH-21 | P1: Papéis acumuláveis e liderança de grupo | Verify | Verified |
+| AUTH-22 | P1: Papéis acumuláveis e liderança de grupo | Verify | Implemented |
+| AUTH-23 | P1: Papéis acumuláveis e liderança de grupo | Verify | Verified |
+| AUTH-24 | P1: Papéis acumuláveis e liderança de grupo | Verify | Implemented |
+| AUTH-25 | P1: Papéis acumuláveis e liderança de grupo | Verify | Implemented |
+| AUTH-26 | P1: Papéis acumuláveis e liderança de grupo | Verify | Implemented |
+| AUTH-27 | P1: Papéis acumuláveis e liderança de grupo | Verify | Verified |
+| AUTH-28 | P1: Papéis acumuláveis e liderança de grupo | Verify | Implemented |
+| AUTH-29 | P1: Proteger páginas e APIs | Verify | Implemented |
+| AUTH-30 | P1: Proteger páginas e APIs | Verify | Implemented |
+| AUTH-31 | P1: Proteger páginas e APIs | Verify | Implemented |
+| AUTH-32 | P1: Proteger páginas e APIs | Verify | Verified |
+| AUTH-33 | P1: Proteger páginas e APIs | Verify | Implemented |
+| AUTH-34 | P1: Proteger páginas e APIs | Verify | Verified |
+| AUTH-35 | P1: Página pública de letras | Verify | Verified |
+| AUTH-36 | P1: Página pública de letras | Verify | Verified |
+| AUTH-37 | P1: Página pública de letras | Verify | Verified |
+| AUTH-38 | P1: Página pública de letras | Verify | Verified |
+| AUTH-39 | P1: Página pública de letras | Verify | Implemented |
+| AUTH-40 | P1: Página pública de letras | Verify | Implemented |
+| AUTH-41 | P1: Página pública de letras | Verify | Verified |
+| AUTH-42 | P1: Primeiro admin | Verify | Verified |
+| AUTH-43 | P1: Primeiro admin | Verify | Implemented |
+| AUTH-44 | P2: Gerenciar usuários | Verify | Implemented |
+| AUTH-45 | P2: Gerenciar usuários | Verify | Verified |
+| AUTH-46 | P2: Gerenciar usuários | Verify | Implemented |
+| AUTH-47 | P2: Gerenciar usuários | Verify | Verified |
+| AUTH-48 | P2: Gerenciar usuários | Verify | Verified |
+| AUTH-49 | P2: Import por permissão | Verify | Verified |
+| AUTH-50 | P2: Import por permissão | Verify | Verified |
+| AUTH-51 | P2: Import por permissão | Verify | Verified |
+| AUTH-52 | P2: Import por permissão | Verify | Verified |
+| AUTH-53 | P2: Auditoria de acesso | Verify | Partial |
+| AUTH-54 | P2: Auditoria de acesso | Verify | Verified |
+| AUTH-55 | P3: Enviar convite por e-mail | Verify | Deferred |
+| AUTH-56 | P3: Enviar convite por e-mail | Verify | Deferred |
+| AUTH-57 | Edge Cases | Verify | Implemented |
+| AUTH-58 | Edge Cases | Verify | Implemented |
+| AUTH-59 | Edge Cases | Verify | Implemented |
+| AUTH-60 | Edge Cases | Verify | Implemented |
+| AUTH-61 | Edge Cases | Verify | Implemented |
+| AUTH-62 | P1: Convidar uma pessoa | Verify | Verified |
 
-**Coverage:** 62 total, 0 mapped to tasks, 62 unmapped ⚠️
+**Coverage:** 62 total — ver `.specs/features/auth/validation.md` (Verifier 2026-10-15: **FAIL**)
 
 ---
 

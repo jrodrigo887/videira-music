@@ -1,21 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 
-import rawSongs from "../data/musicas.json";
 import { seedSimulatedIdentities } from "../lib/auth/simulated-identities";
-import { toSong } from "../lib/data/songs";
 import {
   DEFAULT_ORGANIZATION_ID,
   DEFAULT_ORGANIZATION_NAME,
   DEFAULT_ORGANIZATION_SLUG,
 } from "../lib/persistence/organization-scope";
-import { toPrismaSongCreate } from "../lib/persistence/persistence-utils";
-
-type SeedSong = {
-  id: number;
-  title: string;
-  meta: string;
-  label: string;
-};
 
 async function main(): Promise<void> {
   const prisma = new PrismaClient();
@@ -29,19 +19,10 @@ async function main(): Promise<void> {
     update: {},
   });
 
-  const organizationId = DEFAULT_ORGANIZATION_ID;
-  for (const seed of rawSongs as SeedSong[]) {
-    const song = toSong(seed);
-    const existing = await prisma.song.findUnique({ where: { id: song.id } });
-    if (existing) {
-      continue;
-    }
-    await prisma.song.create({
-      data: toPrismaSongCreate(song, organizationId),
-    });
+  if (process.env.NODE_ENV !== "production") {
+    await seedSimulatedIdentities(prisma);
   }
 
-  await seedSimulatedIdentities(prisma);
   await prisma.$disconnect();
 }
 

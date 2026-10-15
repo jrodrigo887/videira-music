@@ -35,12 +35,12 @@ const CHART: ChordChart = {
 };
 
 describe("PrismaSetlistRepository", () => {
-  let cleanup: () => void;
+  let cleanup: () => Promise<void>;
   let prisma: PrismaClient;
   let repository: PrismaSetlistRepository;
 
   beforeEach(async () => {
-    const temp = createTempDatabaseUrl();
+    const temp = await createTempDatabaseUrl();
     cleanup = temp.cleanup;
     prisma = await createTestPrismaClient(temp.url);
     await seedSimulatedIdentities(prisma);
@@ -71,7 +71,7 @@ describe("PrismaSetlistRepository", () => {
 
   afterEach(async () => {
     await destroyTestPrismaClient(prisma);
-    cleanup();
+    await cleanup();
   });
 
   it("creates and reads a setlist", async () => {

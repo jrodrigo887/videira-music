@@ -1,5 +1,5 @@
 import { forbiddenResponse, requireActor } from "@/lib/auth/api-guard";
-import { ensureSqlitePragmas, getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
+import { getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
 import { deactivateMember, isMemberServiceError } from "@/lib/members/member-service";
 
 export const runtime = "nodejs";
@@ -18,7 +18,6 @@ export async function POST(_request: Request, context: RouteContext): Promise<Re
 
   const { userId } = await context.params;
   const prisma = getPrisma();
-  await ensureSqlitePragmas(prisma);
 
   try {
     await deactivateMember(prisma, gate.actor, userId);

@@ -4,7 +4,7 @@ import type { ValidateUserInfoResult } from "better-auth";
 import { getOAuthState } from "better-auth/api";
 
 import { getDefaultOrganizationId } from "@/lib/persistence/organization-scope";
-import { ensureSqlitePragmas, getPrisma } from "@/lib/persistence/prisma-client";
+import { getPrisma } from "@/lib/persistence/prisma-client";
 
 import { readAuthEnvConfig } from "./auth-config";
 import { normalizeEmail } from "./email";
@@ -44,7 +44,6 @@ export async function validateUserInfo(data: {
   }
 
   const prisma = getPrisma();
-  await ensureSqlitePragmas(prisma);
   const organizationId = await getDefaultOrganizationId(prisma);
 
   const member = await findActiveMemberByEmail(prisma, organizationId, email);
@@ -96,7 +95,6 @@ export async function completeOAuthSignIn(authUser: {
   image?: string | null;
 }): Promise<"ok" | "invalid"> {
   const prisma = getPrisma();
-  await ensureSqlitePragmas(prisma);
   const organizationId = await getDefaultOrganizationId(prisma);
   const email = normalizeEmail(authUser.email);
 

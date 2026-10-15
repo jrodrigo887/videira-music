@@ -9,15 +9,78 @@ type PublicVisibilityFieldProps = {
   checked: boolean;
   onChange: (checked: boolean) => void;
   disabled?: boolean;
+  variant?: "checkbox" | "pill";
 };
+
+function PublicVisibilityHelpButton({
+  disabled,
+  showHelp,
+  onToggle,
+  helpId,
+}: {
+  disabled: boolean;
+  showHelp: boolean;
+  onToggle: () => void;
+  helpId: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label="Informação sobre visibilidade pública"
+      aria-expanded={showHelp}
+      aria-controls={helpId}
+      disabled={disabled}
+      className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border text-xs font-bold text-content-muted transition hover:border-primary hover:text-primary"
+      onClick={onToggle}
+    >
+      i
+    </button>
+  );
+}
 
 export function PublicVisibilityField({
   checked,
   onChange,
   disabled = false,
+  variant = "checkbox",
 }: PublicVisibilityFieldProps) {
   const helpId = useId();
   const [showHelp, setShowHelp] = useState(false);
+  const toggleHelp = () => setShowHelp((value) => !value);
+
+  if (variant === "pill") {
+    return (
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            aria-pressed={checked}
+            aria-label="Visível ao público"
+            disabled={disabled}
+            onClick={() => onChange(!checked)}
+            className={
+              checked
+                ? "inline-flex items-center rounded-full bg-content px-3 py-1 text-xs font-semibold text-content-inverse transition hover:opacity-90"
+                : "inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold text-content-muted transition hover:border-primary hover:text-primary"
+            }
+          >
+            Visível ao público
+          </button>
+          <PublicVisibilityHelpButton
+            disabled={disabled}
+            showHelp={showHelp}
+            onToggle={toggleHelp}
+            helpId={helpId}
+          />
+        </div>
+        {showHelp ? (
+          <p id={helpId} className="text-xs text-content-muted">
+            {PUBLIC_LYRICS_HELP}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
@@ -32,17 +95,12 @@ export function PublicVisibilityField({
           />
           <span className="text-sm font-medium text-content">Visível ao público</span>
         </label>
-        <button
-          type="button"
-          aria-label="Informação sobre visibilidade pública"
-          aria-expanded={showHelp}
-          aria-controls={helpId}
+        <PublicVisibilityHelpButton
           disabled={disabled}
-          className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border text-xs font-bold text-content-muted transition hover:border-primary hover:text-primary"
-          onClick={() => setShowHelp((value) => !value)}
-        >
-          i
-        </button>
+          showHelp={showHelp}
+          onToggle={toggleHelp}
+          helpId={helpId}
+        />
       </div>
       {showHelp ? (
         <p id={helpId} className="text-xs text-content-muted">

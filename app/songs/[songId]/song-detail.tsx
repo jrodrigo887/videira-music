@@ -277,6 +277,33 @@ export function SongDetail({
               </span>
             ) : null}
           </div>
+          {canEditMusic && state.persistedCharts ? (
+            <div className="mt-3 space-y-2">
+              <PublicVisibilityField
+                variant="pill"
+                checked={publicLyrics}
+                onChange={(checked) => {
+                  setPublicLyrics(checked);
+                  setPublicLyricsDirty(true);
+                }}
+              />
+              {publicLyricsError ? (
+                <p role="alert" className="text-xs text-content-muted">
+                  {publicLyricsError}
+                </p>
+              ) : null}
+              {publicLyricsDirty ? (
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-primary transition hover:underline"
+                  disabled={publicLyricsSaving}
+                  onClick={() => void savePublicLyrics()}
+                >
+                  {publicLyricsSaving ? "Salvando…" : "Salvar visibilidade"}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
         </section>
 
         {state.charts.map((chart, chartIndex) => {
@@ -474,33 +501,6 @@ export function SongDetail({
           <p className="mt-2 hidden text-sm text-content-muted lg:block">{state.song.meta}</p>
         ) : null}
       </header>
-
-      {canEditMusic && state.persistedCharts ? (
-        <section className="ds-card space-y-3">
-          <PublicVisibilityField
-            checked={publicLyrics}
-            onChange={(checked) => {
-              setPublicLyrics(checked);
-              setPublicLyricsDirty(true);
-            }}
-          />
-          {publicLyricsError ? (
-            <p role="alert" className="text-sm text-content-muted">
-              {publicLyricsError}
-            </p>
-          ) : null}
-          {publicLyricsDirty ? (
-            <button
-              type="button"
-              className="ds-button-secondary text-sm"
-              disabled={publicLyricsSaving}
-              onClick={() => void savePublicLyrics()}
-            >
-              Salvar visibilidade
-            </button>
-          ) : null}
-        </section>
-      ) : null}
 
       {resourcesOpen ? (
         <div className="fixed inset-0 z-50 bg-content/35 backdrop-blur-sm lg:hidden">

@@ -16,12 +16,12 @@ import { createWorshipTeamService } from "@/lib/worship-teams/worship-team-servi
 
 export type RouteTestContext = {
   prisma: PrismaClient;
-  cleanup: () => void;
+  cleanup: () => Promise<void>;
   dependencies: SetlistRouteDependencies;
 };
 
 export async function createRouteTestContext(userId: string): Promise<RouteTestContext> {
-  const temp = createTempDatabaseUrl();
+  const temp = await createTempDatabaseUrl();
   process.env.DATABASE_URL = temp.url;
   process.env.VIDEIRA_SIMULATED_USER_ID = userId;
   resetPrismaClientForTests();
@@ -48,7 +48,7 @@ export async function createRouteTestContext(userId: string): Promise<RouteTestC
     dependencies,
     cleanup: async () => {
       await destroyTestPrismaClient(prisma);
-      temp.cleanup();
+      await temp.cleanup();
       resetPrismaClientForTests();
       delete process.env.VIDEIRA_SIMULATED_USER_ID;
     },

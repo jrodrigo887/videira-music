@@ -2,6 +2,10 @@ import { getSessionCookie } from "better-auth/cookies";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { isDevLocalhost } from "@/lib/auth/dev-localhost";
+import { resolveClientIp } from "@/lib/http/client-ip";
+import { createInviteRateLimitResponse } from "@/lib/invites/convite-rate-limit-http";
+
 const PUBLIC_PREFIXES = ["/entrar", "/convite/", "/letras/", "/api/auth/"];
 
 function isPublicPath(pathname: string): boolean {
@@ -13,7 +17,25 @@ function isPublicPath(pathname: string): boolean {
 
 export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
-  if (isPublicPath(pathname)) {
+
+  if (pathname.startsWith("/convite/")) {
+    const ip = resolveClientIp(request);
+    const rateLimited = createInviteRateLimitResponse(ip, Date.now());
+    if (rateLimited) {
+      return new NextResponse(rateLimited.body, {
+        status: rateLimited.status,
+        headers: rateLimited.headers,
+      });
+    }
+  }
+
+  if (
+    isPublicPath(pathname) ||
+    isDevLocalhost({
+      NODE_ENV: process.env.NODE_ENV,
+      DEV_LOCALHOST: process.env.DEV_LOCALHOST,
+    })
+  ) {
     return NextResponse.next();
   }
 

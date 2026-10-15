@@ -331,6 +331,41 @@ export function ImportWorkflow({
 
       {error ? <p role="alert" className="ds-card-muted">{error}</p> : null}
 
+      <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        <section className="px-3 py-3">
+          <p className="ds-eyebrow mb-2">Música</p>
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold text-content-muted">
+              {draft.song.title || "Nova música"}
+              {draft.song.artist ? ` · ${draft.song.artist}` : ""}
+            </span>
+          </div>
+          <div className="mt-3">
+            <PublicVisibilityField
+              variant="pill"
+              checked={publicLyrics}
+              onChange={setPublicLyrics}
+            />
+          </div>
+        </section>
+        <section className="px-3 py-3">
+          <p className="ds-eyebrow mb-2">Cifra</p>
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center rounded-full bg-content px-3 py-1 text-xs font-semibold text-content-inverse">
+              {draft.chart.format === "lyrics" ? "Cifra com letra" : "Grade por compassos"}
+            </span>
+            <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-content-muted">
+              Compasso {draft.chart.timeSignature}
+            </span>
+            {draft.chart.capo ? (
+              <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-content-muted">
+                Capo {draft.chart.capo}ª
+              </span>
+            ) : null}
+          </div>
+        </section>
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-2">
         <article className="ds-card">
           <h2 className="text-xl font-semibold text-content">Texto original</h2>
@@ -443,10 +478,6 @@ export function ImportWorkflow({
             {songChoice.artist ? ` · ${songChoice.artist}` : ""}
           </p>
         ) : null}
-      </section>
-
-      <section className="ds-card">
-        <PublicVisibilityField checked={publicLyrics} onChange={setPublicLyrics} />
       </section>
 
       <button type="button" className="ds-button" disabled={!canSave} onClick={save}>

@@ -2,7 +2,7 @@ import "server-only";
 
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { ensureSqlitePragmas, getPrisma } from "@/lib/persistence/prisma-client";
+import { getPrisma } from "@/lib/persistence/prisma-client";
 
 import { completeOAuthSignIn, invalidateAuthSessions, validateUserInfo } from "./access-gate";
 import { logAuthMisconfiguredOnce, readAuthEnvConfig } from "./auth-config";
@@ -27,12 +27,11 @@ export function getAuth(): AuthServer | undefined {
   }
 
   const prisma = getPrisma();
-  void ensureSqlitePragmas(prisma);
 
   authInstance = betterAuth({
     secret: config.secret,
     baseURL: config.baseUrl,
-    database: prismaAdapter(prisma, { provider: "sqlite" }),
+    database: prismaAdapter(prisma, { provider: "postgresql" }),
     emailAndPassword: { enabled: false },
     user: {
       modelName: "authUser",

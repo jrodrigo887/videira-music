@@ -133,6 +133,62 @@ export async function setMemberRoles(
   });
 }
 
+export async function setTeamLeaders(
+  prisma: PrismaClient,
+  actor: UserActor,
+  teamId: string,
+  userIds: string[],
+): Promise<void> {
+  if (!can(actor, "teams:manage", { organizationId: actor.organizationId })) {
+    throw memberError(403, "FORBIDDEN");
+  }
+
+  const team = await prisma.worshipTeam.findFirst({
+    where: {
+      id: teamId,
+      organizationId: actor.organizationId,
+      archivedAt: null,
+    },
+  });
+  if (!team) {
+    throw memberError(404, "NOT_FOUND");
+  }
+
+  const leaderIds = [...new Set(userIds)];
+  if (leaderIds.length > 0) {
+    const users = await prisma.user.findMany({
+      where: {
+        id: { in: leaderIds },
+        organizationId: actor.organizationId,
+        status: "active",
+      },
+      include: { roles: true },
+    });
+    if (users.length !== leaderIds.length) {
+      throw memberError(400, "INVALID_REQUEST");
+    }
+    for (const user of users) {
+      if (!user.roles.some((role) => role.role === "worship_leader")) {
+        throw memberError(400, "NOT_A_WORSHIP_LEADER");
+      }
+    }
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.worshipTeamMember.updateMany({
+      where: { teamId, role: "leader" },
+      data: { role: "member" },
+    });
+    for (const userId of leaderIds) {
+      await tx.worshipTeamMember.upsert({
+        where: { teamId_userId: { teamId, userId } },
+        create: { teamId, userId, role: "leader" },
+        update: { role: "leader" },
+      });
+    }
+  });
+}
+
 export async function deactivateMember(
   prisma: PrismaClient,
   actor: UserActor,

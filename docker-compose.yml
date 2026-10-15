@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: videira-music-postgres
+    environment:
+      POSTGRES_USER: videira
+      POSTGRES_PASSWORD: videira
+      POSTGRES_DB: videira
+    ports:
+      - "5433:5432"
+    volumes:
+      - videira_music_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U videira -d videira"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 3s
+
+volumes:
+  videira_music_postgres:

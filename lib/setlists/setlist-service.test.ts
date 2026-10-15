@@ -17,7 +17,7 @@ import { PrismaSetlistRepository } from "./prisma-setlist-repository";
 import { createSetlistServiceFromPrisma } from "./setlist-service";
 
 describe("SetlistService", () => {
-  let cleanup: () => void;
+  let cleanup: () => Promise<void>;
   let prisma: PrismaClient;
   let repository: PrismaSetlistRepository;
   let service: ReturnType<typeof createSetlistServiceFromPrisma>;
@@ -25,7 +25,7 @@ describe("SetlistService", () => {
 
   beforeEach(async () => {
     idCounter = 0;
-    const temp = createTempDatabaseUrl();
+    const temp = await createTempDatabaseUrl();
     cleanup = temp.cleanup;
     prisma = await createTestPrismaClient(temp.url);
     await seedSetlistFixture(prisma);
@@ -40,7 +40,7 @@ describe("SetlistService", () => {
 
   afterEach(async () => {
     await destroyTestPrismaClient(prisma);
-    cleanup();
+    await cleanup();
   });
 
   async function createPublishedTeamSetlist(id: string, teamId: string, visibility: "team" | "organization" | "public" = "team") {
