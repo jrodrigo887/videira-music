@@ -151,12 +151,21 @@ export function parseSongJson(body: unknown): ParseResult<Song> {
     return fail([notes]);
   }
 
+  let publicLyrics = false;
+  if (record.publicLyrics !== undefined) {
+    if (typeof record.publicLyrics !== "boolean") {
+      return fail([issue("publicLyrics", "Valor inválido.")]);
+    }
+    publicLyrics = record.publicLyrics;
+  }
+
   return success({
     id,
     title: record.title,
     label: record.label,
     alternateKeys: record.alternateKeys as string[],
     meta: record.meta,
+    publicLyrics,
     ...(typeof artist === "string" ? { artist } : {}),
     ...(typeof genre === "string" ? { genre } : {}),
     ...(typeof defaultKey === "string" ? { defaultKey } : {}),

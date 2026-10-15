@@ -10,11 +10,13 @@ import { SongDetail } from "./song-detail";
 type SongDetailPageClientProps = {
   songId: string;
   importLinkVisible?: boolean;
+  canEditMusic?: boolean;
 };
 
 export function SongDetailPageClient({
   songId,
   importLinkVisible = false,
+  canEditMusic = false,
 }: SongDetailPageClientProps) {
   const searchParams = useSearchParams();
   const query = searchParams.toString();
@@ -27,6 +29,7 @@ export function SongDetailPageClient({
     <SongDetail
       songId={songId}
       importLinkVisible={importLinkVisible}
+      canEditMusic={canEditMusic}
       setlistContext={setlistContext}
     />
   );

@@ -1,4 +1,4 @@
-import { PREVIEW_MAX_WAITING } from "./constants";
+const PREVIEW_MAX_WAITING = 3;
 
 export type PreviewSlot = {
   release(): void;

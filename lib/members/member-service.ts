@@ -183,6 +183,7 @@ export async function deactivateMember(
       actorUserId: actor.userId,
       action: "user.deactivate",
       targetUserId: userId,
+      details: {},
     },
   });
 }

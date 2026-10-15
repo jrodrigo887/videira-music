@@ -14,6 +14,7 @@ const SONG: Song = {
   defaultKey: "C",
   alternateKeys: ["D"],
   meta: "Meta",
+  publicLyrics: false,
 };
 
 const CHART: ChordChart = {

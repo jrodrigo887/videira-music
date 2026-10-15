@@ -59,6 +59,7 @@ export class PrismaMusicRepository implements MusicRepository {
         notes: data.notes,
         meta: data.meta,
         searchText: data.searchText,
+        publicLyrics: data.publicLyrics,
       },
     });
   }

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChordChartPreview } from "@/components/chord-chart/chord-chart-preview";
 import { SetlistNeighborsNav } from "@/components/setlists/setlist-neighbors-nav";
 import { ChartDisplaySettingsPanel } from "@/components/songs/chart-display-settings-panel";
+import { PublicVisibilityField } from "@/components/songs/public-visibility-field";
 import { buildExampleCharts } from "@/lib/charts/example-charts";
 import { semitonesBetweenKeys, transposeChord } from "@/lib/chords/transpose-chord";
 import { HttpMusicRepository } from "@/lib/persistence/http-music-repository";
@@ -26,6 +27,7 @@ import type { ChordChart, Song } from "@/types/music";
 type SongDetailProps = {
   songId: string;
   importLinkVisible?: boolean;
+  canEditMusic?: boolean;
   repository?: MusicRepository;
   setlistContext?: SetlistSongContext;
 };
@@ -54,6 +56,7 @@ type DetailState =
 export function SongDetail({
   songId,
   importLinkVisible = false,
+  canEditMusic = false,
   repository: suppliedRepository,
   setlistContext,
 }: SongDetailProps) {
@@ -74,6 +77,10 @@ export function SongDetail({
   const [columns, setColumns] = useState<1 | 2>(1);
   const [displaySettings, setDisplaySettings] = useState<ChartDisplaySettings>(readChartDisplay);
   const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [publicLyrics, setPublicLyrics] = useState(false);
+  const [publicLyricsDirty, setPublicLyricsDirty] = useState(false);
+  const [publicLyricsSaving, setPublicLyricsSaving] = useState(false);
+  const [publicLyricsError, setPublicLyricsError] = useState<string>();
 
   const updateDisplaySettings = useCallback((next: ChartDisplaySettings) => {
     setDisplaySettings(next);
@@ -125,6 +132,9 @@ export function SongDetail({
             charts: persistedCharts.length ? persistedCharts : buildExampleCharts(song),
             persistedCharts: persistedCharts.length > 0,
           });
+          setPublicLyrics(song.publicLyrics ?? false);
+          setPublicLyricsDirty(false);
+          setPublicLyricsError(undefined);
         }
       } catch {
         if (active) {
@@ -201,6 +211,24 @@ export function SongDetail({
   const baseKey = state.song.defaultKey ?? state.charts[0]?.key ?? "C";
   const activeKey = transposeChord(baseKey, semitones, { key: baseKey });
   const resourcesPanelId = "song-detail-resources";
+
+  async function savePublicLyrics() {
+    if (state.status !== "ready" || !state.persistedCharts) {
+      return;
+    }
+    setPublicLyricsSaving(true);
+    setPublicLyricsError(undefined);
+    try {
+      const nextSong = { ...state.song, publicLyrics };
+      await repository.saveSong(nextSong);
+      setState({ ...state, song: nextSong });
+      setPublicLyricsDirty(false);
+    } catch {
+      setPublicLyricsError("Não foi possível salvar a visibilidade pública.");
+    } finally {
+      setPublicLyricsSaving(false);
+    }
+  }
 
   const resourcesContent = (
     <>
@@ -446,6 +474,33 @@ export function SongDetail({
           <p className="mt-2 hidden text-sm text-content-muted lg:block">{state.song.meta}</p>
         ) : null}
       </header>
+
+      {canEditMusic && state.persistedCharts ? (
+        <section className="ds-card space-y-3">
+          <PublicVisibilityField
+            checked={publicLyrics}
+            onChange={(checked) => {
+              setPublicLyrics(checked);
+              setPublicLyricsDirty(true);
+            }}
+          />
+          {publicLyricsError ? (
+            <p role="alert" className="text-sm text-content-muted">
+              {publicLyricsError}
+            </p>
+          ) : null}
+          {publicLyricsDirty ? (
+            <button
+              type="button"
+              className="ds-button-secondary text-sm"
+              disabled={publicLyricsSaving}
+              onClick={() => void savePublicLyrics()}
+            >
+              Salvar visibilidade
+            </button>
+          ) : null}
+        </section>
+      ) : null}
 
       {resourcesOpen ? (
         <div className="fixed inset-0 z-50 bg-content/35 backdrop-blur-sm lg:hidden">

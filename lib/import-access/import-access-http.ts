@@ -24,6 +24,3 @@ export function importAccessDeniedResponse(state: ImportAccessState): Response |
   return undefined;
 }
 
-export function sessionRouteHeaders(extra?: HeadersInit): HeadersInit {
-  return { ...NO_STORE, ...extra };
-}

@@ -17,6 +17,7 @@ export type SaveImportedChartInput = {
   draft: ImportDraft;
   selectedSongKey?: string;
   song?: SongSelection;
+  publicLyrics?: boolean;
 };
 
 export type SaveImportedChartResult = {
@@ -53,6 +54,7 @@ function createLocalSong(
     defaultKey: selectedSongKey,
     alternateKeys: [],
     meta: "",
+    publicLyrics: false,
   };
 }
 
@@ -72,13 +74,15 @@ export async function saveImportedChart(
   let song: Song | undefined;
   let songToSave: Song | undefined;
 
+  const publicLyrics = input.publicLyrics ?? false;
+
   if (input.song.kind === "new") {
-    song = createLocalSong(input.song, selectedSongKey);
+    song = { ...createLocalSong(input.song, selectedSongKey), publicLyrics };
     songToSave = song;
   } else {
     song = await repository.findSongById(input.song.songId);
     if (song) {
-      song = { ...song, defaultKey: selectedSongKey };
+      song = { ...song, defaultKey: selectedSongKey, publicLyrics };
       songToSave = song;
     }
   }

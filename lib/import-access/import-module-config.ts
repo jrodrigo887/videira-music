@@ -12,7 +12,7 @@ export function isImportModuleConfigured(): boolean {
 }
 
 export function isImportModuleVisibleInUi(): boolean {
-  return false;
+  return isImportModuleFlagOn();
 }
 
 export function logImportAccessMisconfiguredOnce(): void {

@@ -22,7 +22,6 @@ import type { RawChart } from "@/types/import";
 import { POST, createCifraClubPostHandler } from "./route";
 
 const URL = "https://www.cifraclub.com.br/artista/cancao/";
-const VALID_SECRET = "z".repeat(32);
 const RAW_CHART: RawChart = {
   text: "[Verso]\nD   A\nLetra inventada",
   chordTokens: ["D", "A"],
@@ -235,8 +234,6 @@ describe("exported POST", () => {
       } else {
         vi.stubEnv("VIDEIRA_ENABLE_IMPORT", value);
       }
-      vi.stubEnv("VIDEIRA_IMPORT_ADMIN_SECRET", VALID_SECRET);
-
       const response = await POST(request({ url: URL }));
 
       expect(response.status).toBe(404);
@@ -249,7 +246,6 @@ describe("exported POST", () => {
 
   it("returns 404 when only the legacy flag is enabled", async () => {
     vi.stubEnv("VIDEIRA_ENABLE_CIFRACLUB_IMPORT", "true");
-    vi.stubEnv("VIDEIRA_IMPORT_ADMIN_SECRET", VALID_SECRET);
 
     const response = await POST(request({ url: URL }));
 

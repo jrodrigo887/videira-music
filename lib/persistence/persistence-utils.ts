@@ -29,6 +29,7 @@ export function toDomainSong(row: PrismaSong): Song {
     alternateKeys: Array.isArray(alternateKeys) ? alternateKeys : [],
     ...(row.notes ? { notes: row.notes } : {}),
     meta: row.meta,
+    publicLyrics: row.publicLyrics,
   };
 }
 
@@ -63,6 +64,7 @@ export function toPrismaSongCreate(song: Song, organizationId: string) {
     notes: song.notes ?? null,
     meta: song.meta,
     searchText: buildSongSearchText(song),
+    publicLyrics: song.publicLyrics ?? false,
   };
 }
 

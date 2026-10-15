@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { ChordChartPreview } from "@/components/chord-chart/chord-chart-preview";
-import { ImportUnlockPanel } from "@/components/import/import-unlock-panel";
+import { PublicVisibilityField } from "@/components/songs/public-visibility-field";
 import { previewImport } from "@/lib/import/preview-import";
 import {
   saveImportedChart,
@@ -80,13 +80,6 @@ type SongChoice =
   | { kind: "existing"; songId: string }
   | { kind: "new"; title: string; artist?: string };
 
-export class ImportSessionLockedError extends Error {
-  constructor() {
-    super("Import bloqueado.");
-    this.name = "ImportSessionLockedError";
-  }
-}
-
 async function requestCifraClubImport(url: string): Promise<ImportDraft> {
   const response = await fetch("/api/imports/cifraclub", {
     method: "POST",
@@ -97,7 +90,7 @@ async function requestCifraClubImport(url: string): Promise<ImportDraft> {
 
   if (!response.ok) {
     if (response.status === 401 && body.error?.code === "IMPORT_LOCKED") {
-      throw new ImportSessionLockedError();
+      throw new Error("Sem permissão para importar.");
     }
     throw new Error(body.error?.message ?? "Não foi possível importar a URL.");
   }
@@ -134,7 +127,7 @@ export function ImportWorkflow({
   const [newSongArtist, setNewSongArtist] = useState("");
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
-  const [sessionLocked, setSessionLocked] = useState(false);
+  const [publicLyrics, setPublicLyrics] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -154,6 +147,15 @@ export function ImportWorkflow({
       active = false;
     };
   }, [repository, initialSongs]);
+
+  useEffect(() => {
+    if (songChoice?.kind === "existing") {
+      const song = catalogSongs.find((item) => item.id === songChoice.songId);
+      setPublicLyrics(song?.publicLyrics ?? false);
+    } else if (songChoice?.kind === "new") {
+      setPublicLyrics(false);
+    }
+  }, [songChoice, catalogSongs]);
 
   const suggestions = useMemo(() => {
     if (!draft?.song.title && !draft?.song.artist) return catalogSongs;
@@ -205,10 +207,6 @@ export function ImportWorkflow({
       }
       beginReview(await requestUrlImport(requestedUrl));
     } catch (cause) {
-      if (cause instanceof ImportSessionLockedError) {
-        setSessionLocked(true);
-        return;
-      }
       setError(cause instanceof Error ? cause.message : "Não foi possível importar a URL.");
     } finally {
       setBusy(false);
@@ -252,29 +250,19 @@ export function ImportWorkflow({
         draft,
         selectedSongKey,
         song: songChoice,
+        publicLyrics,
       };
       const result = await saveImportedChart(input, repository);
       onNavigate(`/songs/${result.song.id}`);
     } catch (cause) {
       if (cause instanceof RepositoryError && cause.code === "IMPORT_LOCKED") {
-        setSessionLocked(true);
+        setError("Sem permissão para importar.");
         return;
       }
       setError("Nada foi salvo. Revise os dados e tente novamente.");
     } finally {
       setBusy(false);
     }
-  }
-
-  if (sessionLocked) {
-    return (
-      <ImportUnlockPanel
-        onUnlocked={() => {
-          setSessionLocked(false);
-          setError(undefined);
-        }}
-      />
-    );
   }
 
   if (!draft) {
@@ -455,6 +443,10 @@ export function ImportWorkflow({
             {songChoice.artist ? ` · ${songChoice.artist}` : ""}
           </p>
         ) : null}
+      </section>
+
+      <section className="ds-card">
+        <PublicVisibilityField checked={publicLyrics} onChange={setPublicLyrics} />
       </section>
 
       <button type="button" className="ds-button" disabled={!canSave} onClick={save}>

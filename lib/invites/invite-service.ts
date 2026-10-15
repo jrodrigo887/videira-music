@@ -26,6 +26,7 @@ export type InviteSummary = {
   teamIds: string[];
   expiresAt: string;
   createdByUserId: string;
+  createdByName?: string;
 };
 
 export type InvitePreview = {
@@ -65,7 +66,7 @@ async function writeAudit(
       action: entry.action,
       targetEmail: entry.targetEmail,
       targetUserId: entry.targetUserId,
-      details: entry.details as object | undefined,
+      details: (entry.details ?? {}) as object,
     },
   });
 }
@@ -181,6 +182,15 @@ export async function listPendingInvites(
     },
     orderBy: { createdAt: "desc" },
   });
+  const creatorIds = [...new Set(rows.map((row) => row.createdByUserId))];
+  const creators =
+    creatorIds.length > 0
+      ? await prisma.user.findMany({
+          where: { id: { in: creatorIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+  const creatorNames = new Map(creators.map((user) => [user.id, user.name]));
   return rows.map((row) => ({
     id: row.id,
     email: row.email,
@@ -188,6 +198,7 @@ export async function listPendingInvites(
     teamIds: parseTeamIds(row.teamIds),
     expiresAt: row.expiresAt.toISOString(),
     createdByUserId: row.createdByUserId,
+    createdByName: creatorNames.get(row.createdByUserId),
   }));
 }
 

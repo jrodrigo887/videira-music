@@ -1,5 +1,6 @@
 import "server-only";
 
+import { getCurrentActor } from "@/lib/auth/current-actor";
 import { getPrisma } from "@/lib/persistence/prisma-client";
 
 export type ImportLogAction = "unlock" | "logout" | "preview" | "save";
@@ -10,16 +11,26 @@ export type ImportLogEntry = {
   url?: string | null;
   chartId?: string | null;
   occurredAt?: Date;
+  userId?: string | null;
 };
 
 export type ImportLogWriter = {
   write(entry: ImportLogEntry): Promise<void>;
 };
 
+async function resolveImportLogUserId(entry: ImportLogEntry): Promise<string | null> {
+  if (entry.userId !== undefined) {
+    return entry.userId;
+  }
+  const actor = await getCurrentActor();
+  return actor.kind === "user" ? actor.userId : null;
+}
+
 export function createPrismaImportLogWriter(): ImportLogWriter {
   return {
     async write(entry: ImportLogEntry): Promise<void> {
       const prisma = getPrisma();
+      const userId = await resolveImportLogUserId(entry);
       await prisma.importLog.create({
         data: {
           occurredAt: entry.occurredAt ?? new Date(),
@@ -27,6 +38,7 @@ export function createPrismaImportLogWriter(): ImportLogWriter {
           outcome: entry.outcome,
           url: entry.url ?? null,
           chartId: entry.chartId ?? null,
+          userId,
         },
       });
     },

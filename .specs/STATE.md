@@ -90,7 +90,7 @@
 
 ## Handoff
 
-- **Feature em especificação:** `auth` (`.specs/features/auth/spec.md`, 62 requisitos): spec fechado; `design.md` em rascunho com bounded context `lib/auth` (superfície pública, layout, fluxo OAuth Better Auth), aguardando aprovação; depois, Tasks começando por spike Better Auth + Prisma (`authUser` / CLI).
+- **Feature em execução:** `auth` (`.specs/features/auth/`): spec fechado; `validation.md` **PARTIAL**. Import por permissão (AUTH-49..52) fechado; rotas invites/members testadas; OAuth em `access-gate.test.ts`. Aberto: rate limit convite (AUTH-20), auditoria (T17), Verifier PASS final.
 - **Features ativas:** `import-access` (`.specs/features/import-access/`): implementada, verificação **PARTIAL** (`validation.md`).
 - **Completed:** `server-persistence` implementada e mergeada (PR #1); `chart-import` verificada (PASS 2026-10-09).
 - **Próximo passo:** fechar G1-G3 de `import-access/tasks.md` (testes do gate de cifra, `ImportLog` e rota de sessão); depois auditar os testes faltantes da `server-persistence` (rotas, repositório Prisma, HttpMusicRepository, migração, PER-15).

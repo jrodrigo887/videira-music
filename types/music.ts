@@ -26,6 +26,8 @@ export type Song = {
   alternateKeys: string[];
   notes?: string;
   meta: string;
+  /** Letra visível em / e /letras sem login (AUTH-40). */
+  publicLyrics?: boolean;
 };
 
 export type ParsedChord = {
