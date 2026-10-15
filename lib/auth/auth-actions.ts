@@ -19,7 +19,7 @@ export async function signInWithGoogle(options?: {
   const result = await auth.api.signInSocial({
     body: {
       provider: "google",
-      requestSignUp: Boolean(options?.inviteCode),
+      requestSignUp: true,
       callbackURL,
       errorCallbackURL: "/entrar?error=google",
       ...(options?.inviteCode
