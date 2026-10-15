@@ -202,7 +202,7 @@ describe("SetlistService", () => {
       expect((list as SetlistSummary[]).map((entry) => entry.id)).not.toContain("sl-hidden-draft");
     });
 
-    it("allows anonymous read of organization published setlists", async () => {
+    it("denies anonymous read of organization published setlists", async () => {
       await repository.create({
         id: "sl-anon",
         organizationId: DEFAULT_ORGANIZATION_ID,
@@ -211,8 +211,9 @@ describe("SetlistService", () => {
         status: "published",
         visibility: "organization",
       });
-      const view = await service.getReadable({ kind: "anonymous" }, "sl-anon");
-      expect(view.id).toBe("sl-anon");
+      await expect(service.getReadable({ kind: "anonymous" }, "sl-anon")).rejects.toMatchObject({
+        code: "SETLIST_NOT_FOUND",
+      });
     });
   });
 

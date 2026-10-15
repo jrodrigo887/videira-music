@@ -64,8 +64,33 @@
 - **Scope:** `setlists` e fases seguintes (setlist pessoal, públicos entre igrejas).
 - **Date:** 2026-10-14
 
+### AD-009: Login Google só por convite, com papéis acumuláveis
+
+- **Status:** active
+- **Decision:** O único login é Google, e só entra quem tem usuário ativo ou convite válido gerado por admin ou gestor; o convite só é aceito pela conta Google com o mesmo e-mail. O usuário tem um conjunto de papéis da igreja (`admin`, `manager`, `worship_leader`, `musician`); a liderança de grupo exige `worship_leader` e uma atribuição ao grupo, com um ou mais líderes por grupo. Com um único líder de louvor na igreja, ele lidera todos os grupos. O admin é da igreja. Quando o import passar a checar permissão (AUTH-49 a AUTH-51), a AD-005 fica superada.
+- **Rationale:** O app vai para produção com dados da igreja; um link vazado não pode dar acesso a outra conta.
+- **Scope:** `auth` e toda feature com regra de acesso; evolui a AD-007 sem mudar o ponto único `getCurrentActor()`.
+- **Date:** 2026-10-15
+
+### AD-010: Letras públicas sem acordes para anônimos
+
+- **Status:** active
+- **Decision:** Anônimo só acessa a página de letras: músicas marcadas como "visível ao público" (desligado por padrão, editável no cadastro, import e edição), com o texto montado no servidor sem acordes. Anônimo deixa de ler setlists, inclusive `public`. Amplia a AD-006: uma cifra importada pode expor só a letra ao público, com o selo "Importada" e o link da fonte.
+- **Rationale:** Visitantes acompanham o louvor sem acesso às cifras, e a igreja decide música a música o que sai.
+- **Scope:** `auth`, `setlists` (leitura anônima), import e cadastro de músicas.
+- **Date:** 2026-10-15
+
+### AD-011: Better Auth com identidade separada do membro da igreja
+
+- **Status:** active
+- **Decision:** Login e sessões usam Better Auth com Prisma/SQLite. A identidade Google fica nas tabelas `AuthUser`, `AuthSession`, `AuthAccount` e `AuthVerification`, separadas do `User` da igreja (papéis e grupos), ligadas por `User.authUserId`. Toda regra de entrada roda no callback do Google; toda regra de ação continua em `getCurrentActor()` e na política única.
+- **Rationale:** Auth.js v5 segue em beta e em modo manutenção; separar identidade de membro não mistura o schema da biblioteca com o domínio e permite, depois, uma conta em várias igrejas.
+- **Scope:** `auth` e toda feature que lide com usuários ou sessão.
+- **Date:** 2026-10-15
+
 ## Handoff
 
+- **Feature em especificação:** `auth` (`.specs/features/auth/spec.md`, 62 requisitos): spec fechado; `design.md` em rascunho com bounded context `lib/auth` (superfície pública, layout, fluxo OAuth Better Auth), aguardando aprovação; depois, Tasks começando por spike Better Auth + Prisma (`authUser` / CLI).
 - **Features ativas:** `import-access` (`.specs/features/import-access/`): implementada, verificação **PARTIAL** (`validation.md`).
 - **Completed:** `server-persistence` implementada e mergeada (PR #1); `chart-import` verificada (PASS 2026-10-09).
 - **Próximo passo:** fechar G1-G3 de `import-access/tasks.md` (testes do gate de cifra, `ImportLog` e rota de sessão); depois auditar os testes faltantes da `server-persistence` (rotas, repositório Prisma, HttpMusicRepository, migração, PER-15).

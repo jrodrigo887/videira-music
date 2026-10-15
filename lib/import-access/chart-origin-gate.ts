@@ -18,8 +18,8 @@ export function chartPayloadHasOrigin(body: unknown): boolean {
   return origin !== undefined && origin !== null;
 }
 
-export function assertImportWriteAllowed(request: Request): Response | undefined {
-  const state = canImport(request);
+export async function assertImportWriteAllowed(request: Request): Promise<Response | undefined> {
+  const state = await canImport(request);
   return importAccessDeniedResponse(state);
 }
 
@@ -31,7 +31,7 @@ export async function gateChartWriteWithOrigin(
     return undefined;
   }
 
-  const state = canImport(request);
+  const state = await canImport(request);
   return importAccessDeniedResponse(state);
 }
 

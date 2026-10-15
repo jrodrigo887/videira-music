@@ -14,57 +14,66 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn() }),
 }));
 
-const cookiesMock = vi.hoisted(() => vi.fn());
+const getCurrentActorMock = vi.hoisted(() => vi.fn());
 
-vi.mock("next/headers", () => ({
-  cookies: cookiesMock,
+vi.mock("@/lib/auth/current-actor", () => ({
+  getCurrentActor: getCurrentActorMock,
 }));
 
-import { createImportSessionToken } from "@/lib/import-access/import-session";
 import { resetImportModuleConfigForTests } from "@/lib/import-access/import-module-config";
 
 import ImportPage, { dynamic } from "./page";
-
-const VALID_SECRET = "p".repeat(32);
 
 afterEach(() => {
   cleanup();
   vi.unstubAllEnvs();
   resetImportModuleConfigForTests();
-  cookiesMock.mockReset();
+  getCurrentActorMock.mockReset();
 });
 
 describe("ImportPage", () => {
   it("throws notFound when the module is disabled", async () => {
     vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "false");
-    cookiesMock.mockResolvedValue({ getAll: () => [] });
+    getCurrentActorMock.mockResolvedValue({ kind: "anonymous" });
 
     await expect(ImportPage()).rejects.toMatchObject({ digest: "NEXT_NOT_FOUND" });
   });
 
-  it("shows the unlock screen when the module is configured without a session", async () => {
+  it("throws notFound when the user is not logged in", async () => {
     vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
-    vi.stubEnv("VIDEIRA_IMPORT_ADMIN_SECRET", VALID_SECRET);
-    cookiesMock.mockResolvedValue({ getAll: () => [] });
+    getCurrentActorMock.mockResolvedValue({ kind: "anonymous" });
+
+    await expect(ImportPage()).rejects.toMatchObject({ digest: "NEXT_NOT_FOUND" });
+  });
+
+  it("shows permission message for musician", async () => {
+    vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
+    getCurrentActorMock.mockResolvedValue({
+      kind: "user",
+      userId: "user-musician",
+      organizationId: "org-default",
+      roles: ["musician"],
+      teams: [],
+    });
 
     render(await ImportPage());
 
-    expect(screen.getByRole("button", { name: "Desbloquear" })).toBeInTheDocument();
-    expect(screen.queryByLabelText("Texto da cifra")).not.toBeInTheDocument();
+    expect(screen.getByText("Sem permissão para importar.")).toBeInTheDocument();
   });
 
-  it("shows the import workflow when the session cookie is valid", async () => {
+  it("shows the import workflow for worship leader", async () => {
     vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
-    vi.stubEnv("VIDEIRA_IMPORT_ADMIN_SECRET", VALID_SECRET);
-    const token = createImportSessionToken(VALID_SECRET);
-    cookiesMock.mockResolvedValue({
-      getAll: () => [{ name: "videira_import_session", value: token }],
+    getCurrentActorMock.mockResolvedValue({
+      kind: "user",
+      userId: "user-leader",
+      organizationId: "org-default",
+      roles: ["worship_leader"],
+      teams: [],
     });
 
     render(await ImportPage());
 
     expect(screen.getByLabelText("Texto da cifra")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Desbloquear" })).not.toBeInTheDocument();
   });
 
   it("forces request-time rendering under next start", () => {

@@ -57,6 +57,6 @@ export function createSongChartsPostHandler(dependencies: PersistenceRouteDepend
 }
 
 export const POST = wrapPersistenceRoute(
-  { route: "/api/song-charts", method: "POST" },
+  { route: "/api/song-charts", method: "POST", permission: "music:write" },
   createSongChartsPostHandler(createPersistenceRouteDependencies()),
 );

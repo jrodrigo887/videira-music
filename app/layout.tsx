@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { Atkinson_Hyperlegible, JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
 
-import { isOrganizationAdmin } from "@/lib/auth/actor";
+import { isOrganizationManager } from "@/lib/auth/actor";
 import { getCurrentActor } from "@/lib/auth/current-actor";
-import { isImportModuleVisibleInUi } from "@/lib/import-access/import-module-config";
+import { can } from "@/lib/auth/permissions";
+import { signOut } from "@/lib/auth/auth-actions";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/persistence/organization-scope";
 
 import "./globals.css";
@@ -32,14 +33,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const importLinkVisible = isImportModuleVisibleInUi();
-  let groupsLinkVisible = false;
-  try {
-    const actor = await getCurrentActor();
-    groupsLinkVisible = isOrganizationAdmin(actor, DEFAULT_ORGANIZATION_ID);
-  } catch {
-    groupsLinkVisible = false;
-  }
+  let actor = await getCurrentActor().catch(() => ({ kind: "anonymous" as const }));
+  const loggedIn = actor.kind === "user";
+  const groupsLinkVisible =
+    loggedIn && isOrganizationManager(actor, DEFAULT_ORGANIZATION_ID);
+  const usersLinkVisible =
+    loggedIn && can(actor, "users:manage", { organizationId: actor.organizationId });
+  const importLinkVisible =
+    loggedIn && can(actor, "import", { organizationId: actor.organizationId });
 
   return (
     <html lang="pt-BR" className="light" data-theme="light">
@@ -55,22 +56,46 @@ export default async function RootLayout({
               </span>
             </Link>
             <nav className="flex min-w-0 items-center gap-1 text-xs font-semibold text-content-muted sm:gap-6 sm:text-sm">
-              <Link className="rounded-full px-3 py-1.5 transition hover:bg-surface-muted hover:text-primary" href="/songs">
-                Biblioteca
-              </Link>
-              {importLinkVisible ? (
-                <Link className="rounded-full px-3 py-1.5 transition hover:bg-surface-muted hover:text-primary" href="/import">
-                  Importar
+              {loggedIn ? (
+                <>
+                  <Link className="rounded-full px-3 py-1.5 transition hover:bg-surface-muted hover:text-primary" href="/songs">
+                    Biblioteca
+                  </Link>
+                  {importLinkVisible ? (
+                    <Link className="rounded-full px-3 py-1.5 transition hover:bg-surface-muted hover:text-primary" href="/import">
+                      Importar
+                    </Link>
+                  ) : null}
+                  <Link className="rounded-full px-3 py-1.5 transition hover:bg-surface-muted hover:text-primary" href="/setlists">
+                    Setlists
+                  </Link>
+                  {groupsLinkVisible ? (
+                    <Link className="rounded-full px-3 py-1.5 transition hover:bg-surface-muted hover:text-primary" href="/groups">
+                      Grupos
+                    </Link>
+                  ) : null}
+                  {usersLinkVisible ? (
+                    <Link className="rounded-full px-3 py-1.5 transition hover:bg-surface-muted hover:text-primary" href="/usuarios">
+                      Usuários
+                    </Link>
+                  ) : null}
+                  <form
+                    action={signOut}
+                    className="inline"
+                  >
+                    <button
+                      type="submit"
+                      className="rounded-full px-3 py-1.5 transition hover:bg-surface-muted hover:text-primary"
+                    >
+                      Sair
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <Link className="rounded-full px-3 py-1.5 transition hover:bg-surface-muted hover:text-primary" href="/entrar">
+                  Entrar
                 </Link>
-              ) : null}
-              <Link className="rounded-full px-3 py-1.5 transition hover:bg-surface-muted hover:text-primary" href="/setlists">
-                Setlists
-              </Link>
-              {groupsLinkVisible ? (
-                <Link className="rounded-full px-3 py-1.5 transition hover:bg-surface-muted hover:text-primary" href="/groups">
-                  Grupos
-                </Link>
-              ) : null}
+              )}
             </nav>
           </div>
         </header>

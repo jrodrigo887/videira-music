@@ -90,11 +90,11 @@ export function createSetlistFollowDeleteHandler(dependencies: SetlistRouteDepen
 const routeDependencies = createSetlistRouteDependencies();
 
 export const POST = wrapPersistenceRoute(
-  { route: "/api/setlists/[setlistId]/follow", method: "POST" },
+  { route: "/api/setlists/[setlistId]/follow", method: "POST", permission: "music:read" },
   createSetlistFollowPostHandler(routeDependencies),
 );
 
 export const DELETE = wrapPersistenceRoute(
-  { route: "/api/setlists/[setlistId]/follow", method: "DELETE" },
+  { route: "/api/setlists/[setlistId]/follow", method: "DELETE", permission: "music:read" },
   createSetlistFollowDeleteHandler(routeDependencies),
 );

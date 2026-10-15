@@ -8,30 +8,135 @@ datasource db {
 }
 
 model Organization {
-  id        String       @id
-  slug      String       @unique
+  id        String        @id
+  slug      String        @unique
   name      String
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
   songs     Song[]
   charts    ChordChart[]
   users     User[]
   teams     WorshipTeam[]
   setlists  Setlist[]
+  invites   Invite[]
 }
 
 model User {
   id              String              @id
   organizationId  String
   organization    Organization        @relation(fields: [organizationId], references: [id])
+  authUserId      String?             @unique
   name            String
   email           String
-  role            String
+  status          String              @default("active")
+  deactivatedAt   DateTime?
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
+  roles           UserRole[]
   teamMemberships WorshipTeamMember[]
+  invitesCreated  Invite[]            @relation("InviteCreatedBy")
 
   @@unique([organizationId, email])
+}
+
+model UserRole {
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   String
+
+  @@id([userId, role])
+  @@index([role])
+}
+
+model AuthUser {
+  id            String        @id
+  name          String
+  email         String
+  emailVerified Boolean       @default(false)
+  image         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  sessions      AuthSession[]
+  accounts      AuthAccount[]
+
+  @@unique([email])
+  @@map("auth_user")
+}
+
+model AuthSession {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      AuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@map("auth_session")
+}
+
+model AuthAccount {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  AuthUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("auth_account")
+}
+
+model AuthVerification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("auth_verification")
+}
+
+model Invite {
+  id              String    @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  email           String
+  tokenHash       String    @unique
+  roles           Json
+  teamIds         Json
+  expiresAt       DateTime
+  createdByUserId String
+  createdBy       User      @relation("InviteCreatedBy", fields: [createdByUserId], references: [id])
+  createdAt       DateTime  @default(now())
+  usedAt          DateTime?
+  usedByUserId    String?
+  revokedAt       DateTime?
+
+  @@index([organizationId, email])
+}
+
+model AuthAuditLog {
+  id           String   @id @default(cuid())
+  occurredAt   DateTime @default(now())
+  actorUserId  String?
+  action       String
+  targetUserId String?
+  targetEmail  String?
+  details      Json?
+
+  @@index([occurredAt])
 }
 
 model WorshipTeam {
@@ -63,48 +168,49 @@ model WorshipTeamMember {
 }
 
 model Song {
-  id             String       @id
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  title          String
-  label          String
-  artist         String?
-  genre          String?
-  defaultKey     String?
-  alternateKeys  Json
-  notes          String?
-  meta           String
-  searchText             String
-  sourceOrganizationId   String?
-  createdAt              DateTime      @default(now())
-  updatedAt              DateTime      @updatedAt
-  charts                 ChordChart[]
-  setlistItems           SetlistItem[]
+  id                   String       @id
+  organizationId       String
+  organization         Organization @relation(fields: [organizationId], references: [id])
+  title                String
+  label                String
+  artist               String?
+  genre                String?
+  defaultKey           String?
+  alternateKeys        Json
+  notes                String?
+  meta                 String
+  searchText           String
+  publicLyrics         Boolean      @default(false)
+  sourceOrganizationId String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  charts               ChordChart[]
+  setlistItems         SetlistItem[]
 
   @@index([organizationId])
 }
 
 model ChordChart {
-  id             String       @id
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  songId         String
-  song           Song         @relation(fields: [songId], references: [id])
-  title          String?
-  format         String
-  key            String
-  timeSignature  String
-  tempo          Int?
-  capo           Int?
-  sections       Json
-  source         String?
-  origin         Json?
-  originUrl              String?
-  sourceOrganizationId   String?
-  schemaVersion          Int           @default(1)
-  createdAt              DateTime      @default(now())
-  updatedAt              DateTime      @updatedAt
-  setlistItems           SetlistItem[]
+  id                   String        @id
+  organizationId       String
+  organization         Organization  @relation(fields: [organizationId], references: [id])
+  songId               String
+  song                 Song          @relation(fields: [songId], references: [id])
+  title                String?
+  format               String
+  key                  String
+  timeSignature        String
+  tempo                Int?
+  capo                 Int?
+  sections             Json
+  source               String?
+  origin               Json?
+  originUrl            String?
+  sourceOrganizationId String?
+  schemaVersion        Int           @default(1)
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  setlistItems         SetlistItem[]
 
   @@unique([organizationId, originUrl])
   @@index([organizationId, songId])
@@ -169,6 +275,7 @@ model ImportLog {
   outcome    String
   url        String?
   chartId    String?
+  userId     String?
 
   @@index([occurredAt])
 }

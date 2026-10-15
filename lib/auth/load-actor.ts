@@ -4,22 +4,30 @@ import type { OrganizationRole, WorshipTeamRole } from "@/types/identity";
 
 import { ANONYMOUS_ACTOR, type Actor } from "./actor";
 
-const ORGANIZATION_ROLES: ReadonlySet<string> = new Set<OrganizationRole>(["admin", "member"]);
+const ORGANIZATION_ROLES: ReadonlySet<string> = new Set<OrganizationRole>([
+  "admin",
+  "manager",
+  "worship_leader",
+  "musician",
+]);
 const TEAM_ROLES: ReadonlySet<string> = new Set<WorshipTeamRole>(["leader", "member"]);
 
-/** Monta o `Actor` de um usuário; usuário inexistente vira anônimo. Grupos arquivados não contam. */
-export async function loadActorForUser(prisma: PrismaClient, userId: string): Promise<Actor> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      teamMemberships: {
-        where: { team: { archivedAt: null } },
-        select: { teamId: true, role: true },
-      },
-    },
-  });
+function mapUserToActor(user: {
+  id: string;
+  organizationId: string;
+  status: string;
+  roles: { role: string }[];
+  teamMemberships: { teamId: string; role: string }[];
+}): Actor {
+  if (user.status !== "active") {
+    return ANONYMOUS_ACTOR;
+  }
 
-  if (!user || !ORGANIZATION_ROLES.has(user.role)) {
+  const roles = user.roles
+    .map((entry) => entry.role)
+    .filter((role): role is OrganizationRole => ORGANIZATION_ROLES.has(role));
+
+  if (roles.length === 0) {
     return ANONYMOUS_ACTOR;
   }
 
@@ -27,7 +35,7 @@ export async function loadActorForUser(prisma: PrismaClient, userId: string): Pr
     kind: "user",
     userId: user.id,
     organizationId: user.organizationId,
-    role: user.role as OrganizationRole,
+    roles,
     teams: user.teamMemberships
       .filter((membership) => TEAM_ROLES.has(membership.role))
       .map((membership) => ({
@@ -35,4 +43,38 @@ export async function loadActorForUser(prisma: PrismaClient, userId: string): Pr
         role: membership.role as WorshipTeamRole,
       })),
   };
+}
+
+const userInclude = {
+  roles: { select: { role: true } },
+  teamMemberships: {
+    where: { team: { archivedAt: null } },
+    select: { teamId: true, role: true },
+  },
+} as const;
+
+/** Monta o `Actor` de um usuário; usuário inexistente ou inativo vira anônimo. */
+export async function loadActorForUser(prisma: PrismaClient, userId: string): Promise<Actor> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: userInclude,
+  });
+  if (!user) {
+    return ANONYMOUS_ACTOR;
+  }
+  return mapUserToActor(user);
+}
+
+export async function loadActorForAuthUserId(
+  prisma: PrismaClient,
+  authUserId: string,
+): Promise<Actor> {
+  const user = await prisma.user.findFirst({
+    where: { authUserId, status: "active" },
+    include: userInclude,
+  });
+  if (!user) {
+    return ANONYMOUS_ACTOR;
+  }
+  return mapUserToActor(user);
 }

@@ -65,9 +65,13 @@ export class PayloadTooLargeError extends Error {
 
 type RouteHandler = (request: Request, context?: unknown) => Promise<Response> | Response;
 
+import { forbiddenResponse, requireActor } from "@/lib/auth/api-guard";
+import { can, type Permission } from "@/lib/auth/permissions";
+
 type PersistenceRouteMeta = {
   route: string;
   method: string;
+  permission?: Permission;
 };
 
 export function withPersistenceRoute(meta: PersistenceRouteMeta, handler: RouteHandler): RouteHandler {
@@ -98,6 +102,18 @@ export function wrapPersistenceRoute(
   handler: RouteHandler,
 ): RouteHandler {
   return async (request: Request, context?: unknown) => {
+    if (meta.permission) {
+      const gate = await requireActor();
+      if ("response" in gate) {
+        return gate.response;
+      }
+      if (
+        !can(gate.actor, meta.permission, { organizationId: gate.actor.organizationId })
+      ) {
+        return forbiddenResponse();
+      }
+    }
+
     const started = Date.now();
     const response = await handler(request, context);
     if (response.status >= 400) {

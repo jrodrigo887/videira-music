@@ -12,15 +12,33 @@ export type Actor =
       kind: "user";
       userId: UserId;
       organizationId: string;
-      role: OrganizationRole;
+      roles: ReadonlyArray<OrganizationRole>;
       teams: ReadonlyArray<{ teamId: WorshipTeamId; role: WorshipTeamRole }>;
     };
 
+export type UserActor = Extract<Actor, { kind: "user" }>;
+
 export const ANONYMOUS_ACTOR: Actor = { kind: "anonymous" };
 
-export function isOrganizationAdmin(actor: Actor, organizationId: string): boolean {
+export function hasRole(
+  actor: Actor,
+  role: OrganizationRole,
+  organizationId: string,
+): boolean {
   return (
-    actor.kind === "user" && actor.organizationId === organizationId && actor.role === "admin"
+    actor.kind === "user" &&
+    actor.organizationId === organizationId &&
+    actor.roles.includes(role)
+  );
+}
+
+export function isOrganizationAdmin(actor: Actor, organizationId: string): boolean {
+  return hasRole(actor, "admin", organizationId);
+}
+
+export function isOrganizationManager(actor: Actor, organizationId: string): boolean {
+  return (
+    hasRole(actor, "admin", organizationId) || hasRole(actor, "manager", organizationId)
   );
 }
 

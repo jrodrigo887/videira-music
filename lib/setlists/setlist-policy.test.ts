@@ -16,7 +16,7 @@ const admin: Actor = {
   kind: "user",
   userId: "user-admin",
   organizationId: ORG,
-  role: "admin",
+  roles: ["admin"],
   teams: [],
 };
 
@@ -24,7 +24,7 @@ const ownerLeader: Actor = {
   kind: "user",
   userId: "user-leader",
   organizationId: ORG,
-  role: "member",
+  roles: ["worship_leader"],
   teams: [{ teamId: "team-louvor", role: "leader" }],
 };
 
@@ -32,7 +32,7 @@ const otherLeader: Actor = {
   kind: "user",
   userId: "user-jovens-leader",
   organizationId: ORG,
-  role: "member",
+  roles: ["worship_leader"],
   teams: [{ teamId: "team-jovens", role: "leader" }],
 };
 
@@ -40,7 +40,7 @@ const ownerMember: Actor = {
   kind: "user",
   userId: "user-musician",
   organizationId: ORG,
-  role: "member",
+  roles: ["musician"],
   teams: [{ teamId: "team-louvor", role: "member" }],
 };
 
@@ -48,7 +48,7 @@ const followerMember: Actor = {
   kind: "user",
   userId: "user-follower",
   organizationId: ORG,
-  role: "member",
+  roles: ["musician"],
   teams: [{ teamId: "team-jovens", role: "member" }],
 };
 
@@ -56,7 +56,7 @@ const orgMember: Actor = {
   kind: "user",
   userId: "user-org",
   organizationId: ORG,
-  role: "member",
+  roles: ["musician"],
   teams: [],
 };
 
@@ -64,7 +64,7 @@ const otherOrgUser: Actor = {
   kind: "user",
   userId: "user-other",
   organizationId: OTHER_ORG,
-  role: "admin",
+  roles: ["admin"],
   teams: [],
 };
 
@@ -140,9 +140,9 @@ const matrix: MatrixCase[] = [
   { name: "read team follower member", actor: followerMember, action: "read", target: { type: "setlist", setlist: setlist() }, expected: true },
   { name: "read team outsider denied", actor: orgMember, action: "read", target: { type: "setlist", setlist: setlist() }, expected: false },
   { name: "read organization member", actor: orgMember, action: "read", target: { type: "setlist", setlist: setlist({ visibility: "organization", ownerTeamId: null }) }, expected: true },
-  { name: "read organization anonymous default org", actor: anonymous, action: "read", target: { type: "setlist", setlist: setlist({ visibility: "organization", ownerTeamId: null }) }, expected: true },
-  { name: "read organization anonymous other org", actor: anonymous, action: "read", target: { type: "setlist", setlist: setlist({ organizationId: OTHER_ORG, visibility: "organization", ownerTeamId: null }) }, expected: false },
-  { name: "read public published anonymous", actor: anonymous, action: "read", target: { type: "setlist", setlist: setlist({ visibility: "public" }) }, expected: true },
+  { name: "read organization anonymous denied", actor: anonymous, action: "read", target: { type: "setlist", setlist: setlist({ visibility: "organization", ownerTeamId: null }) }, expected: false },
+  { name: "read organization anonymous other org denied", actor: anonymous, action: "read", target: { type: "setlist", setlist: setlist({ organizationId: OTHER_ORG, visibility: "organization", ownerTeamId: null }) }, expected: false },
+  { name: "read public published anonymous denied", actor: anonymous, action: "read", target: { type: "setlist", setlist: setlist({ visibility: "public" }) }, expected: false },
   { name: "read public draft anonymous denied", actor: anonymous, action: "read", target: { type: "setlist", setlist: setlist({ visibility: "public", status: "draft" }) }, expected: false },
   { name: "read cross-org public published", actor: otherOrgUser, action: "read", target: { type: "setlist", setlist: setlist({ visibility: "public" }) }, expected: true },
   { name: "read cross-org team denied", actor: otherOrgUser, action: "read", target: { type: "setlist", setlist: setlist({ visibility: "team" }) }, expected: false },

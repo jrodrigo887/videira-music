@@ -1,46 +1,31 @@
 import "server-only";
 
-import { readSessionFromRequest, verifyImportSessionToken } from "./import-session";
-import {
-  getImportAdminSecret,
-  isImportModuleConfigured,
-  logImportAccessMisconfiguredOnce,
-} from "./import-module-config";
+import { getCurrentActor } from "@/lib/auth/current-actor";
+import { can } from "@/lib/auth/permissions";
+
+import { isImportModuleFlagOn } from "./import-module-config";
 
 export type ImportAccessState = "disabled" | "locked" | "allowed";
 
-export function canImport(request: Request, now = Date.now()): ImportAccessState {
-  if (!isImportModuleConfigured()) {
-    logImportAccessMisconfiguredOnce();
+export async function canImport(_request: Request): Promise<ImportAccessState> {
+  if (!isImportModuleFlagOn()) {
     return "disabled";
   }
 
-  const secret = getImportAdminSecret();
-  if (!secret) {
-    return "disabled";
-  }
-
-  const parsed = readSessionFromRequest(request);
-  if (parsed.kind === "duplicate") {
-    return "locked";
-  }
-  if (parsed.kind !== "present") {
+  const actor = await getCurrentActor();
+  if (actor.kind !== "user") {
     return "locked";
   }
 
-  if (!verifyImportSessionToken(parsed.value, secret, now)) {
+  if (!can(actor, "import", { organizationId: actor.organizationId })) {
     return "locked";
   }
 
   return "allowed";
 }
 
-export function canImportFromCookieHeader(
-  cookieHeader: string | null | undefined,
-  now = Date.now(),
-): ImportAccessState {
-  const request = new Request("http://import-access.local/", {
-    headers: cookieHeader ? { cookie: cookieHeader } : undefined,
-  });
-  return canImport(request, now);
+export async function canImportFromCookieHeader(
+  _cookieHeader: string | null | undefined,
+): Promise<ImportAccessState> {
+  return canImport(new Request("http://import-access.local/"));
 }

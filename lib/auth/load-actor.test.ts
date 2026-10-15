@@ -28,7 +28,7 @@ describe("loadActorForUser", () => {
   it("loads the organization role and team memberships", async () => {
     const actor = await loadActorForUser(prisma, "user-musician");
 
-    expect(actor).toMatchObject({ kind: "user", userId: "user-musician", role: "member" });
+    expect(actor).toMatchObject({ kind: "user", userId: "user-musician", roles: ["musician"] });
     expect(teamRoleOf(actor, "team-louvor")).toBe("member");
     expect(teamRoleOf(actor, "team-jovens")).toBe("member");
     expect(isOrganizationAdmin(actor, "org-default")).toBe(false);

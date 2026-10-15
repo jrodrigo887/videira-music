@@ -1,38 +1,25 @@
 import "server-only";
 
-import { MIN_ADMIN_SECRET_LENGTH } from "./constants";
-
 let misconfiguredLogged = false;
 
 export function isImportModuleFlagOn(): boolean {
   return process.env.VIDEIRA_ENABLE_IMPORT === "true";
 }
 
-export function getImportAdminSecret(): string | undefined {
-  const secret = process.env.VIDEIRA_IMPORT_ADMIN_SECRET;
-  if (!secret || secret.length < MIN_ADMIN_SECRET_LENGTH) {
-    return undefined;
-  }
-  return secret;
-}
-
+/** Import feature is available when the flag is on (access is enforced by auth). */
 export function isImportModuleConfigured(): boolean {
-  return isImportModuleFlagOn() && getImportAdminSecret() !== undefined;
+  return isImportModuleFlagOn();
 }
 
-/** Links to `/import` are shown when the module is configured, even without a session. */
 export function isImportModuleVisibleInUi(): boolean {
-  return isImportModuleConfigured();
+  return false;
 }
 
 export function logImportAccessMisconfiguredOnce(): void {
-  if (misconfiguredLogged || !isImportModuleFlagOn()) {
+  if (misconfiguredLogged) {
     return;
   }
-  if (getImportAdminSecret() === undefined) {
-    misconfiguredLogged = true;
-    console.error(JSON.stringify({ code: "IMPORT_ACCESS_MISCONFIGURED" }));
-  }
+  misconfiguredLogged = true;
 }
 
 export function resetImportModuleConfigForTests(): void {

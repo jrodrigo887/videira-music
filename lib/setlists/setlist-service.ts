@@ -158,7 +158,7 @@ function followerMemberActor(organizationId: string, teamId: string): Actor {
     kind: "user",
     userId: "follower-check",
     organizationId,
-    role: "member",
+    roles: ["musician"],
     teams: [{ teamId, role: "member" }],
   };
 }

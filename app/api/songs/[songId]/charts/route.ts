@@ -20,6 +20,6 @@ export function createSongChartsGetHandler(dependencies: PersistenceRouteDepende
 }
 
 export const GET = wrapPersistenceRoute(
-  { route: "/api/songs/[songId]/charts", method: "GET" },
+  { route: "/api/songs/[songId]/charts", method: "GET", permission: "music:read" },
   createSongChartsGetHandler(createPersistenceRouteDependencies()),
 );

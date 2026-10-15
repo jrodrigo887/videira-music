@@ -113,11 +113,11 @@ export function createSetlistsPostHandler(dependencies: SetlistRouteDependencies
 const routeDependencies = createSetlistRouteDependencies();
 
 export const GET = wrapPersistenceRoute(
-  { route: "/api/setlists", method: "GET" },
+  { route: "/api/setlists", method: "GET", permission: "music:read" },
   createSetlistsGetHandler(routeDependencies),
 );
 
 export const POST = wrapPersistenceRoute(
-  { route: "/api/setlists", method: "POST" },
+  { route: "/api/setlists", method: "POST", permission: "music:read" },
   createSetlistsPostHandler(routeDependencies),
 );

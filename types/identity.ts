@@ -1,8 +1,8 @@
 export type UserId = string;
 export type WorshipTeamId = string;
 
-/** Papel do usuário na igreja (organização). */
-export type OrganizationRole = "admin" | "member";
+/** Papel do usuário na igreja (organização). Papéis se acumulam. */
+export type OrganizationRole = "admin" | "manager" | "worship_leader" | "musician";
 
 /** Papel do usuário dentro de um grupo de louvor. */
 export type WorshipTeamRole = "leader" | "member";
@@ -12,7 +12,8 @@ export type User = {
   organizationId: string;
   name: string;
   email: string;
-  role: OrganizationRole;
+  roles: ReadonlyArray<OrganizationRole>;
+  status?: "active" | "deactivated";
 };
 
 export type WorshipTeam = {

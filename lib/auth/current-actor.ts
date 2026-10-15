@@ -1,21 +1,41 @@
 import "server-only";
 
+import { headers } from "next/headers";
+
 import { ensureSqlitePragmas, getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
 
 import { ANONYMOUS_ACTOR, type Actor } from "./actor";
-import { loadActorForUser } from "./load-actor";
+import { getAuth } from "./better-auth";
+import { loadActorForAuthUserId, loadActorForUser } from "./load-actor";
 import { resolveSimulatedUserId } from "./simulated-auth";
 
 /**
- * Ponto único de identificação da requisição. Hoje usa o usuário simulado;
- * a autenticação real substitui só esta função.
+ * Ponto único de identificação da requisição (AD-007).
+ * Fora de produção, `VIDEIRA_SIMULATED_USER_ID` vence a sessão real.
  */
 export async function getCurrentActor(): Promise<Actor> {
-  const userId = resolveSimulatedUserId();
-  if (!userId || !isDatabaseConfigured()) {
+  if (!isDatabaseConfigured()) {
     return ANONYMOUS_ACTOR;
   }
+
+  const simulatedUserId =
+    process.env.NODE_ENV !== "production" ? resolveSimulatedUserId() : undefined;
   const prisma = getPrisma();
   await ensureSqlitePragmas(prisma);
-  return loadActorForUser(prisma, userId);
+
+  if (simulatedUserId) {
+    return loadActorForUser(prisma, simulatedUserId);
+  }
+
+  const auth = getAuth();
+  if (!auth) {
+    return ANONYMOUS_ACTOR;
+  }
+
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user?.id) {
+    return ANONYMOUS_ACTOR;
+  }
+
+  return loadActorForAuthUserId(prisma, session.user.id);
 }

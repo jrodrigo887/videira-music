@@ -78,6 +78,6 @@ export function createTeamPatchHandler(dependencies: SetlistRouteDependencies) {
 const routeDependencies = createSetlistRouteDependencies();
 
 export const PATCH = wrapPersistenceRoute(
-  { route: "/api/teams/[teamId]", method: "PATCH" },
+  { route: "/api/teams/[teamId]", method: "PATCH", permission: "music:read" },
   createTeamPatchHandler(routeDependencies),
 );

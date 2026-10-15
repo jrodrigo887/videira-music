@@ -12,8 +12,8 @@ vi.mock("next/font/google", () => ({
   JetBrains_Mono: () => ({ variable: "--font-chord" }),
 }));
 
-vi.mock("@/lib/import-access/import-module-config", () => ({
-  isImportModuleVisibleInUi: () => false,
+vi.mock("@/lib/auth/auth-actions", () => ({
+  signOut: vi.fn(),
 }));
 
 const getCurrentActorMock = vi.hoisted(() => vi.fn());
@@ -37,7 +37,7 @@ describe("RootLayout navigation", () => {
       kind: "user",
       userId: "user-admin",
       organizationId: DEFAULT_ORGANIZATION_ID,
-      role: "admin",
+      roles: ["admin"],
       teams: [],
     });
 
@@ -51,7 +51,7 @@ describe("RootLayout navigation", () => {
       kind: "user",
       userId: "user-musician",
       organizationId: DEFAULT_ORGANIZATION_ID,
-      role: "member",
+      roles: ["musician"],
       teams: [],
     });
 
@@ -60,12 +60,12 @@ describe("RootLayout navigation", () => {
     expect(screen.queryByRole("link", { name: "Grupos" })).not.toBeInTheDocument();
   });
 
-  it("hides Grupos for anonymous actor", async () => {
+  it("shows Entrar for anonymous actor", async () => {
     getCurrentActorMock.mockResolvedValue({ kind: "anonymous" });
 
     render(await RootLayout({ children: <p>Conteúdo</p> }));
 
-    expect(screen.queryByRole("link", { name: "Grupos" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Entrar" })).toHaveAttribute("href", "/entrar");
   });
 
   it("falls back to anonymous when actor loading fails", async () => {
@@ -73,7 +73,6 @@ describe("RootLayout navigation", () => {
 
     render(await RootLayout({ children: <p>Conteúdo</p> }));
 
-    expect(screen.queryByRole("link", { name: "Grupos" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Setlists" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Entrar" })).toHaveAttribute("href", "/entrar");
   });
 });

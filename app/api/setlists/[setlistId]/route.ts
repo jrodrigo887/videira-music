@@ -108,16 +108,16 @@ export function createSetlistDetailDeleteHandler(dependencies: SetlistRouteDepen
 const routeDependencies = createSetlistRouteDependencies();
 
 export const GET = wrapPersistenceRoute(
-  { route: "/api/setlists/[setlistId]", method: "GET" },
+  { route: "/api/setlists/[setlistId]", method: "GET", permission: "music:read" },
   createSetlistDetailGetHandler(routeDependencies),
 );
 
 export const PATCH = wrapPersistenceRoute(
-  { route: "/api/setlists/[setlistId]", method: "PATCH" },
+  { route: "/api/setlists/[setlistId]", method: "PATCH", permission: "music:read" },
   createSetlistDetailPatchHandler(routeDependencies),
 );
 
 export const DELETE = wrapPersistenceRoute(
-  { route: "/api/setlists/[setlistId]", method: "DELETE" },
+  { route: "/api/setlists/[setlistId]", method: "DELETE", permission: "music:read" },
   createSetlistDetailDeleteHandler(routeDependencies),
 );

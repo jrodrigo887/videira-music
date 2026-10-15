@@ -64,6 +64,6 @@ export function createChartPutHandler(dependencies: PersistenceRouteDependencies
 }
 
 export const PUT = wrapPersistenceRoute(
-  { route: "/api/charts/[chartId]", method: "PUT" },
+  { route: "/api/charts/[chartId]", method: "PUT", permission: "music:write" },
   createChartPutHandler(createPersistenceRouteDependencies()),
 );

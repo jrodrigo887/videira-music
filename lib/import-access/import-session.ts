@@ -7,7 +7,13 @@ import {
   IMPORT_SESSION_MAX_AGE_SECONDS,
   IMPORT_SESSION_MAX_DURATION_MS,
 } from "./constants";
-import { getImportAdminSecret } from "./import-module-config";
+function getImportAdminSecret(): string | undefined {
+  const secret = process.env.VIDEIRA_IMPORT_ADMIN_SECRET;
+  if (!secret || secret.length < 32) {
+    return undefined;
+  }
+  return secret;
+}
 
 export type ImportSessionPayload = {
   issuedAt: number;

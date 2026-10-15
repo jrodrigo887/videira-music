@@ -54,6 +54,6 @@ export function createLocalDataMigrationPostHandler(dependencies: PersistenceRou
 }
 
 export const POST = wrapPersistenceRoute(
-  { route: "/api/migrations/local-data", method: "POST" },
+  { route: "/api/migrations/local-data", method: "POST", permission: "music:write" },
   createLocalDataMigrationPostHandler(createPersistenceRouteDependencies()),
 );

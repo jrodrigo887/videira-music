@@ -3,13 +3,17 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 const fetchCifraClubChartMock = vi.hoisted(() => vi.fn());
+const getCurrentActorMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/import/sources/cifraclub", () => ({
   fetchCifraClubChart: (...args: unknown[]) => fetchCifraClubChartMock(...args),
 }));
 
+vi.mock("@/lib/auth/current-actor", () => ({
+  getCurrentActor: getCurrentActorMock,
+}));
+
 import { createPreviewSlotQueue } from "@/lib/import-access/preview-slot-queue";
-import { createImportSessionToken } from "@/lib/import-access/import-session";
 import { resetImportModuleConfigForTests } from "@/lib/import-access/import-module-config";
 import { setImportLogWriterForTests } from "@/lib/import-access/import-log";
 import { ImportSourceError } from "@/lib/import/sources/cifraclub-parse";
@@ -49,7 +53,7 @@ function request(body: unknown, cookie?: string): Request {
 
 function allowedHandler(fetchChart = vi.fn()): ReturnType<typeof createCifraClubPostHandler> {
   return createCifraClubPostHandler({
-    canImport: () => "allowed",
+    canImport: async () => "allowed" as const,
     fetchChart,
     previewSlots: createPreviewSlotQueue(),
   });
@@ -62,7 +66,7 @@ describe("POST /api/imports/cifraclub", () => {
     });
     const fetchChart = vi.fn();
     const handler = createCifraClubPostHandler({
-      canImport: () => "disabled",
+      canImport: async () => "disabled" as const,
       fetchChart,
       previewSlots: createPreviewSlotQueue(),
     });
@@ -80,7 +84,7 @@ describe("POST /api/imports/cifraclub", () => {
   it("returns 401 IMPORT_LOCKED without parsing when locked", async () => {
     const fetchChart = vi.fn();
     const handler = createCifraClubPostHandler({
-      canImport: () => "locked",
+      canImport: async () => "locked" as const,
       fetchChart,
       previewSlots: createPreviewSlotQueue(),
     });
@@ -195,7 +199,7 @@ describe("POST /api/imports/cifraclub", () => {
     );
     const slots = createPreviewSlotQueue(1);
     const handler = createCifraClubPostHandler({
-      canImport: () => "allowed",
+      canImport: async () => "allowed" as const,
       fetchChart,
       previewSlots: slots,
     });
@@ -255,7 +259,7 @@ describe("exported POST", () => {
 
   it("returns 401 without a session when the module is configured", async () => {
     vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
-    vi.stubEnv("VIDEIRA_IMPORT_ADMIN_SECRET", VALID_SECRET);
+    getCurrentActorMock.mockResolvedValue({ kind: "anonymous" });
 
     const response = await POST(request({ url: URL }));
 
@@ -266,25 +270,35 @@ describe("exported POST", () => {
     expect(fetchCifraClubChartMock).not.toHaveBeenCalled();
   });
 
-  it("returns 401 for an expired session cookie through the exported route", async () => {
+  it("returns 401 for musician without import permission", async () => {
     vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
-    vi.stubEnv("VIDEIRA_IMPORT_ADMIN_SECRET", VALID_SECRET);
-    const expired = createImportSessionToken(VALID_SECRET, Date.now() - 13 * 60 * 60 * 1000);
+    getCurrentActorMock.mockResolvedValue({
+      kind: "user",
+      userId: "user-musician",
+      organizationId: "org-default",
+      roles: ["musician"],
+      teams: [],
+    });
 
-    const response = await POST(request({ url: URL }, expired));
+    const response = await POST(request({ url: URL }));
 
     expect(response.status).toBe(401);
     expect(fetchCifraClubChartMock).not.toHaveBeenCalled();
   });
 
-  it("processes supported URLs when the module is configured and the session is valid", async () => {
+  it("processes supported URLs when the module is configured and the user may import", async () => {
     vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
-    vi.stubEnv("VIDEIRA_IMPORT_ADMIN_SECRET", VALID_SECRET);
+    getCurrentActorMock.mockResolvedValue({
+      kind: "user",
+      userId: "user-leader",
+      organizationId: "org-default",
+      roles: ["worship_leader"],
+      teams: [],
+    });
     setImportLogWriterForTests({ write: async () => undefined });
     fetchCifraClubChartMock.mockResolvedValue(RAW_CHART);
-    const token = createImportSessionToken(VALID_SECRET);
 
-    const response = await POST(request({ url: URL }, token));
+    const response = await POST(request({ url: URL }));
     const draft = await response.json();
 
     expect(response.status).toBe(200);

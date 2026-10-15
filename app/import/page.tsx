@@ -1,37 +1,27 @@
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
-import { ImportPageUnlock } from "@/components/import/import-page-unlock";
 import { ImportPageClient } from "@/components/import/import-page-client";
-import { canImportFromCookieHeader } from "@/lib/import-access/import-access-policy";
-import { isImportModuleConfigured } from "@/lib/import-access/import-module-config";
+import { getCurrentActor } from "@/lib/auth/current-actor";
+import { can } from "@/lib/auth/permissions";
+import { isImportModuleFlagOn } from "@/lib/import-access/import-module-config";
+
 export const dynamic = "force-dynamic";
 
 export default async function ImportPage() {
-  if (!isImportModuleConfigured()) {
+  if (!isImportModuleFlagOn()) {
     notFound();
   }
 
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((entry) => `${entry.name}=${entry.value}`)
-    .join("; ");
-  const access = canImportFromCookieHeader(cookieHeader || undefined);
+  const actor = await getCurrentActor();
+  if (actor.kind !== "user") {
+    notFound();
+  }
 
-  if (access !== "allowed") {
+  if (!can(actor, "import", { organizationId: actor.organizationId })) {
     return (
-      <div className="space-y-8">
-        <section>
-          <p className="ds-eyebrow mb-3">Importar cifra</p>
-          <h1 className="text-3xl font-bold tracking-tight text-content sm:text-4xl">
-            Adicione uma cifra ao repertório
-          </h1>
-          <p className="mt-3 max-w-2xl text-content-muted">
-            Cole o texto, revise o tom e as seções e confirme a música antes de salvar.
-          </p>
-        </section>
-        <ImportPageUnlock />
+      <div className="space-y-4">
+        <h1 className="text-2xl font-bold text-content">Importar cifra</h1>
+        <p className="text-sm text-content-muted">Sem permissão para importar.</p>
       </div>
     );
   }

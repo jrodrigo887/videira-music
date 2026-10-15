@@ -58,6 +58,6 @@ export function createSetlistItemsPutHandler(dependencies: SetlistRouteDependenc
 const routeDependencies = createSetlistRouteDependencies();
 
 export const PUT = wrapPersistenceRoute(
-  { route: "/api/setlists/[setlistId]/items", method: "PUT" },
+  { route: "/api/setlists/[setlistId]/items", method: "PUT", permission: "music:read" },
   createSetlistItemsPutHandler(routeDependencies),
 );

@@ -87,11 +87,11 @@ export function createTeamsPostHandler(dependencies: SetlistRouteDependencies) {
 const routeDependencies = createSetlistRouteDependencies();
 
 export const GET = wrapPersistenceRoute(
-  { route: "/api/teams", method: "GET" },
+  { route: "/api/teams", method: "GET", permission: "music:read" },
   createTeamsGetHandler(routeDependencies),
 );
 
 export const POST = wrapPersistenceRoute(
-  { route: "/api/teams", method: "POST" },
+  { route: "/api/teams", method: "POST", permission: "music:read" },
   createTeamsPostHandler(routeDependencies),
 );

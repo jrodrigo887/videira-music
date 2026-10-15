@@ -69,11 +69,11 @@ export function createSongPutHandler(dependencies: SongRouteDependencies) {
 const dependencies = createPersistenceRouteDependencies();
 
 export const GET = wrapPersistenceRoute(
-  { route: "/api/songs/[songId]", method: "GET" },
+  { route: "/api/songs/[songId]", method: "GET", permission: "music:read" },
   createSongGetHandler(dependencies),
 );
 
 export const PUT = wrapPersistenceRoute(
-  { route: "/api/songs/[songId]", method: "PUT" },
+  { route: "/api/songs/[songId]", method: "PUT", permission: "music:write" },
   createSongPutHandler(dependencies),
 );

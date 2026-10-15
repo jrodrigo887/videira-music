@@ -1,7 +1,5 @@
 import type { Actor } from "@/lib/auth/actor";
-import { isOrganizationAdmin, teamRoleOf } from "@/lib/auth/actor";
-import { DEFAULT_ORGANIZATION_ID } from "@/lib/persistence/organization-scope";
-
+import { isOrganizationManager, teamRoleOf } from "@/lib/auth/actor";
 export type SetlistAction =
   | "read"
   | "create"
@@ -52,7 +50,7 @@ function canEditSetlist(actor: Actor, setlist: SetlistAccess): boolean {
   if (!isSameOrganization(actor, setlist.organizationId)) {
     return false;
   }
-  if (isOrganizationAdmin(actor, setlist.organizationId)) {
+  if (isOrganizationManager(actor, setlist.organizationId)) {
     return true;
   }
   if (setlist.ownerTeamId && teamRoleOf(actor, setlist.ownerTeamId) === "leader") {
@@ -65,7 +63,7 @@ function canActOnDestination(actor: Actor, organizationId: string, teamId: strin
   if (!isSameOrganization(actor, organizationId)) {
     return false;
   }
-  if (isOrganizationAdmin(actor, organizationId)) {
+  if (isOrganizationManager(actor, organizationId)) {
     return true;
   }
   if (teamId && teamRoleOf(actor, teamId) === "leader") {
@@ -84,14 +82,6 @@ function canReadSetlist(actor: Actor, setlist: SetlistAccess): boolean {
   }
 
   if (actor.kind === "anonymous") {
-    if (setlist.visibility === "public") {
-      return setlist.status === "published" || setlist.status === "archived";
-    }
-    if (setlist.visibility === "organization") {
-      return (
-        setlist.organizationId === DEFAULT_ORGANIZATION_ID && setlist.status === "published"
-      );
-    }
     return false;
   }
 
@@ -135,7 +125,7 @@ export function canPerform(actor: Actor, action: SetlistAction, target: PolicyTa
   if (action === "manageTeams") {
     return (
       target.type === "organization" &&
-      isOrganizationAdmin(actor, target.organizationId)
+      isOrganizationManager(actor, target.organizationId)
     );
   }
 
@@ -145,7 +135,7 @@ export function canPerform(actor: Actor, action: SetlistAction, target: PolicyTa
     }
     if (action === "create" || action === "clone") {
       if (target.teamId === null) {
-        return isOrganizationAdmin(actor, target.organizationId);
+        return isOrganizationManager(actor, target.organizationId);
       }
     }
     return canActOnDestination(actor, target.organizationId, target.teamId);

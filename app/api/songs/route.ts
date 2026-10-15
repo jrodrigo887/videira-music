@@ -24,6 +24,6 @@ export function createSongsGetHandler(dependencies: SongsRouteDependencies) {
 }
 
 export const GET = wrapPersistenceRoute(
-  { route: "/api/songs", method: "GET" },
+  { route: "/api/songs", method: "GET", permission: "music:read" },
   createSongsGetHandler(createPersistenceRouteDependencies()),
 );

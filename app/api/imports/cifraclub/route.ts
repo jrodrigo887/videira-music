@@ -36,7 +36,7 @@ function canonicalPreviewUrl(url: string): string {
 
 export function createCifraClubPostHandler(dependencies: HandlerDependencies) {
   return async function post(request: Request): Promise<Response> {
-    const access = dependencies.canImport(request);
+    const access = await dependencies.canImport(request);
     const denied = importAccessDeniedResponse(access);
     if (denied) {
       return denied;
