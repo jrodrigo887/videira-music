@@ -607,13 +607,14 @@ export function ChordChartPreview({
   const uniqueChords = extractUniqueChords(chart, renderSemitones);
   const Wrapper = embedded ? "div" : "article";
   const chartTitle = chart.title?.trim();
+  const showChartTitleInHeader = !embedded && Boolean(chartTitle);
 
   const showChartHeader =
-    showFormatTags || !embedded || Boolean(chartTitle) || showTransposeControls;
+    showFormatTags || !embedded || showChartTitleInHeader || showTransposeControls;
   const embeddedHeaderOnlyKey =
     embedded && !showFormatTags && !chartTitle && showTransposeControls;
   const chartBodyClassName = [
-    "music-chart max-w-full overflow-x-auto pb-2",
+    `music-chart w-full min-w-0 max-w-full pb-2 ${embedded ? "overflow-x-hidden" : "overflow-x-auto"}`,
     embedded && !showChartHeader && !(showDiagrams && uniqueChords.length > 0)
       ? undefined
       : embedded
@@ -650,7 +651,7 @@ export function ChordChartPreview({
               ) : null}
             </div>
           ) : null}
-          {!embedded || chartTitle ? (
+          {!embedded ? (
             <h2 className={showFormatTags ? "mt-2.5 text-lg font-bold text-content" : "text-lg font-bold text-content"}>
               {chartTitle ?? "Exemplo de cifra"}
             </h2>

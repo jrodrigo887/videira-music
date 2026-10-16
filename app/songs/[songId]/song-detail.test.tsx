@@ -169,7 +169,6 @@ describe("SongDetail", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
-    expect(screen.getByText("Cifra persistida")).toBeInTheDocument();
     expect(screen.getByText("Cifras importadas")).toBeInTheDocument();
     expect(screen.getAllByRole("article")).toHaveLength(1);
 
@@ -219,7 +218,7 @@ describe("SongDetail", () => {
 
     expect(screen.getByText("Carregando música…")).toBeInTheDocument();
     expect(await screen.findByRole("heading", { name: "Música Local" })).toBeInTheDocument();
-    expect(screen.getByText("Cifra persistida")).toBeInTheDocument();
+    expect(document.querySelector(".music-chords")).toHaveTextContent("G");
   });
 
   it("shows not-found only after lookup completes", async () => {

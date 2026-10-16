@@ -54,6 +54,65 @@ type DetailState =
   | { status: "ready"; song: Song; charts: ChordChart[]; persistedCharts: boolean }
   | { status: "storage-error" };
 
+function chartSupportsLyricsEdit(
+  chart: ChordChart,
+  canEditMusic: boolean,
+  persistedCharts: boolean,
+): boolean {
+  return (
+    canEditMusic &&
+    persistedCharts &&
+    chart.format === "lyrics" &&
+    Boolean(chart.source?.trim())
+  );
+}
+
+const iconButtonClass =
+  "inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-content-muted shadow-xs transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:border-border disabled:text-content-subtle disabled:opacity-40 disabled:hover:border-border disabled:hover:text-content-subtle";
+
+function PencilIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="text-current">
+      <path
+        d="M11.5 2.5a1.2 1.2 0 0 1 1.7 1.7L5.8 11.6 3 12.3l.7-2.8 7.4-7.4Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M10 4 12 6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function ArchiveIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" className="text-current">
+      <path
+        d="M3 3h10v2H3V3Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4 5h8v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M6.5 8h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function SongDetail({
   songId,
   importLinkVisible = false,
@@ -306,6 +365,89 @@ export function SongDetail({
               ) : null}
             </div>
           ) : null}
+          {state.charts.some(
+            (chart) =>
+              chart.origin?.url ||
+              chartSupportsLyricsEdit(chart, canEditMusic, state.persistedCharts),
+          ) ? (
+            <div className="mt-3 space-y-2.5">
+              {state.charts.map((chart, chartIndex) => {
+                const showEditControl = chartSupportsLyricsEdit(
+                  chart,
+                  canEditMusic,
+                  state.persistedCharts,
+                );
+                const originUrl = chart.origin?.url;
+                if (!originUrl && !showEditControl) {
+                  return null;
+                }
+
+                const chartLabel =
+                  state.charts.length > 1
+                    ? chart.title?.trim() || `Cifra ${chartIndex + 1}`
+                    : null;
+
+                return (
+                  <div key={chart.id} className="space-y-2">
+                    {chartLabel ? (
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-content-subtle">
+                        {chartLabel}
+                      </p>
+                    ) : null}
+                    <div className="flex items-center justify-between gap-2">
+                      {originUrl ? (
+                        <p className="min-w-0 text-xs leading-snug text-content-muted">
+                          Importada do{" "}
+                          <a
+                            href={originUrl}
+                            className="ds-link font-medium"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {chart.origin?.sourceName ?? "origem"}
+                          </a>
+                        </p>
+                      ) : (
+                        <span className="min-w-0 flex-1" />
+                      )}
+                      {showEditControl ? (
+                        <div className="flex shrink-0 items-center gap-1">
+                          <button
+                            type="button"
+                            className={iconButtonClass}
+                            aria-label="Editar cifra"
+                            title="Editar cifra"
+                            disabled={editingChartId !== null && editingChartId !== chart.id}
+                            onClick={() => setEditingChartId(chart.id)}
+                          >
+                            <PencilIcon />
+                          </button>
+                          <button
+                            type="button"
+                            className={iconButtonClass}
+                            aria-label="Arquivar cifra"
+                            title="Arquivar cifra (em breve)"
+                            disabled
+                          >
+                            <ArchiveIcon />
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                    {editingChartId === chart.id ? (
+                      <button
+                        type="button"
+                        className="text-xs font-semibold text-content-muted transition hover:text-content"
+                        onClick={() => setEditingChartId(null)}
+                      >
+                        Fechar editor
+                      </button>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
         </section>
 
         {state.charts.map((chart, chartIndex) => {
@@ -313,11 +455,6 @@ export function SongDetail({
             state.charts.length > 1
               ? (chart.title?.trim() || `Cifra ${chartIndex + 1}`)
               : "Cifra";
-          const showEditControl =
-            canEditMusic &&
-            state.persistedCharts &&
-            chart.format === "lyrics" &&
-            Boolean(chart.source?.trim());
 
           return (
             <section key={chart.id} className="px-3 py-3">
@@ -335,16 +472,6 @@ export function SongDetail({
                   </span>
                 ) : null}
               </div>
-              {showEditControl ? (
-                <button
-                  type="button"
-                  className="mt-3 text-xs font-semibold text-primary transition hover:underline disabled:cursor-not-allowed disabled:text-content-muted disabled:no-underline"
-                  disabled={editingChartId !== null && editingChartId !== chart.id}
-                  onClick={() => setEditingChartId(chart.id)}
-                >
-                  Editar cifra
-                </button>
-              ) : null}
             </section>
           );
         })}
@@ -423,7 +550,7 @@ export function SongDetail({
   );
 
   return (
-    <div className="space-y-3 lg:space-y-6">
+    <div className="min-w-0 max-w-full space-y-2 overflow-x-clip lg:space-y-4">
       <div
         aria-hidden={!headerCollapsed}
         className={`fixed inset-x-0 top-0 z-40 border-b border-border bg-surface/95 backdrop-blur transition duration-200 ${
@@ -471,7 +598,7 @@ export function SongDetail({
 
       <header
         ref={headerRef}
-        className="-mx-4 border-b border-border bg-canvas/95 px-4 py-2.5 lg:mx-0 lg:rounded-2xl lg:border lg:bg-surface lg:px-5 lg:py-4 lg:shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+        className="border-b border-border bg-canvas/95 px-4 py-2.5 lg:rounded-2xl lg:border lg:bg-surface lg:px-5 lg:py-4 lg:shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
         <div className="flex items-center gap-3">
           <Link
             href="/songs"
@@ -549,94 +676,22 @@ export function SongDetail({
         </div>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
+      <div className="grid w-full min-w-0 max-w-full gap-3 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-6 lg:items-start">
         <aside className="hidden space-y-3 lg:sticky lg:top-24 lg:block">
           {resourcesContent}
         </aside>
 
-        <article className="ds-card -ml-4 rounded-l-none border-l-0 p-3 sm:mx-0 sm:rounded-2xl sm:border-l sm:p-8">
-          <div className="hidden flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <div className="flex items-center gap-2.5">
-                <div className="text-3xl font-extrabold tracking-tight text-content sm:text-4xl">
-                  {state.song.title}
-                </div>
-                <span
-                  aria-hidden="true"
-                  className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground"
-                >
-                  ✓
-                </span>
-              </div>
-
-              {state.song.artist ? (
-                <p className="mt-1 text-lg font-bold text-primary">
-                  {state.song.artist}
-                </p>
-              ) : null}
-
-              {state.song.meta ? (
-                <p className="mt-1 text-sm text-content-muted">{state.song.meta}</p>
-              ) : null}
-            </div>
-
-            {state.song.defaultKey ? (
-              <span className="ds-badge px-4 py-1.5 text-sm">
-                Tom {state.song.defaultKey}
-              </span>
-            ) : null}
-          </div>
-
+        <article className="ds-card min-w-0 w-full max-w-full overflow-x-hidden rounded-none border-x-0 p-3 sm:rounded-2xl sm:border sm:p-8">
           {state.charts.map((chart, index) => {
-            const showEditControl =
-              canEditMusic &&
-              state.persistedCharts &&
-              chart.format === "lyrics" &&
-              Boolean(chart.source?.trim());
-
             return (
               <div
                 key={chart.id}
                 className={
                   index === 0
-                    ? "space-y-3 sm:mt-6 sm:border-t sm:border-border sm:pt-6"
+                    ? "space-y-3"
                     : "mt-6 space-y-3 border-t border-border pt-6 sm:mt-8 sm:pt-8"
                 }
               >
-                {chart.origin?.url ? (
-                  <p className="text-sm text-content-muted">
-                    Fonte:{" "}
-                    <a
-                      href={chart.origin.url}
-                      className="ds-link"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {chart.origin.sourceName ?? "Origem"}
-                    </a>
-                  </p>
-                ) : null}
-                {showEditControl ? (
-                  <div className="flex flex-wrap items-center gap-3">
-                    <button
-                      type="button"
-                      className="ds-button-secondary text-sm disabled:cursor-not-allowed disabled:opacity-50"
-                      disabled={editingChartId !== null && editingChartId !== chart.id}
-                      onClick={() => setEditingChartId(chart.id)}
-                    >
-                      Editar cifra
-                    </button>
-                    {editingChartId === chart.id ? (
-                      <button
-                        type="button"
-                        className="text-sm font-semibold text-content-muted transition hover:text-content"
-                        onClick={() => setEditingChartId(null)}
-                      >
-                        Fechar editor
-                      </button>
-                    ) : null}
-                  </div>
-                ) : null}
                 {editingChartId === chart.id ? (
                   <ChartEditor
                     chart={chart}
