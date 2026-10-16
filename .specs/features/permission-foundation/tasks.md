@@ -163,9 +163,9 @@ T35
 
 **Done when**:
 
-- [ ] `users:grantRole` com papel `admin` exige `role.manage`. Outro papel exige `user.manage`.
-- [ ] `music:read` continua verdadeiro para ator com ao menos um papel.
-- [ ] `npm test -- lib/auth/permissions.test.ts` passa, sem apagar `it` existente.
+- [x] `users:grantRole` com papel `admin` exige `role.manage`. Outro papel exige `user.manage`.
+- [x] `music:read` continua verdadeiro para ator com ao menos um papel.
+- [x] `npm test -- lib/auth/permissions.test.ts` passa, sem apagar `it` existente.
 
 **Tests**: unit
 **Gate**: quick
@@ -189,9 +189,9 @@ T35
 
 **Done when**:
 
-- [ ] Ator com papel que só tem `import` também satisfaz `music:write`.
-- [ ] JSON com `users:manage` não entrega `users:manage`, `member.manage` nem `user.manage`.
-- [ ] `npm test -- lib/auth/load-actor.test.ts` passa, sem apagar `it` existente.
+- [x] Ator com papel que só tem `import` também satisfaz `music:write`.
+- [x] JSON com `users:manage` não entrega `users:manage`, `member.manage` nem `user.manage`.
+- [x] `npm test -- lib/auth/load-actor.test.ts` passa, sem apagar `it` existente.
 
 **Tests**: unit
 **Gate**: quick

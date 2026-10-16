@@ -16,9 +16,10 @@ describe("can() by capability", () => {
   });
   const musician = testUserActor({ userId: "mu", organizationId: ORG, roles: ["musician"], teams: [] });
 
-  it("users:invite and users:manage follow capability", () => {
+  it("users:invite and member.manage follow capability", () => {
     expect(can(manager, "users:invite", { organizationId: ORG })).toBe(true);
-    expect(can(musician, "users:manage", { organizationId: ORG })).toBe(false);
+    expect(can(manager, "member.manage", { organizationId: ORG })).toBe(true);
+    expect(can(musician, "member.manage", { organizationId: ORG })).toBe(false);
   });
 
   it("teams:manage and music:write follow capability", () => {
@@ -27,7 +28,7 @@ describe("can() by capability", () => {
     expect(can(musician, "music:write", { organizationId: ORG })).toBe(false);
   });
 
-  it("import follows capability", () => {
+  it("import follows capability and implies music:write", () => {
     expect(can(leader, "import", { organizationId: ORG })).toBe(true);
     expect(can(musician, "import", { organizationId: ORG })).toBe(false);
   });
@@ -37,13 +38,14 @@ describe("can() by capability", () => {
     expect(can({ kind: "anonymous" }, "music:read", { organizationId: ORG })).toBe(false);
   });
 
-  it("users:grantRole admin requires system admin", () => {
+  it("users:grantRole admin requires role.manage and other roles require user.manage", () => {
     expect(can(admin, "users:grantRole", { organizationId: ORG, role: "admin" })).toBe(true);
     expect(can(manager, "users:grantRole", { organizationId: ORG, role: "admin" })).toBe(false);
-    expect(can(manager, "users:grantRole", { organizationId: ORG, role: "musician" })).toBe(true);
+    expect(can(manager, "users:grantRole", { organizationId: ORG, role: "musician" })).toBe(false);
+    expect(can(admin, "users:grantRole", { organizationId: ORG, role: "musician" })).toBe(true);
   });
 
-  it("custom role with import capability can import", () => {
+  it("custom role with import capability can import and satisfies music:write", () => {
     const importer = testUserActor({
       userId: "c",
       organizationId: ORG,
@@ -52,6 +54,6 @@ describe("can() by capability", () => {
       teams: [],
     });
     expect(can(importer, "import", { organizationId: ORG })).toBe(true);
-    expect(can(importer, "music:write", { organizationId: ORG })).toBe(false);
+    expect(can(importer, "music:write", { organizationId: ORG })).toBe(true);
   });
 });
