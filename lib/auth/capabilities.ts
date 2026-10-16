@@ -69,3 +69,13 @@ export function parseStoredCapabilities(raw: unknown): Capability[] {
   }
   return raw.filter((entry): entry is Capability => isCapability(String(entry)));
 }
+
+/** True when the selection includes every capability from the system `admin` preset. */
+export function capabilitiesMatchAdminPreset(capabilities: readonly string[]): boolean {
+  const adminPreset = systemCapabilities("admin");
+  if (!adminPreset) {
+    return false;
+  }
+  const selected = new Set(capabilities.filter(isCapability));
+  return adminPreset.every((cap) => selected.has(cap));
+}

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { CAPABILITIES, isCapability, systemCapabilities } from "./capabilities";
+import {
+  CAPABILITIES,
+  capabilitiesMatchAdminPreset,
+  isCapability,
+  systemCapabilities,
+  unionCapabilities,
+} from "./capabilities";
 
 describe("systemCapabilities", () => {
   it("admin has all seven capabilities", () => {
@@ -26,5 +32,30 @@ describe("systemCapabilities", () => {
   it("isCapability rejects unknown strings", () => {
     expect(isCapability("users:invite")).toBe(true);
     expect(isCapability("grant-admin")).toBe(false);
+  });
+});
+
+describe("capabilitiesMatchAdminPreset", () => {
+  it("is true for all seven capabilities in any order", () => {
+    const shuffled = [...CAPABILITIES].reverse();
+    expect(capabilitiesMatchAdminPreset(shuffled)).toBe(true);
+  });
+
+  it("is true when a capability is listed twice", () => {
+    expect(capabilitiesMatchAdminPreset([...CAPABILITIES, "import"])).toBe(true);
+  });
+
+  it("is false with only six capabilities", () => {
+    expect(capabilitiesMatchAdminPreset(CAPABILITIES.slice(0, 6))).toBe(false);
+  });
+});
+
+describe("system role unions", () => {
+  it("manager plus worship_leader still grants the union of presets", () => {
+    const combined = unionCapabilities([
+      systemCapabilities("manager") ?? [],
+      systemCapabilities("worship_leader") ?? [],
+    ]);
+    expect(combined).toHaveLength(CAPABILITIES.length);
   });
 });

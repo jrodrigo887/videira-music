@@ -2,10 +2,14 @@
 
 import { useState } from "react";
 
-import { CAPABILITIES } from "@/lib/auth/capabilities";
+import { CAPABILITIES, capabilitiesMatchAdminPreset } from "@/lib/auth/capabilities";
 import type { RoleRecord } from "@/lib/roles/role-service";
 
-import { CAPABILITY_LABELS, readErrorMessage } from "./user-admin-shared";
+import {
+  CAPABILITY_LABELS,
+  CUSTOM_ROLE_MATCHES_ADMIN_MESSAGE,
+  readErrorMessage,
+} from "./user-admin-shared";
 
 type RolesPanelProps = {
   initialRoles: RoleRecord[];
@@ -100,6 +104,9 @@ export function RolesPanel({
     }
   }
 
+  const createMatchesAdmin = capabilitiesMatchAdminPreset(capabilities);
+  const editMatchesAdmin = capabilitiesMatchAdminPreset(editCapabilities);
+
   async function deleteRole(key: string) {
     if (!window.confirm("Apagar este papel?")) return;
     setBusy(true);
@@ -145,10 +152,15 @@ export function RolesPanel({
               ))}
             </div>
           </fieldset>
+          {createMatchesAdmin ? (
+            <p className="text-sm text-amber-700 dark:text-amber-400" role="alert">
+              {CUSTOM_ROLE_MATCHES_ADMIN_MESSAGE}
+            </p>
+          ) : null}
           <button
             type="button"
             className="ds-button"
-            disabled={busy || label.trim().length < 2}
+            disabled={busy || label.trim().length < 2 || createMatchesAdmin}
             onClick={() => void createRole()}
           >
             Criar papel
@@ -186,11 +198,16 @@ export function RolesPanel({
                       ))}
                     </div>
                   </fieldset>
+                  {editMatchesAdmin ? (
+                    <p className="text-sm text-amber-700 dark:text-amber-400" role="alert">
+                      {CUSTOM_ROLE_MATCHES_ADMIN_MESSAGE}
+                    </p>
+                  ) : null}
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
                       className="ds-button text-sm"
-                      disabled={busy}
+                      disabled={busy || editMatchesAdmin}
                       onClick={() => void saveEdit(role.key)}
                     >
                       Salvar

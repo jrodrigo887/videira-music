@@ -18,6 +18,9 @@ export const SYSTEM_ROLE_LABELS: Record<OrganizationRole, string> = {
   musician: "Músico",
 };
 
+export const CUSTOM_ROLE_MATCHES_ADMIN_MESSAGE =
+  "Um papel personalizado não pode ter as mesmas capacidades do administrador.";
+
 export const CAPABILITY_LABELS: Record<string, string> = {
   "users:invite": "Convidar",
   "users:manage": "Gerenciar membros",
@@ -42,6 +45,9 @@ export async function readErrorMessage(response: Response, fallback: string): Pr
     }
     if (body.error?.code === "SYSTEM_ROLE") {
       return "Papéis de sistema não podem ser alterados aqui.";
+    }
+    if (body.error?.code === "ROLE_MATCHES_ADMIN") {
+      return CUSTOM_ROLE_MATCHES_ADMIN_MESSAGE;
     }
     if (body.error?.code === "FORBIDDEN") {
       return "Sem permissão para esta ação.";

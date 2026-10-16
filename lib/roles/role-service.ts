@@ -6,6 +6,7 @@ import type { UserActor } from "@/lib/auth/actor";
 import { hasRole } from "@/lib/auth/actor";
 import {
   type Capability,
+  capabilitiesMatchAdminPreset,
   isCapability,
   parseStoredCapabilities,
   systemCapabilities,
@@ -151,6 +152,9 @@ export async function createRole(
   if (capabilities.length !== input.capabilities.length) {
     throw roleError(400, "INVALID_ROLE");
   }
+  if (capabilitiesMatchAdminPreset(capabilities)) {
+    throw roleError(409, "ROLE_MATCHES_ADMIN");
+  }
 
   const key = roleKeyFromLabel(label);
 
@@ -231,6 +235,9 @@ export async function updateRole(
     capabilities = input.capabilities.filter(isCapability);
     if (capabilities.length !== input.capabilities.length) {
       throw roleError(400, "INVALID_ROLE");
+    }
+    if (capabilitiesMatchAdminPreset(capabilities)) {
+      throw roleError(409, "ROLE_MATCHES_ADMIN");
     }
   }
 
