@@ -2,7 +2,6 @@ import type { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import type { UserActor } from "@/lib/auth/actor";
-import { hasRole } from "@/lib/auth/actor";
 import { normalizeEmail } from "@/lib/auth/email";
 import { can } from "@/lib/auth/permissions";
 import { reconcileSoleWorshipLeader } from "@/lib/members/member-service";
@@ -85,7 +84,7 @@ export async function listPendingAccessRequests(
   prisma: PrismaClient,
   actor: UserActor,
 ): Promise<AccessRequestSummary[]> {
-  if (!can(actor, "users:manage", { organizationId: actor.organizationId })) {
+  if (!can(actor, "user.manage", { organizationId: actor.organizationId })) {
     throw accessRequestError(403, "FORBIDDEN");
   }
 
@@ -108,7 +107,7 @@ async function validateApprovalInput(
   roles: string[],
   teamIds: string[],
 ): Promise<{ capabilities: import("@/lib/auth/capabilities").Capability[]; teamIds: string[] }> {
-  if (!can(actor, "users:manage", { organizationId: actor.organizationId })) {
+  if (!can(actor, "user.manage", { organizationId: actor.organizationId })) {
     throw accessRequestError(403, "FORBIDDEN");
   }
   if (roles.length === 0) {
@@ -116,7 +115,10 @@ async function validateApprovalInput(
   }
 
   for (const role of roles) {
-    if (role === "admin" && !hasRole(actor, "admin", actor.organizationId)) {
+    if (
+      role === "admin" &&
+      !can(actor, "users:grantRole", { organizationId: actor.organizationId, role: "admin" })
+    ) {
       throw accessRequestError(403, "FORBIDDEN");
     }
     if (!(await isAssignableRole(prisma, actor.organizationId, role))) {
@@ -245,7 +247,7 @@ export async function rejectAccessRequest(
   actor: UserActor,
   requestId: string,
 ): Promise<void> {
-  if (!can(actor, "users:manage", { organizationId: actor.organizationId })) {
+  if (!can(actor, "user.manage", { organizationId: actor.organizationId })) {
     throw accessRequestError(403, "FORBIDDEN");
   }
 

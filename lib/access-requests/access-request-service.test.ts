@@ -97,9 +97,13 @@ describe("access-request-service", () => {
     requestId = row.id;
   });
 
-  it("lists pending requests", async () => {
+  it("lists pending requests for admin only", async () => {
     const pending = await listPendingAccessRequests(prisma, admin());
     expect(pending.some((item) => item.email === "pedido@videira.test")).toBe(true);
+    await expect(listPendingAccessRequests(prisma, manager())).rejects.toMatchObject({
+      status: 403,
+      code: "FORBIDDEN",
+    });
   });
 
   it("upserts pending request for same email", async () => {
@@ -129,6 +133,23 @@ describe("access-request-service", () => {
     expect(user?.authUserId).toBeNull();
     const pending = await listPendingAccessRequests(prisma, admin());
     expect(pending.some((item) => item.id === requestId)).toBe(false);
+  });
+
+  it("forbids manager from approving or rejecting requests", async () => {
+    await expect(
+      approveAccessRequest(prisma, manager(), requestId, {
+        roles: ["musician"],
+        teamIds: [],
+      }),
+    ).rejects.toMatchObject({ status: 403, code: "FORBIDDEN" });
+    await expect(rejectAccessRequest(prisma, manager(), requestId)).rejects.toMatchObject({
+      status: 403,
+      code: "FORBIDDEN",
+    });
+    const stillPending = await prisma.accessRequest.findFirst({
+      where: { id: requestId, status: "pending" },
+    });
+    expect(stillPending).not.toBeNull();
   });
 
   it("rejects manager granting admin", async () => {
