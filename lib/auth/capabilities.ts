@@ -1,8 +1,11 @@
+import type { Actor } from "./actor";
 import type { OrganizationRole } from "@/types/identity";
 
 export const CAPABILITIES = [
   "users:invite",
-  "users:manage",
+  "member.manage",
+  "user.manage",
+  "role.manage",
   "teams:manage",
   "music:write",
   "import",
@@ -12,6 +15,14 @@ export const CAPABILITIES = [
 
 export type Capability = (typeof CAPABILITIES)[number];
 
+export const ADMIN_ONLY_CAPABILITIES: readonly Capability[] = ["user.manage", "role.manage"];
+
+const IMPLIES_BASE: Partial<Record<Capability, Capability>> = {
+  import: "music:write",
+  "member.manage": "users:invite",
+  "setlists:all": "setlists:led",
+};
+
 export const SYSTEM_ROLE_KEYS: readonly OrganizationRole[] = [
   "admin",
   "manager",
@@ -19,20 +30,54 @@ export const SYSTEM_ROLE_KEYS: readonly OrganizationRole[] = [
   "musician",
 ];
 
-const ADMIN_CAPS: readonly Capability[] = [...CAPABILITIES];
+const ADMIN_CAPS: readonly Capability[] = closeCapabilities([...CAPABILITIES]);
 
-const MANAGER_CAPS: readonly Capability[] = [
+const MANAGER_CAPS: readonly Capability[] = closeCapabilities([
   "users:invite",
-  "users:manage",
+  "member.manage",
   "teams:manage",
   "music:write",
   "import",
   "setlists:all",
-];
+]);
 
-const WORSHIP_LEADER_CAPS: readonly Capability[] = ["music:write", "import", "setlists:led"];
+const WORSHIP_LEADER_CAPS: readonly Capability[] = closeCapabilities([
+  "music:write",
+  "import",
+  "setlists:led",
+]);
 
 const MUSICIAN_CAPS: readonly Capability[] = [];
+
+export function closeCapabilities(capabilities: readonly Capability[]): Capability[] {
+  const set = new Set<Capability>(capabilities);
+  for (const cap of capabilities) {
+    const base = IMPLIES_BASE[cap];
+    if (base) {
+      set.add(base);
+    }
+  }
+  return [...set];
+}
+
+export function holdsCapability(
+  actor: Actor,
+  capability: Capability,
+  organizationId: string,
+): boolean {
+  if (actor.kind !== "user" || actor.organizationId !== organizationId) {
+    return false;
+  }
+  if (actor.capabilities.includes(capability)) {
+    return true;
+  }
+  for (const [dependent, base] of Object.entries(IMPLIES_BASE) as [Capability, Capability][]) {
+    if (base === capability && actor.capabilities.includes(dependent)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 export function systemCapabilities(key: string): readonly Capability[] | undefined {
   switch (key) {
@@ -67,7 +112,9 @@ export function parseStoredCapabilities(raw: unknown): Capability[] {
   if (!Array.isArray(raw)) {
     return [];
   }
-  return raw.filter((entry): entry is Capability => isCapability(String(entry)));
+  return raw.filter(
+    (entry): entry is Capability => isCapability(String(entry)) && String(entry) !== "users:manage",
+  );
 }
 
 /** True when the selection includes every capability from the system `admin` preset. */
