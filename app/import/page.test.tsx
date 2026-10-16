@@ -77,6 +77,25 @@ describe("ImportPage", () => {
     render(await ImportPage());
 
     expect(screen.getByLabelText("Texto da cifra")).toBeInTheDocument();
+    expect(screen.getByLabelText("URL do Cifra Club")).toBeInTheDocument();
+  });
+
+  it("hides Cifra Club URL import in production", async () => {
+    vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
+    vi.stubEnv("NODE_ENV", "production");
+    getCurrentActorMock.mockResolvedValue(
+      testUserActor({
+        userId: "user-leader",
+        organizationId: "org-default",
+        roles: ["worship_leader"],
+        teams: [],
+      }),
+    );
+
+    render(await ImportPage());
+
+    expect(screen.getByLabelText("Texto da cifra")).toBeInTheDocument();
+    expect(screen.queryByLabelText("URL do Cifra Club")).not.toBeInTheDocument();
   });
 
   it("forces request-time rendering under next start", () => {

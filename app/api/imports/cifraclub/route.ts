@@ -7,7 +7,10 @@ import { fetchCifraClubChart } from "@/lib/import/sources/cifraclub";
 import type { RawChart } from "@/types/import";
 import { canImport } from "@/lib/import-access/import-access-policy";
 import { importAccessDeniedResponse, importAccessError } from "@/lib/import-access/import-access-http";
-import { isImportModuleConfigured } from "@/lib/import-access/import-module-config";
+import {
+  isCifraClubUrlImportEnabled,
+  isImportModuleConfigured,
+} from "@/lib/import-access/import-module-config";
 import { recordImportLog } from "@/lib/import-access/import-log";
 import { getPreviewSlotQueue, type PreviewSlotQueue } from "@/lib/import-access/preview-slot-queue";
 
@@ -36,6 +39,10 @@ function canonicalPreviewUrl(url: string): string {
 
 export function createCifraClubPostHandler(dependencies: HandlerDependencies) {
   return async function post(request: Request): Promise<Response> {
+    if (!isCifraClubUrlImportEnabled()) {
+      return errorResponse(404, "NOT_FOUND", "Recurso não encontrado.");
+    }
+
     const access = await dependencies.canImport(request);
     const denied = importAccessDeniedResponse(access);
     if (denied) {

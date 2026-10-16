@@ -2,7 +2,11 @@
 
 import { ImportWorkflow } from "@/components/import/import-workflow";
 
-export function ImportPageClient() {
+type ImportPageClientProps = {
+  urlImportEnabled: boolean;
+};
+
+export function ImportPageClient({ urlImportEnabled }: ImportPageClientProps) {
   return (
     <div className="space-y-8">
       <section>
@@ -15,7 +19,7 @@ export function ImportPageClient() {
         </p>
       </section>
 
-      <ImportWorkflow urlImportEnabled />
+      <ImportWorkflow urlImportEnabled={urlImportEnabled} />
     </div>
   );
 }

@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { ImportPageClient } from "@/components/import/import-page-client";
 import { getCurrentActor } from "@/lib/auth/current-actor";
 import { can } from "@/lib/auth/permissions";
-import { isImportModuleFlagOn } from "@/lib/import-access/import-module-config";
+import {
+  isCifraClubUrlImportEnabled,
+  isImportModuleFlagOn,
+} from "@/lib/import-access/import-module-config";
 
 export const dynamic = "force-dynamic";
 
@@ -26,5 +29,5 @@ export default async function ImportPage() {
     );
   }
 
-  return <ImportPageClient />;
+  return <ImportPageClient urlImportEnabled={isCifraClubUrlImportEnabled()} />;
 }

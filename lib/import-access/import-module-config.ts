@@ -15,6 +15,11 @@ export function isImportModuleVisibleInUi(): boolean {
   return isImportModuleFlagOn();
 }
 
+/** Playwright preview por URL fica só fora de produção (import local / dev). */
+export function isCifraClubUrlImportEnabled(): boolean {
+  return process.env.NODE_ENV !== "production";
+}
+
 export function logImportAccessMisconfiguredOnce(): void {
   if (misconfiguredLogged) {
     return;

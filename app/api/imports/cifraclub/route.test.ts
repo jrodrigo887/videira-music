@@ -245,6 +245,24 @@ describe("exported POST", () => {
     },
   );
 
+  it("returns 404 in production even when import is configured", async () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
+    getCurrentActorMock.mockResolvedValue(
+      testUserActor({
+        userId: "user-leader",
+        organizationId: "org-default",
+        roles: ["worship_leader"],
+        teams: [],
+      }),
+    );
+
+    const response = await POST(request({ url: URL }));
+
+    expect(response.status).toBe(404);
+    expect(fetchCifraClubChartMock).not.toHaveBeenCalled();
+  });
+
   it("returns 404 when only the legacy flag is enabled", async () => {
     vi.stubEnv("VIDEIRA_ENABLE_CIFRACLUB_IMPORT", "true");
 
