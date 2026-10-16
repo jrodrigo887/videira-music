@@ -50,11 +50,20 @@ export default async function RootLayout({
         <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-2 sm:gap-3 sm:py-3.5">
             <Link href="/" className="flex shrink-0 items-center gap-2.5 text-lg font-extrabold tracking-tight text-content transition hover:text-primary">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm">
+              <span className="hidden h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm sm:flex">
                 V
               </span>
-              <span className="hidden sm:inline">
-                Videira <span className="text-primary">Music</span>
+              <span className="flex flex-col gap-0.5 leading-none">
+                <span>
+                  Videira <span className="text-primary">Music</span>
+                </span>
+                <span
+                  className="text-[9px] font-normal tracking-normal text-content-muted"
+                  title={appVersion.sha ?? undefined}
+                >
+                  <span className="sr-only">Versão </span>
+                  {appVersion.label}
+                </span>
               </span>
             </Link>
             <AppHeaderNav
@@ -66,12 +75,6 @@ export default async function RootLayout({
           </div>
         </header>
         <main className="mx-auto max-w-6xl overflow-x-hidden px-4 py-8">{children}</main>
-        <footer className="mx-auto max-w-6xl px-4 pb-6">
-          <p className="text-right text-xs text-content-muted" title={appVersion.sha ?? undefined}>
-            <span className="sr-only">Versão </span>
-            {appVersion.label}
-          </p>
-        </footer>
       </body>
     </html>
   );

@@ -241,6 +241,7 @@ describe("PUT /api/charts/[chartId] auth", () => {
         userId: "user-musician",
         organizationId: ORG,
         roles: ["musician"],
+        teams: [],
       }),
     );
 

@@ -143,6 +143,7 @@ describe("ImportWorkflow", () => {
       findSongById: vi.fn(),
       saveSong: vi.fn(),
       listChartsBySong: vi.fn(),
+      findChartById: vi.fn(),
       findChartByOriginUrl: vi.fn(),
       saveChart: vi.fn(),
       saveSongAndChart: vi.fn(),

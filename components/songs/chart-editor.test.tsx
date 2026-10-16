@@ -159,7 +159,9 @@ describe("ChartEditor", () => {
     }));
 
     const repository = new InMemoryMusicRepository();
-    repository.saveChart = vi.fn().mockRejectedValue(new RepositoryError("PERSISTENCE_FAILED", "x"));
+    repository.saveChart = vi.fn().mockRejectedValue(
+      new RepositoryError("PERSISTENCE_FAILED", 500, "x"),
+    );
     const onSaved = vi.fn();
 
     render(

@@ -101,6 +101,6 @@ describe("RootLayout navigation", () => {
 
     render(await RootLayout({ children: <p>Conteúdo</p> }));
 
-    expect(screen.getByRole("contentinfo")).toHaveTextContent(`v${packageJson.version}`);
+    expect(screen.getByRole("link", { name: /Videira Music/ })).toHaveTextContent(`v${packageJson.version}`);
   });
 });
