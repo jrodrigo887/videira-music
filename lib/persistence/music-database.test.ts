@@ -61,6 +61,18 @@ describe("IndexedDbMusicRepository", () => {
     reopened.close();
   });
 
+  it("finds a chart by id after the database is reopened", async () => {
+    const indexedDB = new IDBFactory();
+    const first = new IndexedDbMusicRepository({ indexedDB, databaseName: "chart-by-id" });
+    await first.saveChart(CHART);
+    first.close();
+
+    const reopened = new IndexedDbMusicRepository({ indexedDB, databaseName: "chart-by-id" });
+    await expect(reopened.findChartById(CHART.id)).resolves.toEqual(CHART);
+    await expect(reopened.findChartById("missing")).resolves.toBeUndefined();
+    reopened.close();
+  });
+
   it("finds charts through the canonical origin URL index", async () => {
     const repository = new IndexedDbMusicRepository({
       indexedDB: new IDBFactory(),

@@ -90,6 +90,14 @@ export class IndexedDbMusicRepository implements MusicRepository {
     return records.map(fromStoredChart);
   }
 
+  async findChartById(id: string): Promise<ChordChart | undefined> {
+    const transaction = (await this.open()).transaction(CHARTS_STORE, "readonly");
+    const record = await requestResult<StoredChart | undefined>(
+      transaction.objectStore(CHARTS_STORE).get(id),
+    );
+    return record ? fromStoredChart(record) : undefined;
+  }
+
   async findChartByOriginUrl(url: string): Promise<ChordChart | undefined> {
     const transaction = (await this.open()).transaction(CHARTS_STORE, "readonly");
     const record = await requestResult<StoredChart | undefined>(
