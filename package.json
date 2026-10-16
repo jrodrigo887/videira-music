@@ -9,6 +9,7 @@
     "lint": "eslint app components lib types --ext .ts,.tsx",
     "test": "vitest run",
     "test:watch": "vitest",
+    "check:migrations": "tsx scripts/check-migrations-safe.ts",
     "postinstall": "DIRECT_URL=\"${DIRECT_URL:-$DATABASE_URL}\" prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",

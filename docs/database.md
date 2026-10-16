@@ -106,3 +106,32 @@ Esse redirect fica só no domínio de produção. Cada preview da Vercel tem uma
 | `npm run db:migrate:dev` | Cria e aplica migrations em desenvolvimento |
 | `npm run db:seed` | Só a organização `slug=default`. Em produção, uma vez, contra `DIRECT_URL` |
 | `npm run db:studio` | Prisma Studio |
+| `npm run check:migrations` | Falha se algum `prisma/migrations/*/migration.sql` tiver SQL destrutivo (ver abaixo) |
+
+## Migrations e dados em produção
+
+Em produção o deploy usa **`prisma migrate deploy`** (no `npm run build`). Esse comando só aplica migrations **pendentes** registradas em `prisma/migrations/`. Ele **não** apaga o banco nem roda `seed`.
+
+Comandos que **não** devem apontar para o banco de produção:
+
+| Comando | Risco |
+| --- | --- |
+| `prisma migrate reset` | Recria o schema e **apaga todos os dados** |
+| `prisma migrate dev` | Em dev pode pedir reset se o histórico divergir |
+| `prisma db push` | Pode gerar `DROP` sem migration revisada |
+
+### Política do repositório
+
+1. Migrations versionadas devem ser **aditivas**: `CREATE TABLE`, `ADD COLUMN`, `UPDATE` de backfill, novos índices. Evite `DROP TABLE`, `TRUNCATE`, `DELETE FROM`, `DROP COLUMN` e `DROP TYPE` em `migration.sql`.
+2. Antes de abrir PR com migration nova, rode `npm run check:migrations`. O CI também executa esse check.
+3. Se for inevitável remover coluna ou tabela, planeje em duas etapas (deprecar → backfill → remover em deploy separado com backup) e documente no PR; o check falhará até alguém revisar e ajustar a política com cuidado.
+4. Faça **backup** (snapshot Neon ou equivalente) antes de deploy com migration nova.
+
+O verificador está em `lib/persistence/check-migration-sql.ts` e cobre os padrões acima. `ON DELETE CASCADE` em definição de FK **não** é tratado como destrutivo — só entra em jogo quando a aplicação apaga a linha pai.
+
+### Checklist rápido antes do deploy
+
+- [ ] `npm run check:migrations` passou no CI
+- [ ] Migration revisada manualmente (sem `DROP` / `TRUNCATE` / `DELETE FROM` em massa)
+- [ ] Backup do banco de produção
+- [ ] `DIRECT_URL` (ou `DATABASE_URL` única) configurada na Vercel para o `migrate deploy`
