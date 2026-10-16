@@ -24,6 +24,7 @@ vi.mock("@/lib/auth/current-actor", () => ({
 
 import { testUserActor } from "@/lib/auth/test-actor";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/persistence/organization-scope";
+import packageJson from "../package.json";
 
 import RootLayout from "./layout";
 
@@ -93,5 +94,13 @@ describe("RootLayout navigation", () => {
     render(await RootLayout({ children: <p>Conteúdo</p> }));
 
     expect(screen.getByRole("link", { name: "Entrar" })).toHaveAttribute("href", "/entrar");
+  });
+
+  it("shows the package version", async () => {
+    getCurrentActorMock.mockResolvedValue({ kind: "anonymous" });
+
+    render(await RootLayout({ children: <p>Conteúdo</p> }));
+
+    expect(screen.getByRole("contentinfo")).toHaveTextContent(`v${packageJson.version}`);
   });
 });

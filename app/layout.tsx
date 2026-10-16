@@ -6,6 +6,7 @@ import { hasCapability } from "@/lib/auth/actor";
 import { getCurrentActor } from "@/lib/auth/current-actor";
 import { can } from "@/lib/auth/permissions";
 import { AppHeaderNav } from "@/components/layout/app-header-nav";
+import { getAppVersion } from "@/lib/app-version";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/persistence/organization-scope";
 
 import "./globals.css";
@@ -41,6 +42,7 @@ export default async function RootLayout({
     loggedIn && can(actor, "users:manage", { organizationId: actor.organizationId });
   const importLinkVisible =
     loggedIn && can(actor, "import", { organizationId: actor.organizationId });
+  const appVersion = getAppVersion();
 
   return (
     <html lang="pt-BR" className="light" data-theme="light">
@@ -64,6 +66,12 @@ export default async function RootLayout({
           </div>
         </header>
         <main className="mx-auto max-w-6xl overflow-x-hidden px-4 py-8">{children}</main>
+        <footer className="mx-auto max-w-6xl px-4 pb-6">
+          <p className="text-right text-xs text-content-muted" title={appVersion.sha ?? undefined}>
+            <span className="sr-only">Versão </span>
+            {appVersion.label}
+          </p>
+        </footer>
       </body>
     </html>
   );
