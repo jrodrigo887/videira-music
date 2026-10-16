@@ -1,4 +1,4 @@
-import type { ChordChart, Song, SongId } from "@/types/music";
+import type { ChordChart, ChordChartId, Song, SongId } from "@/types/music";
 
 import type { MusicRepository } from "./music-repository";
 import { RepositoryError, type ValidationIssue } from "./repository-error";
@@ -58,6 +58,10 @@ export class HttpMusicRepository implements MusicRepository {
     );
     const body = (await response.json()) as { charts: ChordChart[] };
     return body.charts;
+  }
+
+  async findChartById(_id: ChordChartId): Promise<ChordChart | undefined> {
+    return undefined;
   }
 
   async findChartByOriginUrl(url: string): Promise<ChordChart | undefined> {
