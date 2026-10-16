@@ -71,6 +71,13 @@ export class PrismaMusicRepository implements MusicRepository {
     return rows.map(toDomainChart);
   }
 
+  async findChartById(id: string): Promise<ChordChart | undefined> {
+    const row = await this.prisma.chordChart.findFirst({
+      where: { id, organizationId: this.organizationId },
+    });
+    return row ? toDomainChart(row) : undefined;
+  }
+
   async findChartByOriginUrl(url: string): Promise<ChordChart | undefined> {
     const originUrl = canonicalizeOriginUrl(url);
     const row = await this.prisma.chordChart.findFirst({

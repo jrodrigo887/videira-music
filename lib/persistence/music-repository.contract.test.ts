@@ -43,6 +43,8 @@ function runContractSuite(name: string, createRepository: () => Promise<MusicRep
         repository.findChartByOriginUrl("https://www.cifraclub.com.br/artista/cancao/"),
       ).resolves.toEqual(CHART);
       await expect(repository.findSongById("missing")).resolves.toBeUndefined();
+      await expect(repository.findChartById(CHART.id)).resolves.toEqual(CHART);
+      await expect(repository.findChartById("missing-chart")).resolves.toBeUndefined();
     });
 
     it("rolls back saveSongAndChart when chart write fails", async () => {
