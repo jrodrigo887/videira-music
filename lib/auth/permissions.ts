@@ -24,6 +24,11 @@ export function can(
       return holdsCapability(actor, "user.manage", target.organizationId);
     case "music:read":
       return actor.roles.length > 0;
+    case "users:invite:led":
+      return (
+        holdsCapability(actor, "users:invite:led", target.organizationId) ||
+        holdsCapability(actor, "users:invite", target.organizationId)
+      );
     default:
       return holdsCapability(actor, permission, target.organizationId);
   }

@@ -45,6 +45,21 @@ describe("can() by capability", () => {
     expect(can(admin, "users:grantRole", { organizationId: ORG, role: "musician" })).toBe(true);
   });
 
+  it("users:invite satisfies users:invite:led", () => {
+    expect(can(manager, "users:invite:led", { organizationId: ORG })).toBe(true);
+    expect(can(leader, "users:invite:led", { organizationId: ORG })).toBe(true);
+    expect(can(musician, "users:invite:led", { organizationId: ORG })).toBe(false);
+  });
+
+  it("music:delete, org:settings and users:impersonate follow capability", () => {
+    expect(can(manager, "music:delete", { organizationId: ORG })).toBe(true);
+    expect(can(leader, "music:delete", { organizationId: ORG })).toBe(false);
+    expect(can(admin, "org:settings", { organizationId: ORG })).toBe(true);
+    expect(can(manager, "org:settings", { organizationId: ORG })).toBe(false);
+    expect(can(admin, "users:impersonate", { organizationId: ORG })).toBe(true);
+    expect(can(manager, "users:impersonate", { organizationId: ORG })).toBe(false);
+  });
+
   it("custom role with import capability can import and satisfies music:write", () => {
     const importer = testUserActor({
       userId: "c",

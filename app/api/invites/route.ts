@@ -1,4 +1,5 @@
-import { forbiddenResponse, requirePermission } from "@/lib/auth/api-guard";
+import { forbiddenResponse, requireActor, requirePermission } from "@/lib/auth/api-guard";
+import { can } from "@/lib/auth/permissions";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/persistence/organization-scope";
 import { getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
 import {
@@ -28,9 +29,16 @@ export async function POST(request: Request): Promise<Response> {
   if (!isDatabaseConfigured()) {
     return Response.json({ error: { code: "DATABASE_NOT_CONFIGURED" } }, { status: 503 });
   }
-  const gate = await requirePermission("users:invite", DEFAULT_ORGANIZATION_ID);
+  const gate = await requireActor();
   if ("response" in gate) {
     return gate.response;
+  }
+  const orgId = gate.actor.organizationId;
+  if (
+    !can(gate.actor, "users:invite", { organizationId: orgId }) &&
+    !can(gate.actor, "users:invite:led", { organizationId: orgId })
+  ) {
+    return forbiddenResponse();
   }
 
   let body: unknown;

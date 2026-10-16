@@ -2,6 +2,7 @@ import type { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import type { UserActor } from "@/lib/auth/actor";
+import { teamRoleOf } from "@/lib/auth/actor";
 import { normalizeEmail } from "@/lib/auth/email";
 import { can } from "@/lib/auth/permissions";
 import type { OrganizationRole } from "@/types/identity";
@@ -75,18 +76,39 @@ export async function createInvite(
     expiresInHours: number;
   },
 ): Promise<{ invite: InviteSummary; link: string; code: string }> {
-  if (!can(actor, "users:invite", { organizationId: actor.organizationId })) {
+  const orgId = actor.organizationId;
+  const canOrgInvite = can(actor, "users:invite", { organizationId: orgId });
+  const canLedInvite = can(actor, "users:invite:led", { organizationId: orgId });
+  if (!canOrgInvite && !canLedInvite) {
     throw inviteError(403, "FORBIDDEN");
   }
-  if (input.roles.some((role) => role === "admin") && !can(actor, "users:grantRole", { organizationId: actor.organizationId, role: "admin" })) {
-    throw inviteError(403, "FORBIDDEN");
-  }
-  if (input.roles.length === 0) {
-    throw inviteError(400, "INVALID_ROLE");
-  }
-  for (const role of input.roles) {
-    if (!(await isAssignableRole(prisma, actor.organizationId, role))) {
+
+  if (!canOrgInvite) {
+    if (input.roles.length !== 1 || input.roles[0] !== "musician") {
+      throw inviteError(403, "FORBIDDEN");
+    }
+    if (input.teamIds.length === 0) {
+      throw inviteError(403, "FORBIDDEN");
+    }
+    for (const teamId of input.teamIds) {
+      if (teamRoleOf(actor, teamId) !== "leader") {
+        throw inviteError(403, "FORBIDDEN");
+      }
+    }
+  } else {
+    if (
+      input.roles.some((role) => role === "admin") &&
+      !can(actor, "users:grantRole", { organizationId: orgId, role: "admin" })
+    ) {
+      throw inviteError(403, "FORBIDDEN");
+    }
+    if (input.roles.length === 0) {
       throw inviteError(400, "INVALID_ROLE");
+    }
+    for (const role of input.roles) {
+      if (!(await isAssignableRole(prisma, orgId, role))) {
+        throw inviteError(400, "INVALID_ROLE");
+      }
     }
   }
 
@@ -101,7 +123,7 @@ export async function createInvite(
   }
 
   const existingUser = await prisma.user.findFirst({
-    where: { organizationId: actor.organizationId, email, status: "active" },
+    where: { organizationId: orgId, email, status: "active" },
   });
   if (existingUser) {
     throw inviteError(409, "USER_EXISTS");
@@ -109,13 +131,16 @@ export async function createInvite(
 
   const teams = await prisma.worshipTeam.findMany({
     where: {
-      organizationId: actor.organizationId,
+      organizationId: orgId,
       archivedAt: null,
       id: { in: input.teamIds },
     },
     select: { id: true },
   });
   const teamIds = teams.map((team) => team.id);
+  if (!canOrgInvite && teamIds.length !== input.teamIds.length) {
+    throw inviteError(403, "FORBIDDEN");
+  }
 
   await prisma.invite.updateMany({
     where: {

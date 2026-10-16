@@ -9,35 +9,52 @@ datasource db {
 }
 
 model Organization {
-  id        String        @id
-  slug      String        @unique
-  name      String
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  songs     Song[]
-  charts    ChordChart[]
-  users     User[]
-  teams     WorshipTeam[]
-  setlists  Setlist[]
-  invites         Invite[]
-  roleDefinitions RoleDefinition[]
-  accessRequests  AccessRequest[]
+  id                    String                 @id
+  slug                  String                 @unique
+  name                  String
+  stripeCustomerId      String?                @unique
+  subscriptionStatus    String                 @default("none")
+  currentPeriodEnd      DateTime?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  songs                 Song[]
+  charts                ChordChart[]
+  users                 User[]
+  teams                 WorshipTeam[]
+  setlists              Setlist[]
+  invites               Invite[]
+  roleDefinitions       RoleDefinition[]
+  accessRequests        AccessRequest[]
+  chartSuggestions      ChartSuggestion[]
+  capabilityDelegations CapabilityDelegation[]
 }
 
 model User {
-  id              String              @id
-  organizationId  String
-  organization    Organization        @relation(fields: [organizationId], references: [id])
-  authUserId      String?             @unique
-  name            String
-  email           String
-  status          String              @default("active")
-  deactivatedAt   DateTime?
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  roles           UserRole[]
-  teamMemberships WorshipTeamMember[]
-  invitesCreated  Invite[]            @relation("InviteCreatedBy")
+  id                       String                 @id
+  organizationId           String
+  organization             Organization           @relation(fields: [organizationId], references: [id])
+  authUserId               String?                @unique
+  name                     String
+  email                    String
+  status                   String                 @default("active")
+  deactivatedAt            DateTime?
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+  roles                    UserRole[]
+  teamMemberships          WorshipTeamMember[]
+  invitesCreated           Invite[]               @relation("InviteCreatedBy")
+  songsCreated             Song[]                 @relation("SongCreatedBy")
+  chartsCreated            ChordChart[]           @relation("ChartCreatedBy")
+  chartsLastEdited         ChordChart[]           @relation("ChartLastEditedBy")
+  setlistsCreated          Setlist[]              @relation("SetlistCreatedBy")
+  chartRevisionsSaved      ChordChartRevision[]   @relation("ChartRevisionSavedBy")
+  chartSuggestionsAuthored ChartSuggestion[]      @relation("ChartSuggestionAuthor")
+  chartSuggestionsReviewed ChartSuggestion[]      @relation("ChartSuggestionReviewer")
+  setlistShareLinksCreated SetlistShareLink[]     @relation("SetlistShareLinkCreatedBy")
+  delegationsGranted       CapabilityDelegation[] @relation("DelegationGrantor")
+  delegationsReceived      CapabilityDelegation[] @relation("DelegationGrantee")
+  viewAsSessionsAsViewer   ViewAsSession[]        @relation("ViewAsViewer")
+  viewAsSessionsAsTarget   ViewAsSession[]        @relation("ViewAsTarget")
 
   @@unique([organizationId, email])
 }
@@ -147,17 +164,17 @@ model AccessRequest {
 }
 
 model Invite {
-  id              String    @id @default(cuid())
+  id              String       @id @default(cuid())
   organizationId  String
   organization    Organization @relation(fields: [organizationId], references: [id])
   email           String
-  tokenHash       String    @unique
+  tokenHash       String       @unique
   roles           Json
   teamIds         Json
   expiresAt       DateTime
   createdByUserId String
-  createdBy       User      @relation("InviteCreatedBy", fields: [createdByUserId], references: [id])
-  createdAt       DateTime  @default(now())
+  createdBy       User         @relation("InviteCreatedBy", fields: [createdByUserId], references: [id])
+  createdAt       DateTime     @default(now())
   usedAt          DateTime?
   usedByUserId    String?
   revokedAt       DateTime?
@@ -206,9 +223,9 @@ model WorshipTeamMember {
 }
 
 model Song {
-  id                   String       @id
+  id                   String        @id
   organizationId       String
-  organization         Organization @relation(fields: [organizationId], references: [id])
+  organization         Organization  @relation(fields: [organizationId], references: [id])
   title                String
   label                String
   artist               String?
@@ -218,22 +235,26 @@ model Song {
   notes                String?
   meta                 String
   searchText           String
-  publicLyrics         Boolean      @default(false)
+  publicLyrics         Boolean       @default(false)
   sourceOrganizationId String?
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
+  deletedAt            DateTime?
+  createdByUserId      String?
+  createdBy            User?         @relation("SongCreatedBy", fields: [createdByUserId], references: [id])
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
   charts               ChordChart[]
   setlistItems         SetlistItem[]
 
   @@index([organizationId])
+  @@index([organizationId, deletedAt])
 }
 
 model ChordChart {
-  id                   String        @id
+  id                   String               @id
   organizationId       String
-  organization         Organization  @relation(fields: [organizationId], references: [id])
+  organization         Organization         @relation(fields: [organizationId], references: [id])
   songId               String
-  song                 Song          @relation(fields: [songId], references: [id])
+  song                 Song                 @relation(fields: [songId], references: [id])
   title                String?
   format               String
   key                  String
@@ -245,34 +266,43 @@ model ChordChart {
   origin               Json?
   originUrl            String?
   sourceOrganizationId String?
-  schemaVersion        Int           @default(1)
-  createdAt            DateTime      @default(now())
-  updatedAt            DateTime      @updatedAt
+  schemaVersion        Int                  @default(1)
+  createdByUserId      String?
+  createdBy            User?                @relation("ChartCreatedBy", fields: [createdByUserId], references: [id])
+  lastEditedByUserId   String?
+  lastEditedBy         User?                @relation("ChartLastEditedBy", fields: [lastEditedByUserId], references: [id])
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
   setlistItems         SetlistItem[]
+  revisions            ChordChartRevision[]
+  suggestions          ChartSuggestion[]
 
   @@unique([organizationId, originUrl])
   @@index([organizationId, songId])
 }
 
 model Setlist {
-  id             String          @id
-  organizationId String
-  organization   Organization    @relation(fields: [organizationId], references: [id])
-  ownerTeamId    String?
-  ownerTeam      WorshipTeam?    @relation(fields: [ownerTeamId], references: [id])
-  ownerUserId    String?
-  title          String
-  eventType      String?
-  eventAt        DateTime?
-  status         String
-  visibility     String
-  notes          String?
-  version        Int             @default(1)
-  deletedAt      DateTime?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  items          SetlistItem[]
-  follows        SetlistFollow[]
+  id              String             @id
+  organizationId  String
+  organization    Organization       @relation(fields: [organizationId], references: [id])
+  ownerTeamId     String?
+  ownerTeam       WorshipTeam?       @relation(fields: [ownerTeamId], references: [id])
+  ownerUserId     String?
+  title           String
+  eventType       String?
+  eventAt         DateTime?
+  status          String
+  visibility      String
+  notes           String?
+  version         Int                @default(1)
+  deletedAt       DateTime?
+  createdByUserId String?
+  createdBy       User?              @relation("SetlistCreatedBy", fields: [createdByUserId], references: [id])
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  items           SetlistItem[]
+  follows         SetlistFollow[]
+  shareLinks      SetlistShareLink[]
 
   @@index([organizationId, ownerTeamId])
 }
@@ -316,4 +346,93 @@ model ImportLog {
   userId     String?
 
   @@index([occurredAt])
+}
+
+model ChordChartRevision {
+  id            String     @id @default(cuid())
+  chartId       String
+  chart         ChordChart @relation(fields: [chartId], references: [id], onDelete: Cascade)
+  source        String?
+  sections      Json
+  key           String
+  capo          Int?
+  savedByUserId String?
+  savedBy       User?      @relation("ChartRevisionSavedBy", fields: [savedByUserId], references: [id])
+  savedAt       DateTime   @default(now())
+
+  @@index([chartId, savedAt])
+}
+
+model ChartSuggestion {
+  id               String       @id @default(cuid())
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id])
+  chartId          String
+  chart            ChordChart   @relation(fields: [chartId], references: [id], onDelete: Cascade)
+  authorUserId     String
+  author           User         @relation("ChartSuggestionAuthor", fields: [authorUserId], references: [id])
+  source           String
+  sections         Json
+  key              String
+  capo             Int?
+  status           String
+  reviewedByUserId String?
+  reviewedBy       User?        @relation("ChartSuggestionReviewer", fields: [reviewedByUserId], references: [id])
+  reviewedAt       DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([chartId, status])
+  @@index([chartId, authorUserId])
+}
+
+model SetlistShareLink {
+  id              String    @id @default(cuid())
+  setlistId       String
+  setlist         Setlist   @relation(fields: [setlistId], references: [id], onDelete: Cascade)
+  tokenHash       String    @unique
+  createdByUserId String
+  createdBy       User      @relation("SetlistShareLinkCreatedBy", fields: [createdByUserId], references: [id])
+  revokedAt       DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([setlistId])
+}
+
+model CapabilityDelegation {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  grantorUserId  String
+  grantor        User         @relation("DelegationGrantor", fields: [grantorUserId], references: [id])
+  granteeUserId  String
+  grantee        User         @relation("DelegationGrantee", fields: [granteeUserId], references: [id])
+  capabilities   Json
+  teamIds        Json
+  startsAt       DateTime     @default(now())
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  reason         String?
+  createdAt      DateTime     @default(now())
+
+  @@index([granteeUserId, expiresAt])
+}
+
+model ViewAsSession {
+  id           String    @id @default(cuid())
+  viewerUserId String
+  viewer       User      @relation("ViewAsViewer", fields: [viewerUserId], references: [id])
+  targetUserId String
+  target       User      @relation("ViewAsTarget", fields: [targetUserId], references: [id])
+  reason       String
+  expiresAt    DateTime
+  endedAt      DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([viewerUserId, endedAt])
+}
+
+model BillingEvent {
+  id          String   @id
+  processedAt DateTime @default(now())
 }

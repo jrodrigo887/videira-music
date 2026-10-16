@@ -59,6 +59,22 @@ describe("GroupsPage", () => {
     expect(screen.getByText("Jovens")).toBeInTheDocument();
   });
 
+  it("lists led teams for worship leader without teams:manage", async () => {
+    getCurrentActorMock.mockResolvedValue(
+      testUserActor({
+        userId: "user-leader",
+        organizationId: "org-default",
+        roles: ["worship_leader"],
+        teams: [{ teamId: "team-louvor", role: "leader" }],
+      }),
+    );
+    render(await GroupsPage());
+    expect(screen.getByRole("heading", { name: "Seus grupos" })).toBeInTheDocument();
+    expect(screen.getByText("Louvor")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Abrir" })).toHaveAttribute("href", "/groups/team-louvor");
+    expect(screen.queryByRole("button", { name: "Criar grupo" })).not.toBeInTheDocument();
+  });
+
   it("shows no-access for musician", async () => {
     getCurrentActorMock.mockResolvedValue(
       testUserActor({

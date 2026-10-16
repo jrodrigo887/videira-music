@@ -1,3 +1,9 @@
+import { requireActor } from "@/lib/auth/api-guard";
+import {
+  deleteSong,
+  isSongTrashServiceError,
+} from "@/lib/songs/song-trash-service";
+import { getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
 import {
   PayloadTooLargeError,
   persistenceError,
@@ -77,3 +83,27 @@ export const PUT = wrapPersistenceRoute(
   { route: "/api/songs/[songId]", method: "PUT", permission: "music:write" },
   createSongPutHandler(dependencies),
 );
+
+export async function DELETE(
+  _request: Request,
+  context: { params: Promise<{ songId: string }> },
+): Promise<Response> {
+  if (!isDatabaseConfigured()) {
+    return persistenceError(503, "DATABASE_NOT_CONFIGURED", "Banco não configurado.");
+  }
+  const gate = await requireActor();
+  if ("response" in gate) {
+    return gate.response;
+  }
+  const { songId } = await context.params;
+  const prisma = getPrisma();
+  try {
+    await deleteSong(prisma, gate.actor, songId);
+    return Response.json({ ok: true });
+  } catch (error) {
+    if (isSongTrashServiceError(error)) {
+      return persistenceError(error.status, error.code, error.code);
+    }
+    return persistenceError(500, "PERSISTENCE_FAILED", "Erro.");
+  }
+}

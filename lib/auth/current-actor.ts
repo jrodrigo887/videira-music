@@ -2,12 +2,22 @@ import "server-only";
 
 import { headers } from "next/headers";
 
+import type { PrismaClient } from "@prisma/client";
+
 import { getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
 
 import { ANONYMOUS_ACTOR, type Actor } from "./actor";
 import { getAuth } from "./better-auth";
 import { loadActorForAuthUserId, loadActorForUser } from "./load-actor";
+import { resolveViewAsForActor } from "./resolve-view-as";
 import { resolveSimulatedUserId } from "./simulated-auth";
+
+async function effectiveActor(prisma: PrismaClient, actor: Actor): Promise<Actor> {
+  if (actor.kind !== "user") {
+    return actor;
+  }
+  return resolveViewAsForActor(prisma, actor);
+}
 
 /**
  * Ponto único de identificação da requisição (AD-007).
@@ -24,7 +34,7 @@ export async function getCurrentActor(): Promise<Actor> {
   const prisma = getPrisma();
 
   if (simulatedUserId) {
-    return loadActorForUser(prisma, simulatedUserId);
+    return effectiveActor(prisma, await loadActorForUser(prisma, simulatedUserId));
   }
 
   const auth = getAuth();
@@ -37,5 +47,5 @@ export async function getCurrentActor(): Promise<Actor> {
     return ANONYMOUS_ACTOR;
   }
 
-  return loadActorForAuthUserId(prisma, session.user.id);
+  return effectiveActor(prisma, await loadActorForAuthUserId(prisma, session.user.id));
 }

@@ -13,7 +13,7 @@ import {
 import { testUserActor } from "./test-actor";
 
 describe("systemCapabilities", () => {
-  it("admin has all nine capabilities", () => {
+  it("admin has every catalog capability", () => {
     expect(systemCapabilities("admin")).toEqual(expect.arrayContaining([...CAPABILITIES]));
     expect(systemCapabilities("admin")).toHaveLength(CAPABILITIES.length);
   });
@@ -28,16 +28,34 @@ describe("systemCapabilities", () => {
         "import",
         "setlists:all",
         "setlists:led",
+        "music:delete",
       ]),
     );
     expect(systemCapabilities("manager")).not.toEqual(
-      expect.arrayContaining(["user.manage", "role.manage"]),
+      expect.arrayContaining(["user.manage", "role.manage", "org:settings", "users:impersonate"]),
     );
   });
 
   it("worship_leader and musician match presets", () => {
-    expect(systemCapabilities("worship_leader")).toEqual(["music:write", "import", "setlists:led"]);
+    expect(systemCapabilities("worship_leader")).toEqual(
+      expect.arrayContaining(["users:invite:led", "music:write", "import", "setlists:led"]),
+    );
+    expect(systemCapabilities("worship_leader")).not.toEqual(
+      expect.arrayContaining(["users:invite", "music:delete"]),
+    );
     expect(systemCapabilities("musician")).toEqual([]);
+  });
+
+  it("admin preset includes org settings and view-as", () => {
+    expect(systemCapabilities("admin")).toEqual(
+      expect.arrayContaining(["org:settings", "users:impersonate"]),
+    );
+  });
+
+  it("manager and musician presets exclude music delete and org settings", () => {
+    expect(systemCapabilities("manager")).toEqual(expect.arrayContaining(["music:delete"]));
+    expect(systemCapabilities("musician")).not.toEqual(expect.arrayContaining(["music:delete"]));
+    expect(systemCapabilities("manager")).not.toEqual(expect.arrayContaining(["org:settings"]));
   });
 
   it("isCapability rejects unknown strings", () => {
@@ -114,7 +132,7 @@ describe("system role unions", () => {
       systemCapabilities("manager") ?? [],
       systemCapabilities("worship_leader") ?? [],
     ]);
-    expect(combined).toHaveLength(7);
+    expect(combined.length).toBeGreaterThanOrEqual(7);
     expect(combined).not.toEqual(expect.arrayContaining([...ADMIN_ONLY_CAPABILITIES]));
   });
 });

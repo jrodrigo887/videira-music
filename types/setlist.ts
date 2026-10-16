@@ -6,17 +6,25 @@ export type SetlistEventType = "service" | "rehearsal" | "event";
 
 export type SetlistItemKind = "song" | "note";
 
-export type SetlistSongItem = {
-  id: string;
-  kind: "song";
-  position: number;
-  songId: string;
-  chartId: string;
-  selectedKey: string;
-  notes?: string;
-  song: { title: string; artist?: string };
-  chart: { key: string; originUrl?: string; imported: boolean };
-};
+export type SetlistSongItem =
+  | {
+      id: string;
+      kind: "song";
+      position: number;
+      unavailable: true;
+      title: string;
+    }
+  | {
+      id: string;
+      kind: "song";
+      position: number;
+      songId: string;
+      chartId: string;
+      selectedKey: string;
+      notes?: string;
+      song: { title: string; artist?: string };
+      chart: { key: string; originUrl?: string; imported: boolean };
+    };
 
 export type SetlistNoteItem = {
   id: string;

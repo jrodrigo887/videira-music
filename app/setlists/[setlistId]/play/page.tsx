@@ -60,6 +60,10 @@ export default async function SetlistPlayPage({ params, searchParams }: SetlistP
             <li key={item.id} className="ds-card">
               {item.kind === "note" ? (
                 <p className="whitespace-pre-wrap text-content">{item.text}</p>
+              ) : item.unavailable ? (
+                <p className="text-lg font-semibold text-content-muted">
+                  {index + 1}. {item.title} (indisponível)
+                </p>
               ) : (
                 <div className="space-y-2">
                   <Link

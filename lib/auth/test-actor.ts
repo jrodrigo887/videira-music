@@ -10,5 +10,10 @@ export function testUserActor(
     unionCapabilities(
       input.roles.map((role) => [...(systemCapabilities(role) ?? [])]),
     );
-  return { kind: "user", ...input, capabilities };
+  return {
+    kind: "user",
+    ...input,
+    capabilities,
+    delegations: input.delegations ?? [],
+  };
 }

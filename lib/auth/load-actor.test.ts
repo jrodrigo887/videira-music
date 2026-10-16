@@ -124,6 +124,53 @@ describe("loadActorForUser", () => {
     await prisma.roleDefinition.deleteMany({ where: { key: "legacy-manage" } });
   });
 
+  it("loads active delegations and ignores revoked or expired ones", async () => {
+    const future = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const past = new Date(Date.now() - 60_000);
+    await prisma.capabilityDelegation.create({
+      data: {
+        organizationId: "org-default",
+        grantorUserId: "user-admin",
+        granteeUserId: "user-musician",
+        capabilities: ["setlists:led"],
+        teamIds: ["team-louvor"],
+        expiresAt: future,
+      },
+    });
+    await prisma.capabilityDelegation.create({
+      data: {
+        organizationId: "org-default",
+        grantorUserId: "user-admin",
+        granteeUserId: "user-musician",
+        capabilities: ["music:write"],
+        teamIds: [],
+        expiresAt: past,
+      },
+    });
+    await prisma.capabilityDelegation.create({
+      data: {
+        organizationId: "org-default",
+        grantorUserId: "user-admin",
+        granteeUserId: "user-musician",
+        capabilities: ["import"],
+        teamIds: [],
+        expiresAt: future,
+        revokedAt: new Date(),
+      },
+    });
+
+    const actor = await loadActorForUser(prisma, "user-musician");
+    if (actor.kind !== "user") throw new Error("expected user");
+    expect(actor.delegations).toHaveLength(1);
+    expect(actor.delegations[0]).toMatchObject({
+      capabilities: ["setlists:led"],
+      teamIds: ["team-louvor"],
+      expiresAt: future.toISOString(),
+    });
+
+    await prisma.capabilityDelegation.deleteMany({ where: { granteeUserId: "user-musician" } });
+  });
+
   it("becomes anonymous when every role key is unknown", async () => {
     await prisma.userRole.deleteMany({ where: { userId: "user-musician" } });
     await prisma.userRole.create({

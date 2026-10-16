@@ -3,19 +3,34 @@ import type { OrganizationRole } from "@/types/identity";
 
 export const CAPABILITIES = [
   "users:invite",
+  "users:invite:led",
   "member.manage",
   "user.manage",
   "role.manage",
   "teams:manage",
   "music:write",
+  "music:delete",
   "import",
   "setlists:all",
   "setlists:led",
+  "org:settings",
+  "users:impersonate",
 ] as const;
 
 export type Capability = (typeof CAPABILITIES)[number];
 
-export const ADMIN_ONLY_CAPABILITIES: readonly Capability[] = ["user.manage", "role.manage"];
+export const ADMIN_ONLY_CAPABILITIES: readonly Capability[] = [
+  "user.manage",
+  "role.manage",
+  "org:settings",
+  "users:impersonate",
+];
+
+/** Custom roles must not receive these; distinct error code from legacy admin-only caps. */
+export const ROLE_CAPABILITY_FORBIDDEN: readonly Capability[] = [
+  "org:settings",
+  "users:impersonate",
+];
 
 const IMPLIES_BASE: Partial<Record<Capability, Capability>> = {
   import: "music:write",
@@ -37,11 +52,13 @@ const MANAGER_CAPS: readonly Capability[] = closeCapabilities([
   "member.manage",
   "teams:manage",
   "music:write",
+  "music:delete",
   "import",
   "setlists:all",
 ]);
 
 const WORSHIP_LEADER_CAPS: readonly Capability[] = closeCapabilities([
+  "users:invite:led",
   "music:write",
   "import",
   "setlists:led",
@@ -69,6 +86,12 @@ export function holdsCapability(
     return false;
   }
   if (actor.capabilities.includes(capability)) {
+    return true;
+  }
+  if (
+    capability === "users:invite:led" &&
+    actor.capabilities.includes("users:invite")
+  ) {
     return true;
   }
   for (const [dependent, base] of Object.entries(IMPLIES_BASE) as [Capability, Capability][]) {

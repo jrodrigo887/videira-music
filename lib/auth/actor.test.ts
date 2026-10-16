@@ -1,32 +1,39 @@
 import { describe, expect, it } from "vitest";
 
-import { hasCapability, hasRole } from "./actor";
+import { earliestDelegationExpiry } from "./actor";
 import { testUserActor } from "./test-actor";
 
-describe("hasCapability", () => {
-  it("requires the same organization", () => {
+describe("earliestDelegationExpiry", () => {
+  it("returns the smallest expiresAt among active delegations", () => {
     const actor = testUserActor({
       userId: "u1",
-      organizationId: "org-a",
-      roles: ["manager"],
+      organizationId: "org",
+      roles: ["musician"],
       teams: [],
+      delegations: [
+        {
+          capabilities: ["setlists:led"],
+          teamIds: ["team-a"],
+          expiresAt: "2026-12-01T00:00:00.000Z",
+        },
+        {
+          capabilities: ["music:write"],
+          teamIds: [],
+          expiresAt: "2026-11-15T00:00:00.000Z",
+        },
+      ],
     });
-    expect(hasCapability(actor, "member.manage", "org-a")).toBe(true);
-    expect(hasCapability(actor, "member.manage", "org-b")).toBe(false);
+    expect(earliestDelegationExpiry(actor)).toBe("2026-11-15T00:00:00.000Z");
   });
 
-  it("hasRole still checks system admin key", () => {
-    const admin = testUserActor({
+  it("returns undefined when there are no delegations", () => {
+    const actor = testUserActor({
       userId: "u1",
-      organizationId: "org-a",
-      roles: ["admin"],
+      organizationId: "org",
+      roles: ["musician"],
       teams: [],
     });
-    expect(hasRole(admin, "admin", "org-a")).toBe(true);
-    expect(hasRole(admin, "manager", "org-a")).toBe(false);
-  });
-
-  it("anonymous actor has no capabilities", () => {
-    expect(hasCapability({ kind: "anonymous" }, "import", "org-a")).toBe(false);
+    expect(earliestDelegationExpiry(actor)).toBeUndefined();
+    expect(earliestDelegationExpiry({ kind: "anonymous" })).toBeUndefined();
   });
 });

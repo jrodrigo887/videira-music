@@ -18,7 +18,9 @@ const setlistInclude = {
   items: {
     orderBy: { position: "asc" as const },
     include: {
-      song: { select: { title: true, artist: true, sourceOrganizationId: true } },
+      song: {
+        select: { title: true, artist: true, sourceOrganizationId: true, deletedAt: true },
+      },
       chart: { select: { key: true, originUrl: true, sourceOrganizationId: true } },
     },
   },
@@ -37,7 +39,12 @@ type SetlistRow = Awaited<
     selectedKey: string | null;
     text: string | null;
     notes: string | null;
-    song: { title: string; artist: string | null; sourceOrganizationId: string | null } | null;
+    song: {
+      title: string;
+      artist: string | null;
+      sourceOrganizationId: string | null;
+      deletedAt: Date | null;
+    } | null;
     chart: { key: string; originUrl: string | null; sourceOrganizationId: string | null } | null;
   }>;
   follows: Array<{ teamId: string }>;
@@ -64,6 +71,7 @@ function toItemRecord(row: SetlistRow["items"][number]): SetlistItemRecord {
     selectedKey: row.selectedKey!,
     songTitle: row.song?.title ?? "",
     ...(row.song?.artist ? { songArtist: row.song.artist } : {}),
+    ...(row.song?.deletedAt ? { songDeletedAt: row.song.deletedAt.toISOString() } : {}),
     chartKey: row.chart?.key ?? "",
     ...(row.chart?.originUrl ? { originUrl: row.chart.originUrl } : {}),
     imported,

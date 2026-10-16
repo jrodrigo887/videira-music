@@ -83,6 +83,15 @@ function toSetlistItem(record: SetlistRecord["items"][number]): SetlistItem {
       ...(record.notes ? { notes: record.notes } : {}),
     };
   }
+  if (record.songDeletedAt) {
+    return {
+      id: record.id,
+      kind: "song",
+      position: record.position,
+      unavailable: true,
+      title: record.songTitle,
+    };
+  }
   return {
     id: record.id,
     kind: "song",
@@ -588,9 +597,18 @@ export function createSetlistService(dependencies: SetlistServiceDependencies) {
       ];
 
       const songRows = await prisma.song.findMany({ where: { id: { in: songIds } } });
+      const trashedSongIds = new Set(
+        songRows.filter((row) => row.deletedAt).map((row) => row.id),
+      );
+      const sourceForClone: SetlistRecord = {
+        ...source,
+        items: source.items.filter(
+          (item) => item.kind !== "song" || !trashedSongIds.has(item.songId),
+        ),
+      };
       const chartRows = await prisma.chordChart.findMany({ where: { id: { in: chartIds } } });
       const sourceCatalog = {
-        songs: songRows.map(toDomainSong),
+        songs: songRows.filter((row) => !row.deletedAt).map(toDomainSong),
         charts: chartRows.map((row) => {
           const chart = toDomainChart(row);
           if (!chart.origin?.url && row.originUrl) {
@@ -621,7 +639,7 @@ export function createSetlistService(dependencies: SetlistServiceDependencies) {
       }
 
       const plan = buildClonePlan({
-        source,
+        source: sourceForClone,
         sourceCatalog,
         target: { organizationId, ownerTeamId: targetTeamId },
         existingTargetChartsByOriginUrl,

@@ -2,7 +2,8 @@ import type { PrismaClient } from "@prisma/client";
 
 import type { WorshipTeamRole } from "@/types/identity";
 
-import { ANONYMOUS_ACTOR, type Actor } from "./actor";
+import { loadActiveDelegations } from "./active-delegations";
+import { ANONYMOUS_ACTOR, type Actor, type DelegationGrant } from "./actor";
 import {
   closeCapabilities,
   parseStoredCapabilities,
@@ -44,6 +45,7 @@ async function mapUserToActor(
     roles: { role: string }[];
     teamMemberships: { teamId: string; role: string }[];
   },
+  delegations: readonly DelegationGrant[],
 ): Promise<Actor> {
   if (user.status !== "active") {
     return ANONYMOUS_ACTOR;
@@ -83,6 +85,7 @@ async function mapUserToActor(
         teamId: membership.teamId,
         role: membership.role as WorshipTeamRole,
       })),
+    delegations,
   };
 }
 
@@ -103,7 +106,8 @@ export async function loadActorForUser(prisma: PrismaClient, userId: string): Pr
   if (!user) {
     return ANONYMOUS_ACTOR;
   }
-  return mapUserToActor(prisma, user);
+  const delegations = await loadActiveDelegations(prisma, user.id, new Date());
+  return mapUserToActor(prisma, user, delegations);
 }
 
 export async function loadActorForAuthUserId(
@@ -117,5 +121,6 @@ export async function loadActorForAuthUserId(
   if (!user) {
     return ANONYMOUS_ACTOR;
   }
-  return mapUserToActor(prisma, user);
+  const delegations = await loadActiveDelegations(prisma, user.id, new Date());
+  return mapUserToActor(prisma, user, delegations);
 }

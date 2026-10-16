@@ -59,6 +59,16 @@ function toEditorItems(items: SetlistItem[]): EditorItem[] {
         label: item.text,
       };
     }
+    if (item.unavailable) {
+      return {
+        id: item.id,
+        kind: "song",
+        songId: item.id,
+        chartId: item.id,
+        selectedKey: "—",
+        label: `${item.title} (indisponível)`,
+      };
+    }
     const artist = item.song.artist ? ` — ${item.song.artist}` : "";
     return {
       id: item.id,

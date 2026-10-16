@@ -63,6 +63,7 @@ export async function listPublicSongs(prisma: PrismaClient): Promise<PublicSongS
   const songs = await prisma.song.findMany({
     where: {
       publicLyrics: true,
+      deletedAt: null,
       charts: { some: { format: "lyrics" } },
     },
     select: { id: true, title: true, artist: true },
@@ -76,7 +77,7 @@ export async function getPublicLyrics(
   songId: string,
 ): Promise<PublicLyrics | undefined> {
   const song = await prisma.song.findFirst({
-    where: { id: songId, publicLyrics: true },
+    where: { id: songId, publicLyrics: true, deletedAt: null },
     include: {
       charts: {
         where: { format: "lyrics" },

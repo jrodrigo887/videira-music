@@ -26,6 +26,7 @@ export type SetlistItemRecord =
       notes?: string;
       songTitle: string;
       songArtist?: string;
+      songDeletedAt?: string | null;
       chartKey: string;
       originUrl?: string;
       imported: boolean;

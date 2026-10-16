@@ -113,6 +113,10 @@ export default async function SetlistDetailPage({ params, searchParams }: Setlis
               <li key={item.id} className="ds-card">
                 {item.kind === "note" ? (
                   <p className="whitespace-pre-wrap text-content">{item.text}</p>
+                ) : item.unavailable ? (
+                  <p className="font-semibold text-content-muted">
+                    {index + 1}. {item.title} (indisponível)
+                  </p>
                 ) : (
                   <div className="space-y-2">
                     <p className="font-semibold text-content">

@@ -31,7 +31,7 @@ export class PrismaMusicRepository implements MusicRepository {
 
   async listSongs(): Promise<Song[]> {
     const rows = await this.prisma.song.findMany({
-      where: { organizationId: this.organizationId },
+      where: { organizationId: this.organizationId, deletedAt: null },
       orderBy: { title: "asc" },
     });
     return rows.map(toDomainSong);
@@ -39,7 +39,7 @@ export class PrismaMusicRepository implements MusicRepository {
 
   async findSongById(id: SongId): Promise<Song | undefined> {
     const row = await this.prisma.song.findFirst({
-      where: { id, organizationId: this.organizationId },
+      where: { id, organizationId: this.organizationId, deletedAt: null },
     });
     return row ? toDomainSong(row) : undefined;
   }

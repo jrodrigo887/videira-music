@@ -131,6 +131,35 @@ describe("role-service", () => {
     ).rejects.toMatchObject({ code: "INVALID_ROLE" });
   });
 
+  it("rejects custom role with org:settings or users:impersonate", async () => {
+    const beforeLogs = await prisma.authAuditLog.count({ where: { action: "role.create" } });
+    await expect(
+      createRole(prisma, admin(), {
+        label: "Financeiro",
+        capabilities: ["org:settings"],
+      }),
+    ).rejects.toMatchObject({ status: 409, code: "ROLE_CAPABILITY_FORBIDDEN" });
+    await expect(
+      createRole(prisma, admin(), {
+        label: "Suporte Ver",
+        capabilities: ["users:impersonate"],
+      }),
+    ).rejects.toMatchObject({ status: 409, code: "ROLE_CAPABILITY_FORBIDDEN" });
+    const afterLogs = await prisma.authAuditLog.count({ where: { action: "role.create" } });
+    expect(afterLogs).toBe(beforeLogs);
+  });
+
+  it("allows custom role with music:delete and users:invite:led", async () => {
+    const created = await createRole(prisma, admin(), {
+      label: "Lider Extra",
+      capabilities: ["music:delete", "users:invite:led"],
+    });
+    expect(created.capabilities).toEqual(
+      expect.arrayContaining(["music:delete", "users:invite:led"]),
+    );
+    await deleteRole(prisma, admin(), created.key);
+  });
+
   it("rejects custom role with admin-only capabilities", async () => {
     const beforeLogs = await prisma.authAuditLog.count({ where: { action: "role.create" } });
     await expect(

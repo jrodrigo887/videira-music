@@ -6,6 +6,12 @@ import type {
   WorshipTeamRole,
 } from "@/types/identity";
 
+export type DelegationGrant = {
+  capabilities: ReadonlyArray<Capability>;
+  teamIds: ReadonlyArray<string>;
+  expiresAt: string;
+};
+
 /** Quem está agindo numa requisição. Toda checagem de permissão parte daqui. */
 export type Actor =
   | { kind: "anonymous" }
@@ -16,6 +22,8 @@ export type Actor =
       roles: ReadonlyArray<string>;
       capabilities: ReadonlyArray<Capability>;
       teams: ReadonlyArray<{ teamId: WorshipTeamId; role: WorshipTeamRole }>;
+      delegations: ReadonlyArray<DelegationGrant>;
+      viewAs?: { realUserId: UserId; expiresAt: string };
     };
 
 export type UserActor = Extract<Actor, { kind: "user" }>;
@@ -61,4 +69,17 @@ export function teamRoleOf(actor: Actor, teamId: WorshipTeamId): WorshipTeamRole
     return undefined;
   }
   return actor.teams.find((team) => team.teamId === teamId)?.role;
+}
+
+export function earliestDelegationExpiry(actor: Actor): string | undefined {
+  if (actor.kind !== "user" || actor.delegations.length === 0) {
+    return undefined;
+  }
+  let earliest = actor.delegations[0].expiresAt;
+  for (const grant of actor.delegations.slice(1)) {
+    if (grant.expiresAt < earliest) {
+      earliest = grant.expiresAt;
+    }
+  }
+  return earliest;
 }

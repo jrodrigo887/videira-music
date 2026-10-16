@@ -5,6 +5,7 @@ type RoleDb = PrismaClient | Prisma.TransactionClient;
 import type { UserActor } from "@/lib/auth/actor";
 import {
   ADMIN_ONLY_CAPABILITIES,
+  ROLE_CAPABILITY_FORBIDDEN,
   type Capability,
   closeCapabilities,
   isCapability,
@@ -84,7 +85,15 @@ function toRoleRecord(row: {
 }
 
 function assertNoAdminOnlyCapabilities(capabilities: readonly Capability[]): void {
-  if (capabilities.some((cap) => ADMIN_ONLY_CAPABILITIES.includes(cap))) {
+  if (capabilities.some((cap) => ROLE_CAPABILITY_FORBIDDEN.includes(cap))) {
+    throw roleError(409, "ROLE_CAPABILITY_FORBIDDEN");
+  }
+  if (
+    capabilities.some(
+      (cap) =>
+        ADMIN_ONLY_CAPABILITIES.includes(cap) && !ROLE_CAPABILITY_FORBIDDEN.includes(cap),
+    )
+  ) {
     throw roleError(409, "ADMIN_ONLY_CAPABILITY");
   }
 }

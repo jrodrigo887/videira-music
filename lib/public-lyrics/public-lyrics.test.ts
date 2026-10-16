@@ -158,6 +158,29 @@ describe("public lyrics queries", () => {
     expect(ids.has("song-public-no-lyrics")).toBe(false);
   });
 
+  it("omits trashed public songs from the catalog", async () => {
+    await seedSong(
+      baseSong("song-trashed-public", "Lixeira pública", true),
+      [
+        {
+          id: "chart-trashed-public",
+          songId: "song-trashed-public",
+          format: "lyrics",
+          key: "G",
+          timeSignature: "4/4",
+          sections: SECTIONS_WITH_CHORDS,
+        },
+      ],
+    );
+    await prisma.song.update({
+      where: { id: "song-trashed-public" },
+      data: { deletedAt: new Date() },
+    });
+    const ids = new Set((await listPublicSongs(prisma)).map((song) => song.id));
+    expect(ids.has("song-trashed-public")).toBe(false);
+    await expect(getPublicLyrics(prisma, "song-trashed-public")).resolves.toBeUndefined();
+  });
+
   it("returns undefined for non-public songs (AUTH-38)", async () => {
     await seedSong(
       baseSong("song-hidden-lyrics", "Oculta", false),
