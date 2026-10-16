@@ -1,3 +1,6 @@
+import { canonicalizeOriginUrl } from "@/lib/persistence/origin-url";
+import type { ChordChart } from "@/types/music";
+
 import { canImport, type ImportAccessState } from "./import-access-policy";
 import { importAccessDeniedResponse } from "./import-access-http";
 import { isImportModuleConfigured } from "./import-module-config";
@@ -33,6 +36,37 @@ export async function gateChartWriteWithOrigin(
 
   const state = await canImport(request);
   return importAccessDeniedResponse(state);
+}
+
+export function chartOriginGateKind(
+  existing: ChordChart | undefined,
+  body: unknown,
+): "allow" | "import" {
+  const bodyHasOrigin = chartPayloadHasOrigin(body);
+
+  if (!existing) {
+    return bodyHasOrigin ? "import" : "allow";
+  }
+
+  const existingUrl = existing.origin?.url
+    ? canonicalizeOriginUrl(existing.origin.url)
+    : null;
+  const bodyUrlRaw = extractOriginUrl(body);
+  const bodyUrl = bodyUrlRaw ? canonicalizeOriginUrl(bodyUrlRaw) : null;
+
+  if (!bodyHasOrigin) {
+    return existingUrl ? "import" : "allow";
+  }
+
+  if (existingUrl && bodyUrl && existingUrl === bodyUrl) {
+    return "allow";
+  }
+
+  if (!existingUrl && !bodyUrl) {
+    return "allow";
+  }
+
+  return "import";
 }
 
 function extractOriginUrl(body: unknown): string | null {

@@ -284,11 +284,11 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] Same canonical `originUrl`, including a hash on the body URL, returns `allow`
-- [ ] A missing chart with `origin`, a changed URL, and a body that drops `origin` return `import`
-- [ ] A missing chart without `origin` returns `allow`
-- [ ] Gate check passes: `npm test -- lib/import-access/chart-origin-gate.test.ts`
-- [ ] Test count: at least 4 tests pass
+- [x] Same canonical `originUrl`, including a hash on the body URL, returns `allow`
+- [x] A missing chart with `origin`, a changed URL, and a body that drops `origin` return `import`
+- [x] A missing chart without `origin` returns `allow`
+- [x] Gate check passes: `npm test -- lib/import-access/chart-origin-gate.test.ts`
+- [x] Test count: at least 4 tests pass
 
 **Tests**: unit
 **Gate**: quick
@@ -312,17 +312,17 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] No actor returns `401 UNAUTHENTICATED`
-- [ ] An actor without `music:write` returns `403 FORBIDDEN`
-- [ ] Same `originUrl`, with `music:write` and without `import`, and with the import flag off, returns `204` and writes no `ImportLog`
-- [ ] The saved row keeps the same `id`. A following read returns the new sections
-- [ ] A key outside `TONALITY_OPTIONS` returns `422 VALIDATION_FAILED`
-- [ ] A body `songId` different from the stored chart returns `422 VALIDATION_FAILED`
-- [ ] Creating with `origin`, or changing `originUrl`, returns `404 NOT_FOUND` when the flag is off and `401 IMPORT_LOCKED` when the actor lacks `import`
-- [ ] An invalid body returns `422 VALIDATION_FAILED`
-- [ ] No log line contains the chart source text
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: at least 8 tests pass in the route file
+- [x] No actor returns `401 UNAUTHENTICATED`
+- [x] An actor without `music:write` returns `403 FORBIDDEN`
+- [x] Same `originUrl`, with `music:write` and without `import`, and with the import flag off, returns `204` and writes no `ImportLog`
+- [x] The saved row keeps the same `id`. A following read returns the new sections
+- [x] A key outside `TONALITY_OPTIONS` returns `422 VALIDATION_FAILED`
+- [x] A body `songId` different from the stored chart returns `422 VALIDATION_FAILED`
+- [x] Creating with `origin`, or changing `originUrl`, returns `404 NOT_FOUND` when the flag is off and `401 IMPORT_LOCKED` when the actor lacks `import`
+- [x] An invalid body returns `422 VALIDATION_FAILED`
+- [x] No log line contains the chart source text
+- [x] Gate check passes: `npm test`
+- [x] Test count: at least 8 tests pass in the route file
 
 **Tests**: integration
 **Gate**: full
@@ -348,16 +348,16 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] The first render shows the stored source, key, capo, and section labels without calling `previewImport`
-- [ ] Changing the text reparses, resets section types to the parser result, and keeps the key and capo controls
-- [ ] A section type, key, or capo changed after that parse is still there at save time
-- [ ] Empty text shows `Informe o texto da cifra.` and does not call `saveChart`
-- [ ] A text over 500 KiB UTF-8 shows `O texto deve ter no máximo 500 KiB.` and does not call `saveChart`
-- [ ] Parser warnings are listed before save
-- [ ] A failed `saveChart` leaves the draft on screen and does not call `onSaved`
-- [ ] A successful save calls `saveChart` with the same chart id and the edited source
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: at least 7 tests pass
+- [x] The first render shows the stored source, key, capo, and section labels without calling `previewImport`
+- [x] Changing the text reparses, resets section types to the parser result, and keeps the key and capo controls
+- [x] A section type, key, or capo changed after that parse is still there at save time
+- [x] Empty text shows `Informe o texto da cifra.` and does not call `saveChart`
+- [x] A text over 500 KiB UTF-8 shows `O texto deve ter no máximo 500 KiB.` and does not call `saveChart`
+- [x] Parser warnings are listed before save
+- [x] A failed `saveChart` leaves the draft on screen and does not call `onSaved`
+- [x] A successful save calls `saveChart` with the same chart id and the edited source
+- [x] Gate check passes: `npm test`
+- [x] Test count: at least 7 tests pass
 
 **Tests**: integration
 **Gate**: full
@@ -381,13 +381,13 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] A persisted lyrics chart with source shows `Editar cifra` when `canEditMusic` is true
-- [ ] The control is absent when `canEditMusic` is false, when the chart is an example, when the format is `grid`, and when `source` is missing
-- [ ] Two persisted lyrics charts each show their own control
-- [ ] While one editor is open, the other chart's control is disabled
-- [ ] After a successful save, the page reloads the charts and closes the editor
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: at least 5 tests pass in the song detail file
+- [x] A persisted lyrics chart with source shows `Editar cifra` when `canEditMusic` is true
+- [x] The control is absent when `canEditMusic` is false, when the chart is an example, when the format is `grid`, and when `source` is missing
+- [x] Two persisted lyrics charts each show their own control
+- [x] While one editor is open, the other chart's control is disabled
+- [x] After a successful save, the page reloads the charts and closes the editor
+- [x] Gate check passes: `npm test`
+- [x] Test count: at least 5 tests pass in the song detail file
 
 **Tests**: integration
 **Gate**: full
