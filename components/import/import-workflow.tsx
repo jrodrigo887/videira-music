@@ -4,6 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 
 import { ChordChartPreview } from "@/components/chord-chart/chord-chart-preview";
 import { PublicVisibilityField } from "@/components/songs/public-visibility-field";
+import {
+  SECTION_TYPE_OPTIONS,
+  TONALITY_OPTIONS,
+} from "@/lib/charts/chart-edit-options";
 import { previewImport } from "@/lib/import/preview-import";
 import {
   saveImportedChart,
@@ -17,54 +21,6 @@ import type { ImportDraft } from "@/types/import";
 import type { ChordChart, SectionType, Song } from "@/types/music";
 
 const MAX_TEXT_BYTES = 500 * 1024;
-
-const SECTION_TYPES: { value: SectionType; label: string }[] = [
-  { value: "intro", label: "Introdução" },
-  { value: "verse", label: "Verso" },
-  { value: "preChorus", label: "Pré-refrão" },
-  { value: "chorus", label: "Refrão" },
-  { value: "bridge", label: "Ponte" },
-  { value: "instrumental", label: "Instrumental" },
-  { value: "solo", label: "Solo" },
-  { value: "ending", label: "Final" },
-];
-
-const TONALITY_OPTIONS = [
-  "C",
-  "C#",
-  "Db",
-  "D",
-  "D#",
-  "Eb",
-  "E",
-  "F",
-  "F#",
-  "Gb",
-  "G",
-  "G#",
-  "Ab",
-  "A",
-  "A#",
-  "Bb",
-  "B",
-  "Cm",
-  "C#m",
-  "Dbm",
-  "Dm",
-  "D#m",
-  "Ebm",
-  "Em",
-  "Fm",
-  "F#m",
-  "Gbm",
-  "Gm",
-  "G#m",
-  "Abm",
-  "Am",
-  "A#m",
-  "Bbm",
-  "Bm",
-];
 
 const EMPTY_INITIAL_SONGS: Song[] = [];
 
@@ -400,7 +356,7 @@ export function ImportWorkflow({
               onChange={(event) => changeSectionType(section.id, event.target.value as SectionType)}
               className="ds-input mt-2"
             >
-              {SECTION_TYPES.map((option) => (
+              {SECTION_TYPE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>

@@ -116,10 +116,10 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] The local `TONALITY_OPTIONS` and `SECTION_TYPES` arrays are gone from the workflow
-- [ ] The review still offers the same tom select and the same section types
-- [ ] Gate check passes: `npm test -- components/import/import-workflow.test.tsx`
-- [ ] Test count: the existing workflow file passes with no deleted tests
+- [x] The local `TONALITY_OPTIONS` and `SECTION_TYPES` arrays are gone from the workflow
+- [x] The review still offers the same tom select and the same section types
+- [x] Gate check passes: `npm test -- components/import/import-workflow.test.tsx`
+- [x] Test count: the existing workflow file passes with no deleted tests
 
 **Tests**: integration
 **Gate**: full
