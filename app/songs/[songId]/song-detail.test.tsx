@@ -63,6 +63,7 @@ function persistedChart(songId: string): ChordChart {
         },
       },
     ],
+    source: "[Verso]\nG\nLetra inventada",
     origin: {
       kind: "url",
       url: "https://www.cifraclub.com.br/artista/cancao/",
@@ -343,6 +344,108 @@ describe("SongDetail", () => {
     );
     expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
     expect(screen.queryByRole("navigation", { name: "Navegação no setlist" })).not.toBeInTheDocument();
+  });
+
+  it("shows Editar cifra for persisted lyrics charts with source when canEditMusic is true", async () => {
+    const chart = persistedChart(SEED_SONG.id);
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        canEditMusic
+        repository={new InMemoryMusicRepository([SEED_SONG], [chart])}
+      />,
+    );
+
+    expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Editar cifra" }).length).toBeGreaterThan(0);
+  });
+
+  it("hides Editar cifra without music:write or without persisted source", async () => {
+    const chart = persistedChart(SEED_SONG.id);
+    const withoutSource: ChordChart = { ...chart, source: undefined };
+    const gridChart: ChordChart = { ...chart, id: "chart-grid", format: "grid" };
+
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        repository={new InMemoryMusicRepository([SEED_SONG], [chart])}
+      />,
+    );
+    expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Editar cifra" })).not.toBeInTheDocument();
+
+    cleanup();
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        canEditMusic
+        repository={new InMemoryMusicRepository([SEED_SONG], [withoutSource])}
+      />,
+    );
+    expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Editar cifra" })).not.toBeInTheDocument();
+
+    cleanup();
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        canEditMusic
+        repository={new InMemoryMusicRepository([SEED_SONG], [gridChart])}
+      />,
+    );
+    expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Editar cifra" })).not.toBeInTheDocument();
+  });
+
+  it("offers Editar cifra on each persisted lyrics chart and disables the other while editing", async () => {
+    const first = persistedChart(SEED_SONG.id);
+    const second: ChordChart = {
+      ...persistedChart(SEED_SONG.id),
+      id: "chart-second",
+      title: "Segunda cifra",
+      source: "[Refrão]\nC\nOutra letra",
+    };
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        canEditMusic
+        repository={new InMemoryMusicRepository([SEED_SONG], [first, second])}
+      />,
+    );
+
+    expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
+    const editButtons = screen.getAllByRole("button", { name: "Editar cifra" });
+    expect(editButtons.length).toBeGreaterThanOrEqual(2);
+
+    fireEvent.click(editButtons[0]);
+    expect(screen.getByRole("region", { name: "Editor de cifra" })).toBeInTheDocument();
+    expect(editButtons[1]).toBeDisabled();
+  });
+
+  it("reloads charts and closes the editor after a successful save", async () => {
+    const chart = persistedChart(SEED_SONG.id);
+    const repository = new InMemoryMusicRepository([SEED_SONG], [chart]);
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        canEditMusic
+        repository={repository}
+      />,
+    );
+
+    expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole("button", { name: "Editar cifra" })[0]);
+    fireEvent.change(screen.getByLabelText("Texto da cifra"), {
+      target: { value: "[Verso]\nA\nLetra atualizada" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Salvar cifra" }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("region", { name: "Editor de cifra" })).not.toBeInTheDocument();
+    });
+    await expect(repository.findChartById(chart.id)).resolves.toMatchObject({
+      source: "[Verso]\nA\nLetra atualizada",
+    });
   });
 
   it("shows a retryable error when the repository fails", async () => {

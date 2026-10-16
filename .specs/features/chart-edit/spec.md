@@ -6,9 +6,9 @@ A cifra gravada não pode ser corrigida. O import só revisa o texto antes do pr
 
 ## Goals
 
-- [ ] Quem tem `music:write` corrige letra e acordes de uma cifra com letra já salva.
-- [ ] O save grava na mesma cifra. Setlists que apontam para ela mostram a correção. O selo Importada e o link da fonte permanecem.
-- [ ] Buscar cifra nova continua exigindo a capacidade `import`.
+- [x] Quem tem `music:write` corrige letra e acordes de uma cifra com letra já salva.
+- [x] O save grava na mesma cifra. Setlists que apontam para ela mostram a correção. O selo Importada e o link da fonte permanecem.
+- [x] Buscar cifra nova continua exigindo a capacidade `import`.
 
 ## Out of Scope
 
@@ -150,29 +150,29 @@ A cifra gravada não pode ser corrigida. O import só revisa o texto antes do pr
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| CED-01 | P1: Abrir o editor | T11 | In Tasks |
-| CED-02 | P1: Abrir o editor | T11 | In Tasks |
-| CED-03 | P1: Abrir o editor | T11 | In Tasks |
-| CED-04 | P1: Abrir o editor | T10 | In Tasks |
-| CED-05 | P1: Corrigir e revisar | T10 | In Tasks |
-| CED-06 | P1: Corrigir e revisar | T10 | In Tasks |
-| CED-07 | P1: Corrigir e revisar | T10 | In Tasks |
-| CED-08 | P1: Corrigir e revisar | T10 | In Tasks |
-| CED-09 | P1: Corrigir e revisar | T10 | In Tasks |
-| CED-10 | P1: Corrigir e revisar | T3 | In Tasks |
-| CED-11 | P1: Gravar na mesma cifra | T3 | In Tasks |
-| CED-12 | P1: Gravar na mesma cifra | T3 | In Tasks |
-| CED-13 | P1: Gravar na mesma cifra | T3 | In Tasks |
-| CED-14 | P1: Gravar na mesma cifra | T9 | In Tasks |
-| CED-15 | P1: Gravar na mesma cifra | T1, T9 | In Tasks |
-| CED-16 | P1: Permissão no servidor | T9 | In Tasks |
-| CED-17 | P1: Permissão no servidor | T9 | In Tasks |
-| CED-18 | P1: Permissão no servidor | T8, T9 | In Tasks |
-| CED-19 | P1: Permissão no servidor | T8, T9 | In Tasks |
-| CED-20 | P1: Permissão no servidor | T8, T9 | In Tasks |
-| CED-21 | P1: Permissão no servidor | T9 | In Tasks |
-| CED-22 | P1: Permissão no servidor | T10 | In Tasks |
-| CED-23 | P1: Permissão no servidor | T9 | In Tasks |
+| CED-01 | P1: Abrir o editor | T11 | Done |
+| CED-02 | P1: Abrir o editor | T11 | Done |
+| CED-03 | P1: Abrir o editor | T11 | Done |
+| CED-04 | P1: Abrir o editor | T10 | Done |
+| CED-05 | P1: Corrigir e revisar | T10 | Done |
+| CED-06 | P1: Corrigir e revisar | T10 | Done |
+| CED-07 | P1: Corrigir e revisar | T10 | Done |
+| CED-08 | P1: Corrigir e revisar | T10 | Done |
+| CED-09 | P1: Corrigir e revisar | T10 | Done |
+| CED-10 | P1: Corrigir e revisar | T3 | Done |
+| CED-11 | P1: Gravar na mesma cifra | T3 | Done |
+| CED-12 | P1: Gravar na mesma cifra | T3 | Done |
+| CED-13 | P1: Gravar na mesma cifra | T3 | Done |
+| CED-14 | P1: Gravar na mesma cifra | T9 | Done |
+| CED-15 | P1: Gravar na mesma cifra | T1, T9 | Done |
+| CED-16 | P1: Permissão no servidor | T9 | Done |
+| CED-17 | P1: Permissão no servidor | T9 | Done |
+| CED-18 | P1: Permissão no servidor | T8, T9 | Done |
+| CED-19 | P1: Permissão no servidor | T8, T9 | Done |
+| CED-20 | P1: Permissão no servidor | T8, T9 | Done |
+| CED-21 | P1: Permissão no servidor | T9 | Done |
+| CED-22 | P1: Permissão no servidor | T10 | Done |
+| CED-23 | P1: Permissão no servidor | T9 | Done |
 
 **Coverage:** 23 total, 23 mapped to tasks, 0 unmapped.
 
@@ -180,7 +180,7 @@ A cifra gravada não pode ser corrigida. O import só revisa o texto antes do pr
 
 ## Success Criteria
 
-- [ ] Um ator com `music:write` e sem `import` corrige uma cifra importada e recebe `204`.
-- [ ] O setlist que usa essa cifra mostra o texto novo, com o mesmo selo e o mesmo link.
-- [ ] Trocar a `originUrl` sem permissão de import não grava.
-- [ ] Grade, cifra de exemplo e ator sem `music:write` não abrem o editor.
+- [x] Um ator com `music:write` e sem `import` corrige uma cifra importada e recebe `204`.
+- [x] O setlist que usa essa cifra mostra o texto novo, com o mesmo selo e o mesmo link.
+- [x] Trocar a `originUrl` sem permissão de import não grava.
+- [x] Grade, cifra de exemplo e ator sem `music:write` não abrem o editor.

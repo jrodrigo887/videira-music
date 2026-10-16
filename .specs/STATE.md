@@ -98,10 +98,19 @@
 - **Supersedes:** AD-009.
 - **Date:** 2026-10-15
 
+### AD-013: Correção de cifra não é importação nova
+
+- **Status:** active
+- **Decision:** Atualizar uma cifra já gravada, mantendo a mesma `originUrl` canônica, exige só `music:write`. Criar uma cifra com `origin`, ou trocar a `originUrl`, continua no gate de import: flag ligada e capacidade `import`. A correção não grava `ImportLog`.
+- **Rationale:** Editar música e importar já são capacidades diferentes. Corrigir letra e acordes não busca fonte nova e não pode depender da flag de import.
+- **Trade-off:** Quem tem `music:write` altera o texto de uma cifra importada. O selo e o link da fonte permanecem. Tirar ou trocar a origem continua uma ação de import.
+- **Scope:** `chart-edit` e toda escrita de `ChordChart` que carregue `origin`.
+- **Date:** 2026-10-16
+
 ## Handoff
 
-- **Feature em execução:** nenhuma (admin-access fechada com Verifier **PASS** em 2026-10-15).
-- **Completed (recente):** `admin-access` — catálogo de papéis, pedido de acesso, política por capacidade (`validation.md` PASS).
+- **Feature em execução:** `chart-edit` — implementada (T1–T11 em `main`); Verifier pendente (`validation.md`).
+- **Completed (recente):** `chart-edit` — edição de cifra salva na página da música, gate de mesma origem no `PUT`.
 - **Features ativas:** `import-access` (`.specs/features/import-access/`): implementada, verificação **PARTIAL** (`validation.md`).
 - **Completed:** `server-persistence` implementada e mergeada (PR #1); `chart-import` verificada (PASS 2026-10-09).
 - **Próximo passo:** fechar G1-G3 de `import-access/tasks.md` (testes do gate de cifra, `ImportLog` e rota de sessão); depois auditar os testes faltantes da `server-persistence` (rotas, repositório Prisma, HttpMusicRepository, migração, PER-15).

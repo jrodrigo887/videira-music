@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ChordChartPreview } from "@/components/chord-chart/chord-chart-preview";
 import { SetlistNeighborsNav } from "@/components/setlists/setlist-neighbors-nav";
+import { ChartEditor } from "@/components/songs/chart-editor";
 import { ChartDisplaySettingsPanel } from "@/components/songs/chart-display-settings-panel";
 import { PublicVisibilityField } from "@/components/songs/public-visibility-field";
 import { buildExampleCharts } from "@/lib/charts/example-charts";
@@ -81,6 +82,7 @@ export function SongDetail({
   const [publicLyricsDirty, setPublicLyricsDirty] = useState(false);
   const [publicLyricsSaving, setPublicLyricsSaving] = useState(false);
   const [publicLyricsError, setPublicLyricsError] = useState<string>();
+  const [editingChartId, setEditingChartId] = useState<string | null>(null);
 
   const updateDisplaySettings = useCallback((next: ChartDisplaySettings) => {
     setDisplaySettings(next);
@@ -311,6 +313,11 @@ export function SongDetail({
             state.charts.length > 1
               ? (chart.title?.trim() || `Cifra ${chartIndex + 1}`)
               : "Cifra";
+          const showEditControl =
+            canEditMusic &&
+            state.persistedCharts &&
+            chart.format === "lyrics" &&
+            Boolean(chart.source?.trim());
 
           return (
             <section key={chart.id} className="px-3 py-3">
@@ -328,6 +335,16 @@ export function SongDetail({
                   </span>
                 ) : null}
               </div>
+              {showEditControl ? (
+                <button
+                  type="button"
+                  className="mt-3 text-xs font-semibold text-primary transition hover:underline disabled:cursor-not-allowed disabled:text-content-muted disabled:no-underline"
+                  disabled={editingChartId !== null && editingChartId !== chart.id}
+                  onClick={() => setEditingChartId(chart.id)}
+                >
+                  Editar cifra
+                </button>
+              ) : null}
             </section>
           );
         })}
@@ -570,41 +587,82 @@ export function SongDetail({
             ) : null}
           </div>
 
-          {state.charts.map((chart, index) => (
-            <div
-              key={chart.id}
-              className={
-                index === 0
-                  ? "space-y-3 sm:mt-6 sm:border-t sm:border-border sm:pt-6"
-                  : "mt-6 space-y-3 border-t border-border pt-6 sm:mt-8 sm:pt-8"
-              }
-            >
-              {chart.origin?.url ? (
-                <p className="text-sm text-content-muted">
-                  Fonte:{" "}
-                  <a
-                    href={chart.origin.url}
-                    className="ds-link"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {chart.origin.sourceName ?? "Origem"}
-                  </a>
-                </p>
-              ) : null}
-              <ChordChartPreview
-                chart={chart}
-                layout="embedded"
-                semitones={semitones}
-                onSemitonesChange={setSemitones}
-                syncDisplayKeyBase={baseKey}
-                showTransposeControls={false}
-                showDiagrams={showDiagrams}
-                columns={columns}
-                displaySettings={displaySettings}
-              />
-            </div>
-          ))}
+          {state.charts.map((chart, index) => {
+            const showEditControl =
+              canEditMusic &&
+              state.persistedCharts &&
+              chart.format === "lyrics" &&
+              Boolean(chart.source?.trim());
+
+            return (
+              <div
+                key={chart.id}
+                className={
+                  index === 0
+                    ? "space-y-3 sm:mt-6 sm:border-t sm:border-border sm:pt-6"
+                    : "mt-6 space-y-3 border-t border-border pt-6 sm:mt-8 sm:pt-8"
+                }
+              >
+                {chart.origin?.url ? (
+                  <p className="text-sm text-content-muted">
+                    Fonte:{" "}
+                    <a
+                      href={chart.origin.url}
+                      className="ds-link"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {chart.origin.sourceName ?? "Origem"}
+                    </a>
+                  </p>
+                ) : null}
+                {showEditControl ? (
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      className="ds-button-secondary text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={editingChartId !== null && editingChartId !== chart.id}
+                      onClick={() => setEditingChartId(chart.id)}
+                    >
+                      Editar cifra
+                    </button>
+                    {editingChartId === chart.id ? (
+                      <button
+                        type="button"
+                        className="text-sm font-semibold text-content-muted transition hover:text-content"
+                        onClick={() => setEditingChartId(null)}
+                      >
+                        Fechar editor
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
+                {editingChartId === chart.id ? (
+                  <ChartEditor
+                    chart={chart}
+                    repository={repository}
+                    onCancel={() => setEditingChartId(null)}
+                    onSaved={() => {
+                      setEditingChartId(null);
+                      reload();
+                    }}
+                  />
+                ) : (
+                  <ChordChartPreview
+                    chart={chart}
+                    layout="embedded"
+                    semitones={semitones}
+                    onSemitonesChange={setSemitones}
+                    syncDisplayKeyBase={baseKey}
+                    showTransposeControls={false}
+                    showDiagrams={showDiagrams}
+                    columns={columns}
+                    displaySettings={displaySettings}
+                  />
+                )}
+              </div>
+            );
+          })}
 
           {setlistContext ? <SetlistNeighborsNav setlistContext={setlistContext} /> : null}
         </article>
