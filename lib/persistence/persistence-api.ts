@@ -139,6 +139,7 @@ export function wrapPersistenceRoute(
 
 export {
   assertImportWriteAllowed,
+  chartOriginGateKind,
   chartPayloadHasOrigin,
   gateChartWriteWithOrigin,
   recordFailedChartSave,
