@@ -54,6 +54,40 @@ describe("proxy login wall", () => {
   });
 });
 
+describe("proxy access request submission", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("allows POST /api/access-requests without session when the login wall is on", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("DEV_LOCALHOST", "true");
+
+    const response = proxy(
+      new NextRequest("http://localhost/api/access-requests", {
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+  });
+
+  it("redirects POST /api/access-requests/:id/approve without session", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("DEV_LOCALHOST", "true");
+
+    const response = proxy(
+      new NextRequest("http://localhost/api/access-requests/abc/approve", {
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toContain("/entrar");
+  });
+});
+
 describe("proxy invite rate limit (AUTH-20)", () => {
   afterEach(() => {
     resetInviteTokenRateLimiterForTests();

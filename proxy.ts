@@ -15,6 +15,14 @@ function isPublicPath(pathname: string): boolean {
   return PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
+/** Ticket-authenticated submission; must not match approve/reject subpaths. */
+function isPublicAccessRequestSubmission(
+  pathname: string,
+  method: string,
+): boolean {
+  return pathname === "/api/access-requests" && method === "POST";
+}
+
 export function proxy(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
 
@@ -31,6 +39,7 @@ export function proxy(request: NextRequest): NextResponse {
 
   if (
     isPublicPath(pathname) ||
+    isPublicAccessRequestSubmission(pathname, request.method) ||
     isDevLocalhost({
       NODE_ENV: process.env.NODE_ENV,
       DEV_LOCALHOST: process.env.DEV_LOCALHOST,
