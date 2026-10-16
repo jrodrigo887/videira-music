@@ -12,12 +12,11 @@ afterEach(() => {
 
 import { RolesPanel } from "./roles-panel";
 
-import { CAPABILITIES } from "@/lib/auth/capabilities";
 import type { RoleRecord } from "@/lib/roles/role-service";
-import { CAPABILITY_LABELS, CUSTOM_ROLE_MATCHES_ADMIN_MESSAGE } from "./user-admin-shared";
+import { ADMIN_ONLY_CAPABILITY_MESSAGE } from "./user-admin-shared";
 
 const roles: RoleRecord[] = [
-  { key: "admin", label: "Administrador", system: true, capabilities: ["users:manage"] },
+  { key: "admin", label: "Administrador", system: true, capabilities: [] },
   { key: "custom", label: "Custom", system: false, capabilities: [] },
 ];
 
@@ -65,7 +64,7 @@ describe("RolesPanel", () => {
     expect(screen.getByRole("button", { name: "Editar" })).toBeInTheDocument();
   });
 
-  it("disables create when all admin capabilities are selected", () => {
+  it("keeps admin-only capabilities disabled in the create form", () => {
     render(
       <RolesPanel
         initialRoles={roles}
@@ -76,15 +75,11 @@ describe("RolesPanel", () => {
         onRefresh={async () => undefined}
       />,
     );
-    for (const cap of CAPABILITIES) {
-      const label = CAPABILITY_LABELS[cap] ?? cap;
-      fireEvent.click(screen.getByRole("checkbox", { name: label }));
-    }
-    expect(screen.getByRole("button", { name: "Criar papel" })).toBeDisabled();
-    expect(screen.getByRole("alert")).toHaveTextContent(CUSTOM_ROLE_MATCHES_ADMIN_MESSAGE);
+    expect(screen.getByRole("checkbox", { name: /Área de usuário/ })).toBeDisabled();
+    expect(screen.getAllByText(ADMIN_ONLY_CAPABILITY_MESSAGE).length).toBeGreaterThan(0);
   });
 
-  it("disables save on edit when all admin capabilities are selected", () => {
+  it("shows dependency warning when removing a base capability", () => {
     render(
       <RolesPanel
         initialRoles={roles}
@@ -95,12 +90,18 @@ describe("RolesPanel", () => {
         onRefresh={async () => undefined}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Editar" }));
-    for (const cap of CAPABILITIES) {
-      const label = CAPABILITY_LABELS[cap] ?? cap;
-      fireEvent.click(screen.getAllByRole("checkbox", { name: label })[1]);
-    }
-    expect(screen.getByRole("button", { name: "Salvar" })).toBeDisabled();
-    expect(screen.getByRole("alert")).toHaveTextContent(CUSTOM_ROLE_MATCHES_ADMIN_MESSAGE);
+    const importBox = screen.getAllByRole("checkbox").find((node) =>
+      node.closest("label")?.textContent?.includes("Importar"),
+    );
+    const musicWriteBox = screen.getAllByRole("checkbox").find((node) =>
+      node.closest("label")?.textContent?.includes("Editar músicas"),
+    );
+    expect(importBox).toBeDefined();
+    expect(musicWriteBox).toBeDefined();
+    fireEvent.click(importBox!);
+    fireEvent.click(musicWriteBox!);
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Desmarcar esta capacidade também desmarca as que dependem dela.",
+    );
   });
 });

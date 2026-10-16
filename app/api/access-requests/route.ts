@@ -7,15 +7,40 @@ import {
 } from "@/lib/access-requests/access-ticket";
 import {
   isAccessRequestServiceError,
+  listPendingAccessRequests,
   submitAccessRequest,
 } from "@/lib/access-requests/access-request-service";
-import { ensureDefaultOrganization } from "@/lib/persistence/organization-scope";
+import { forbiddenResponse, requirePermission } from "@/lib/auth/api-guard";
+import { DEFAULT_ORGANIZATION_ID, ensureDefaultOrganization } from "@/lib/persistence/organization-scope";
 import { getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const SUCCESS_MESSAGE = "Pedido enviado. Aguarde o administrador liberar o acesso.";
+
+export async function GET(): Promise<Response> {
+  if (!isDatabaseConfigured()) {
+    return Response.json({ error: { code: "DATABASE_NOT_CONFIGURED" } }, { status: 503 });
+  }
+  const gate = await requirePermission("user.manage", DEFAULT_ORGANIZATION_ID);
+  if ("response" in gate) {
+    return gate.response;
+  }
+  const prisma = getPrisma();
+  try {
+    const requests = await listPendingAccessRequests(prisma, gate.actor);
+    return Response.json({ requests });
+  } catch (error) {
+    if (isAccessRequestServiceError(error)) {
+      if (error.status === 403) {
+        return forbiddenResponse();
+      }
+      return Response.json({ error: { code: error.code } }, { status: error.status });
+    }
+    throw error;
+  }
+}
 
 export async function POST(): Promise<Response> {
   if (!isDatabaseConfigured()) {

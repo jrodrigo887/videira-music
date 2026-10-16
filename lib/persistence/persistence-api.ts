@@ -74,11 +74,6 @@ type PersistenceRouteMeta = {
   permission?: Permission;
 };
 
-export function withPersistenceRoute(meta: PersistenceRouteMeta, handler: RouteHandler): RouteHandler {
-  void meta;
-  return handler;
-}
-
 export function logPersistenceError(meta: {
   route: string;
   method: string;
@@ -102,16 +97,16 @@ export function wrapPersistenceRoute(
   handler: RouteHandler,
 ): RouteHandler {
   return async (request: Request, context?: unknown) => {
-    if (meta.permission) {
-      const gate = await requireActor();
-      if ("response" in gate) {
-        return gate.response;
-      }
-      if (
-        !can(gate.actor, meta.permission, { organizationId: gate.actor.organizationId })
-      ) {
-        return forbiddenResponse();
-      }
+    if (!meta.permission) {
+      return forbiddenResponse();
+    }
+
+    const gate = await requireActor();
+    if ("response" in gate) {
+      return gate.response;
+    }
+    if (!can(gate.actor, meta.permission, { organizationId: gate.actor.organizationId })) {
+      return forbiddenResponse();
     }
 
     const started = Date.now();

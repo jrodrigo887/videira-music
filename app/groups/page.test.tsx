@@ -12,14 +12,19 @@ vi.mock("next/navigation", () => ({
 }));
 
 const createDepsMock = vi.hoisted(() => vi.fn());
+const getCurrentActorMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@/lib/auth/current-actor", () => ({
+  getCurrentActor: getCurrentActorMock,
+}));
 
 vi.mock("@/lib/setlists/setlist-route-deps", () => ({
   createSetlistRouteDependencies: () => createDepsMock(),
 }));
 
+import { testUserActor } from "@/lib/auth/test-actor";
 import {
   createRouteTestContext,
-  withSimulatedUser,
   type RouteTestContext,
 } from "@/lib/setlists/route-test-helpers";
 
@@ -30,6 +35,14 @@ let context: RouteTestContext;
 beforeEach(async () => {
   context = await createRouteTestContext("user-admin");
   createDepsMock.mockReturnValue(context.dependencies);
+  getCurrentActorMock.mockResolvedValue(
+    testUserActor({
+      userId: "user-admin",
+      organizationId: "org-default",
+      roles: ["admin"],
+      teams: [],
+    }),
+  );
 });
 
 afterEach(async () => {
@@ -46,10 +59,17 @@ describe("GroupsPage", () => {
     expect(screen.getByText("Jovens")).toBeInTheDocument();
   });
 
-  it("shows restricted copy for non-admin", async () => {
-    createDepsMock.mockReturnValue(withSimulatedUser(context, "user-musician"));
+  it("shows no-access for musician", async () => {
+    getCurrentActorMock.mockResolvedValue(
+      testUserActor({
+        userId: "user-musician",
+        organizationId: "org-default",
+        roles: ["musician"],
+        teams: [],
+      }),
+    );
     render(await GroupsPage());
-    expect(screen.getByText("Acesso restrito ao administrador da igreja.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Você não tem acesso a esta área" })).toBeInTheDocument();
   });
 
   it("lists active teams in the active section", async () => {

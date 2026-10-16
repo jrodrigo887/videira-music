@@ -7,10 +7,17 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
+const redirectMock = vi.hoisted(() =>
+  vi.fn((url: string) => {
+    throw Object.assign(new Error(`NEXT_REDIRECT:${url}`), { digest: url });
+  }),
+);
+
 vi.mock("next/navigation", () => ({
   notFound: () => {
     throw Object.assign(new Error("NEXT_NOT_FOUND"), { digest: "NEXT_NOT_FOUND" });
   },
+  redirect: redirectMock,
   useRouter: () => ({ refresh: vi.fn() }),
 }));
 
@@ -40,14 +47,14 @@ describe("ImportPage", () => {
     await expect(ImportPage()).rejects.toMatchObject({ digest: "NEXT_NOT_FOUND" });
   });
 
-  it("throws notFound when the user is not logged in", async () => {
+  it("redirects to login when the user is not logged in", async () => {
     vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
     getCurrentActorMock.mockResolvedValue({ kind: "anonymous" });
 
-    await expect(ImportPage()).rejects.toMatchObject({ digest: "NEXT_NOT_FOUND" });
+    await expect(ImportPage()).rejects.toMatchObject({ digest: "/entrar?next=%2Fimport" });
   });
 
-  it("shows permission message for musician", async () => {
+  it("shows no-access for musician", async () => {
     vi.stubEnv("VIDEIRA_ENABLE_IMPORT", "true");
     getCurrentActorMock.mockResolvedValue(
       testUserActor({
@@ -60,7 +67,7 @@ describe("ImportPage", () => {
 
     render(await ImportPage());
 
-    expect(screen.getByText("Sem permissão para importar.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Você não tem acesso a esta área" })).toBeInTheDocument();
   });
 
   it("shows the import workflow for worship leader", async () => {

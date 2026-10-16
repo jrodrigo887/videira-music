@@ -25,12 +25,15 @@ const baseProps = {
   invites: [],
   requests: [],
   roles: [
-    { key: "admin", label: "Administrador", system: true, capabilities: ["users:manage"] },
+    { key: "admin", label: "Administrador", system: true, capabilities: [] },
     { key: "musician", label: "Músico", system: true, capabilities: [] },
   ] satisfies RoleRecord[],
   teams: [],
   canGrantAdmin: true,
   canEditCatalog: true,
+  canChangeRoles: true,
+  showRequestsTab: true,
+  showRolesTab: true,
   currentUserId: "user-admin",
   initialTab: "membros" as const,
 };
@@ -53,5 +56,18 @@ describe("UsersAdmin tabs", () => {
     render(<UsersAdmin {...baseProps} />);
     screen.getByRole("button", { name: "Papéis" }).click();
     expect(replaceMock).toHaveBeenCalledWith("/usuarios?aba=papeis");
+  });
+
+  it("hides Pedidos and Papéis without those capabilities", () => {
+    render(
+      <UsersAdmin
+        {...baseProps}
+        showRequestsTab={false}
+        showRolesTab={false}
+        initialTab="membros"
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "Pedidos" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Papéis" })).not.toBeInTheDocument();
   });
 });

@@ -41,7 +41,7 @@ describe("/api/roles/[key]", () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.role.label).toBe("Atualizado");
-    expect(body.role.capabilities).toEqual(["import"]);
+    expect(body.role.capabilities).toEqual(expect.arrayContaining(["import", "music:write"]));
   });
 
   it("DELETE removes unused role", async () => {

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Atkinson_Hyperlegible, JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
 
-import { hasCapability } from "@/lib/auth/actor";
 import { getCurrentActor } from "@/lib/auth/current-actor";
 import { can } from "@/lib/auth/permissions";
 import { AppHeaderNav } from "@/components/layout/app-header-nav";
@@ -34,14 +33,16 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  let actor = await getCurrentActor().catch(() => ({ kind: "anonymous" as const }));
+  const actor = await getCurrentActor().catch(() => ({ kind: "anonymous" as const }));
   const loggedIn = actor.kind === "user";
-  const groupsLinkVisible =
-    loggedIn && hasCapability(actor, "teams:manage", DEFAULT_ORGANIZATION_ID);
+  const organizationId = loggedIn ? actor.organizationId : DEFAULT_ORGANIZATION_ID;
+  const groupsLinkVisible = loggedIn && can(actor, "teams:manage", { organizationId });
   const usersLinkVisible =
-    loggedIn && can(actor, "users:manage", { organizationId: actor.organizationId });
-  const importLinkVisible =
-    loggedIn && can(actor, "import", { organizationId: actor.organizationId });
+    loggedIn &&
+    (can(actor, "member.manage", { organizationId }) ||
+      can(actor, "users:invite", { organizationId }) ||
+      can(actor, "user.manage", { organizationId }));
+  const importLinkVisible = loggedIn && can(actor, "import", { organizationId });
   const appVersion = getAppVersion();
 
   return (

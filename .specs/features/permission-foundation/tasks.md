@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/permission-foundation/design.md`
-**Status**: Draft
+**Status**: Complete
 
 **Verificação**: cada tarefa roda o Vitest do gate. O browser entra só depois da T35, nas telas de papéis, de sem acesso e nos links do cabeçalho.
 

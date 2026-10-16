@@ -32,4 +32,10 @@ describe("GET /api/members", () => {
     const response = await GET();
     expect(response.status).toBe(403);
   });
+
+  it("returns 200 for manager", async () => {
+    context.asUser("user-manager");
+    const response = await GET();
+    expect(response.status).toBe(200);
+  });
 });

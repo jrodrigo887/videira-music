@@ -2,12 +2,15 @@
 
 import { useState } from "react";
 
-import { CAPABILITIES, capabilitiesMatchAdminPreset } from "@/lib/auth/capabilities";
+import { ADMIN_ONLY_CAPABILITIES, type Capability } from "@/lib/auth/capabilities";
+import { toggleCapability as applyCapabilityToggle } from "@/lib/auth/capability-toggle";
 import type { RoleRecord } from "@/lib/roles/role-service";
 
 import {
+  ADMIN_ONLY_CAPABILITY_MESSAGE,
+  CAPABILITY_DEPENDENCY_WARNING,
+  CAPABILITY_GROUPS,
   CAPABILITY_LABELS,
-  CUSTOM_ROLE_MATCHES_ADMIN_MESSAGE,
   readErrorMessage,
 } from "./user-admin-shared";
 
@@ -34,17 +37,21 @@ export function RolesPanel({
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState("");
   const [editCapabilities, setEditCapabilities] = useState<string[]>([]);
+  const [createWarning, setCreateWarning] = useState<string | null>(null);
+  const [editWarning, setEditWarning] = useState<string | null>(null);
 
-  function toggleCapability(cap: string) {
-    setCapabilities((current) =>
-      current.includes(cap) ? current.filter((item) => item !== cap) : [...current, cap],
-    );
+  function toggleCapability(cap: Capability) {
+    const enabled = !capabilities.includes(cap);
+    const result = applyCapabilityToggle(capabilities as Capability[], cap, enabled);
+    setCapabilities(result.capabilities);
+    setCreateWarning(result.warning ? CAPABILITY_DEPENDENCY_WARNING : null);
   }
 
-  function toggleEditCapability(cap: string) {
-    setEditCapabilities((current) =>
-      current.includes(cap) ? current.filter((item) => item !== cap) : [...current, cap],
-    );
+  function toggleEditCapability(cap: Capability) {
+    const enabled = !editCapabilities.includes(cap);
+    const result = applyCapabilityToggle(editCapabilities as Capability[], cap, enabled);
+    setEditCapabilities(result.capabilities);
+    setEditWarning(result.warning ? CAPABILITY_DEPENDENCY_WARNING : null);
   }
 
   async function reloadRoles() {
@@ -104,8 +111,12 @@ export function RolesPanel({
     }
   }
 
-  const createMatchesAdmin = capabilitiesMatchAdminPreset(capabilities);
-  const editMatchesAdmin = capabilitiesMatchAdminPreset(editCapabilities);
+  const createHasAdminOnly = capabilities.some((cap) =>
+    ADMIN_ONLY_CAPABILITIES.includes(cap as Capability),
+  );
+  const editHasAdminOnly = editCapabilities.some((cap) =>
+    ADMIN_ONLY_CAPABILITIES.includes(cap as Capability),
+  );
 
   async function deleteRole(key: string) {
     if (!window.confirm("Apagar este papel?")) return;
@@ -137,30 +148,44 @@ export function RolesPanel({
               onChange={(event) => setLabel(event.target.value)}
             />
           </label>
-          <fieldset>
-            <legend className="text-sm font-medium text-content-muted">Capacidades</legend>
-            <div className="mt-2 flex flex-col gap-2">
-              {CAPABILITIES.map((cap) => (
-                <label key={cap} className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={capabilities.includes(cap)}
-                    onChange={() => toggleCapability(cap)}
-                  />
-                  {CAPABILITY_LABELS[cap] ?? cap}
-                </label>
-              ))}
-            </div>
-          </fieldset>
-          {createMatchesAdmin ? (
+          {CAPABILITY_GROUPS.map((group) => (
+            <fieldset key={group.title}>
+              <legend className="text-sm font-medium text-content-muted">{group.title}</legend>
+              <div className="mt-2 flex flex-col gap-2">
+                {group.capabilities.map((cap) => {
+                  const adminOnly = ADMIN_ONLY_CAPABILITIES.includes(cap);
+                  return (
+                    <label key={cap} className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={capabilities.includes(cap)}
+                        disabled={adminOnly}
+                        onChange={() => toggleCapability(cap)}
+                      />
+                      {CAPABILITY_LABELS[cap] ?? cap}
+                      {adminOnly ? (
+                        <span className="text-xs text-content-muted">
+                          {ADMIN_ONLY_CAPABILITY_MESSAGE}
+                        </span>
+                      ) : null}
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ))}
+          {createWarning ? (
+            <p className="text-sm text-amber-700 dark:text-amber-400" role="alert">{createWarning}</p>
+          ) : null}
+          {createHasAdminOnly ? (
             <p className="text-sm text-amber-700 dark:text-amber-400" role="alert">
-              {CUSTOM_ROLE_MATCHES_ADMIN_MESSAGE}
+              {ADMIN_ONLY_CAPABILITY_MESSAGE}
             </p>
           ) : null}
           <button
             type="button"
             className="ds-button"
-            disabled={busy || label.trim().length < 2 || createMatchesAdmin}
+            disabled={busy || label.trim().length < 2 || createHasAdminOnly}
             onClick={() => void createRole()}
           >
             Criar papel
@@ -183,31 +208,40 @@ export function RolesPanel({
                       onChange={(event) => setEditLabel(event.target.value)}
                     />
                   </label>
-                  <fieldset>
-                    <legend className="text-sm font-medium text-content-muted">Capacidades</legend>
-                    <div className="mt-2 flex flex-col gap-2">
-                      {CAPABILITIES.map((cap) => (
-                        <label key={cap} className="flex items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            checked={editCapabilities.includes(cap)}
-                            onChange={() => toggleEditCapability(cap)}
-                          />
-                          {CAPABILITY_LABELS[cap] ?? cap}
-                        </label>
-                      ))}
-                    </div>
-                  </fieldset>
-                  {editMatchesAdmin ? (
+                  {CAPABILITY_GROUPS.map((group) => (
+                    <fieldset key={group.title}>
+                      <legend className="text-sm font-medium text-content-muted">{group.title}</legend>
+                      <div className="mt-2 flex flex-col gap-2">
+                        {group.capabilities.map((cap) => {
+                          const adminOnly = ADMIN_ONLY_CAPABILITIES.includes(cap);
+                          return (
+                            <label key={cap} className="flex items-center gap-2 text-sm">
+                              <input
+                                type="checkbox"
+                                checked={editCapabilities.includes(cap)}
+                                disabled={adminOnly}
+                                onChange={() => toggleEditCapability(cap)}
+                              />
+                              {CAPABILITY_LABELS[cap] ?? cap}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </fieldset>
+                  ))}
+                  {editWarning ? (
+                    <p className="text-sm text-amber-700 dark:text-amber-400" role="alert">{editWarning}</p>
+                  ) : null}
+                  {editHasAdminOnly ? (
                     <p className="text-sm text-amber-700 dark:text-amber-400" role="alert">
-                      {CUSTOM_ROLE_MATCHES_ADMIN_MESSAGE}
+                      {ADMIN_ONLY_CAPABILITY_MESSAGE}
                     </p>
                   ) : null}
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
                       className="ds-button text-sm"
-                      disabled={busy || editMatchesAdmin}
+                      disabled={busy || editHasAdminOnly}
                       onClick={() => void saveEdit(role.key)}
                     >
                       Salvar

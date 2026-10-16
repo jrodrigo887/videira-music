@@ -1,4 +1,5 @@
-import { forbiddenResponse, requireActor } from "@/lib/auth/api-guard";
+import { forbiddenResponse, requirePermission } from "@/lib/auth/api-guard";
+import { DEFAULT_ORGANIZATION_ID } from "@/lib/persistence/organization-scope";
 import {
   isAccessRequestServiceError,
   rejectAccessRequest,
@@ -14,12 +15,9 @@ export async function POST(_request: Request, context: RouteContext): Promise<Re
   if (!isDatabaseConfigured()) {
     return Response.json({ error: { code: "DATABASE_NOT_CONFIGURED" } }, { status: 503 });
   }
-  const gate = await requireActor();
+  const gate = await requirePermission("user.manage", DEFAULT_ORGANIZATION_ID);
   if ("response" in gate) {
     return gate.response;
-  }
-  if (gate.actor.kind !== "user") {
-    return forbiddenResponse();
   }
 
   const { id } = await context.params;

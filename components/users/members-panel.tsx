@@ -16,6 +16,7 @@ type MembersPanelProps = {
   roles: RoleRecord[];
   teams: WorshipTeam[];
   canGrantAdmin: boolean;
+  canChangeRoles: boolean;
   currentUserId: string;
   onMessage: (message: string | null) => void;
   busy: boolean;
@@ -28,6 +29,7 @@ export function MembersPanel({
   roles,
   teams,
   canGrantAdmin,
+  canChangeRoles,
   currentUserId,
   onMessage,
   busy,
@@ -142,7 +144,10 @@ export function MembersPanel({
                     </p>
                   ) : null}
                 </div>
-                {member.status === "active" && member.id !== currentUserId && !lockedForManager ? (
+                {canChangeRoles &&
+                member.status === "active" &&
+                member.id !== currentUserId &&
+                !lockedForManager ? (
                   <button
                     type="button"
                     className="ds-button-secondary text-sm"
@@ -153,7 +158,7 @@ export function MembersPanel({
                   </button>
                 ) : null}
               </div>
-              {member.status === "active" ? (
+              {member.status === "active" && canChangeRoles ? (
                 <div className="space-y-2">
                   <div className="flex flex-wrap gap-3">
                     {assignableRoles.map((role) => {

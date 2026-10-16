@@ -11,8 +11,8 @@ describe("hasCapability", () => {
       roles: ["manager"],
       teams: [],
     });
-    expect(hasCapability(actor, "users:manage", "org-a")).toBe(true);
-    expect(hasCapability(actor, "users:manage", "org-b")).toBe(false);
+    expect(hasCapability(actor, "member.manage", "org-a")).toBe(true);
+    expect(hasCapability(actor, "member.manage", "org-b")).toBe(false);
   });
 
   it("hasRole still checks system admin key", () => {

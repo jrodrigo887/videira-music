@@ -1,4 +1,5 @@
-import { forbiddenResponse, requireActor } from "@/lib/auth/api-guard";
+import { forbiddenResponse, requirePermission } from "@/lib/auth/api-guard";
+import { DEFAULT_ORGANIZATION_ID } from "@/lib/persistence/organization-scope";
 import { getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
 import { isMemberServiceError, setMemberRoles } from "@/lib/members/member-service";
 import type { OrganizationRole } from "@/types/identity";
@@ -12,7 +13,7 @@ export async function PUT(request: Request, context: RouteContext): Promise<Resp
   if (!isDatabaseConfigured()) {
     return Response.json({ error: { code: "DATABASE_NOT_CONFIGURED" } }, { status: 503 });
   }
-  const gate = await requireActor();
+  const gate = await requirePermission("user.manage", DEFAULT_ORGANIZATION_ID);
   if ("response" in gate) {
     return gate.response;
   }

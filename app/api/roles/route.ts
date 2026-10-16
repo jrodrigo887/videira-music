@@ -1,4 +1,5 @@
-import { forbiddenResponse, requireActor } from "@/lib/auth/api-guard";
+import { forbiddenResponse, requirePermission } from "@/lib/auth/api-guard";
+import { DEFAULT_ORGANIZATION_ID } from "@/lib/persistence/organization-scope";
 import { getPrisma, isDatabaseConfigured } from "@/lib/persistence/prisma-client";
 import { createRole, isRoleServiceError, listRoles } from "@/lib/roles/role-service";
 
@@ -9,12 +10,9 @@ export async function GET(): Promise<Response> {
   if (!isDatabaseConfigured()) {
     return Response.json({ error: { code: "DATABASE_NOT_CONFIGURED" } }, { status: 503 });
   }
-  const gate = await requireActor();
+  const gate = await requirePermission("role.manage", DEFAULT_ORGANIZATION_ID);
   if ("response" in gate) {
     return gate.response;
-  }
-  if (gate.actor.kind !== "user") {
-    return forbiddenResponse();
   }
 
   const prisma = getPrisma();
@@ -36,12 +34,9 @@ export async function POST(request: Request): Promise<Response> {
   if (!isDatabaseConfigured()) {
     return Response.json({ error: { code: "DATABASE_NOT_CONFIGURED" } }, { status: 503 });
   }
-  const gate = await requireActor();
+  const gate = await requirePermission("role.manage", DEFAULT_ORGANIZATION_ID);
   if ("response" in gate) {
     return gate.response;
-  }
-  if (gate.actor.kind !== "user") {
-    return forbiddenResponse();
   }
 
   const body = (await request.json()) as { label?: string; capabilities?: string[] };

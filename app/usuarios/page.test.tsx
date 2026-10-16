@@ -13,6 +13,9 @@ vi.mock("next/navigation", () => ({
 
 const requirePageActorMock = vi.hoisted(() => vi.fn());
 const isDatabaseConfiguredMock = vi.hoisted(() => vi.fn(() => true));
+const listRolesMock = vi.hoisted(() => vi.fn(async () => []));
+const listRoleLabelsMock = vi.hoisted(() => vi.fn(async () => []));
+const listPendingAccessRequestsMock = vi.hoisted(() => vi.fn(async () => []));
 
 vi.mock("@/lib/auth/page-gate", () => ({
   requirePageActor: requirePageActorMock,
@@ -20,7 +23,9 @@ vi.mock("@/lib/auth/page-gate", () => ({
 
 vi.mock("@/lib/persistence/prisma-client", () => ({
   isDatabaseConfigured: isDatabaseConfiguredMock,
-  getPrisma: vi.fn(),
+  getPrisma: vi.fn(() => ({
+    worshipTeam: { findMany: vi.fn(async () => []) },
+  })),
 }));
 
 vi.mock("@/lib/members/member-service", () => ({
@@ -32,27 +37,27 @@ vi.mock("@/lib/invites/invite-service", () => ({
 }));
 
 vi.mock("@/lib/access-requests/access-request-service", () => ({
-  listPendingAccessRequests: vi.fn(async () => []),
+  listPendingAccessRequests: listPendingAccessRequestsMock,
 }));
 
 vi.mock("@/lib/roles/role-service", () => ({
-  listRoles: vi.fn(async () => [
-    { key: "admin", label: "Administrador", system: true, capabilities: [] },
-  ]),
+  listRoles: listRolesMock,
+  listRoleLabels: listRoleLabelsMock,
 }));
 
 import { testUserActor } from "@/lib/auth/test-actor";
-import { getPrisma } from "@/lib/persistence/prisma-client";
 
 import UsuariosPage from "./page";
 
 afterEach(() => {
   cleanup();
   requirePageActorMock.mockReset();
+  listRolesMock.mockClear();
+  listPendingAccessRequestsMock.mockClear();
 });
 
 describe("UsuariosPage", () => {
-  it("shows restricted message for musician", async () => {
+  it("shows NoAccess for musician", async () => {
     requirePageActorMock.mockResolvedValue(
       testUserActor({
         userId: "user-musician",
@@ -64,25 +69,38 @@ describe("UsuariosPage", () => {
 
     render(await UsuariosPage({ searchParams: Promise.resolve({}) }));
 
-    expect(screen.getByText("Acesso restrito")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Você não tem acesso a esta área" })).toBeInTheDocument();
   });
 
-  it("renders admin tabs", async () => {
+  it("shows NoAccess for papeis tab without role.manage", async () => {
     requirePageActorMock.mockResolvedValue(
       testUserActor({
-        userId: "user-admin",
+        userId: "user-manager",
         organizationId: "org-default",
-        roles: ["admin"],
+        roles: ["manager"],
         teams: [],
       }),
     );
-    vi.mocked(getPrisma).mockReturnValue({
-      worshipTeam: { findMany: vi.fn(async () => []) },
-    } as never);
 
-    render(await UsuariosPage({ searchParams: Promise.resolve({ aba: "pedidos" }) }));
+    render(await UsuariosPage({ searchParams: Promise.resolve({ aba: "papeis" }) }));
 
-    expect(screen.getByRole("heading", { name: "Usuários" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Pedidos pendentes" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Você não tem acesso a esta área" })).toBeInTheDocument();
+  });
+
+  it("does not load admin-only lists for manager", async () => {
+    requirePageActorMock.mockResolvedValue(
+      testUserActor({
+        userId: "user-manager",
+        organizationId: "org-default",
+        roles: ["manager"],
+        teams: [],
+      }),
+    );
+
+    render(await UsuariosPage({ searchParams: Promise.resolve({}) }));
+
+    expect(listRolesMock).not.toHaveBeenCalled();
+    expect(listPendingAccessRequestsMock).not.toHaveBeenCalled();
+    expect(listRoleLabelsMock).toHaveBeenCalled();
   });
 });

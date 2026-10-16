@@ -157,19 +157,19 @@ O Gestor entra em Usuários, troca papel de quem não é Admin e desativa contas
 | PERM-01 | P1: Gestor fora da área de usuário | T5 | Done |
 | PERM-02 | P1: Gestor fora da área de usuário | T5 | Done |
 | PERM-03 | P1: Gestor fora da área de usuário | T6 | Done |
-| PERM-04 | P1: Gestor fora da área de usuário | - | In Tasks |
-| PERM-05 | P1: Gestor fora da área de usuário | - | In Tasks |
-| PERM-06 | P1: Gestor fora da área de usuário | - | In Tasks |
+| PERM-04 |\1| T24 | Done |
+| PERM-05 |\1| T15 | Done |
+| PERM-06 |\1| T19 | Done |
 | PERM-07 | P1: Gestor fora da área de usuário | T5 | Done |
-| PERM-08 | P1: Gestor fora da área de usuário | - | In Tasks |
-| PERM-09 | P1: Gestor fora da área de usuário | - | In Tasks |
-| PERM-10 | P1: Portão nega por padrão | - | In Tasks |
-| PERM-11 | P1: Portão nega por padrão | - | In Tasks |
-| PERM-12 | P1: Portão nega por padrão | - | In Tasks |
-| PERM-13 | P1: Portão nega por padrão | - | In Tasks |
-| PERM-14 | P1: Portão nega por padrão | - | In Tasks |
-| PERM-15 | P1: Portão nega por padrão | - | In Tasks |
-| PERM-16 | P1: Portão nega por padrão | - | In Tasks |
+| PERM-08 |\1| T29 | Done |
+| PERM-09 |\1| T30 | Done |
+| PERM-10 |\1| T35 | Done |
+| PERM-11 |\1| T8 | Done |
+| PERM-12 |\1| T8 | Done |
+| PERM-13 |\1| T10 | Done |
+| PERM-14 |\1| T13 | Done |
+| PERM-15 |\1| T7 | Done |
+| PERM-16 |\1| T7 | Done |
 | PERM-17 | P1: Portão nega por padrão | T1 | Done |
 | PERM-18 | P1: Portão nega por padrão | T3 | Done |
 | PERM-19 | P1: Papel personalizado sem escalada | T4 | Done |
@@ -181,17 +181,17 @@ O Gestor entra em Usuários, troca papel de quem não é Admin e desativa contas
 | PERM-25 | P1: Papel personalizado sem escalada | T3 | Done |
 | PERM-26 | P1: Papel personalizado sem escalada | T5 | Done |
 | PERM-27 | P1: Papel personalizado sem escalada | T5 | Done |
-| PERM-28 | P1: Aba Papéis e tela de sem acesso | - | In Tasks |
-| PERM-29 | P1: Aba Papéis e tela de sem acesso | - | In Tasks |
-| PERM-30 | P1: Aba Papéis e tela de sem acesso | - | In Tasks |
-| PERM-31 | P1: Aba Papéis e tela de sem acesso | - | In Tasks |
-| PERM-32 | P1: Aba Papéis e tela de sem acesso | - | In Tasks |
-| PERM-33 | P1: Aba Papéis e tela de sem acesso | - | In Tasks |
-| PERM-34 | P1: Aba Papéis e tela de sem acesso | - | In Tasks |
-| PERM-35 | P1: Aba Papéis e tela de sem acesso | - | In Tasks |
-| PERM-36 | P1: Aba Papéis e tela de sem acesso | - | In Tasks |
-| PERM-37 | P1: Aba Papéis e tela de sem acesso | - | In Tasks |
-| PERM-38 | P1: Aba Papéis e tela de sem acesso | - | In Tasks |
+| PERM-28 |\1| T28 | Done |
+| PERM-29 |\1| T26 | Done |
+| PERM-30 |\1| T26 | Done |
+| PERM-31 |\1| T26 | Done |
+| PERM-32 |\1| T26 | Done |
+| PERM-33 |\1| T28 | Done |
+| PERM-34 |\1| T28 | Done |
+| PERM-35 |\1| T27 | Done |
+| PERM-36 |\1| T33 | Done |
+| PERM-37 |\1| T32 | Done |
+| PERM-38 |\1| T32 | Done |
 
 **Coverage:** 38 total, 38 mapped to tasks, 0 unmapped.
 

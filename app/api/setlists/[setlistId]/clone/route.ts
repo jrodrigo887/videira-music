@@ -58,6 +58,6 @@ export function createSetlistClonePostHandler(dependencies: SetlistRouteDependen
 const routeDependencies = createSetlistRouteDependencies();
 
 export const POST = wrapPersistenceRoute(
-  { route: "/api/setlists/[setlistId]/clone", method: "POST", permission: "music:read" },
+  { route: "/api/setlists/[setlistId]/clone", method: "POST", permission: "setlists:led" },
   createSetlistClonePostHandler(routeDependencies),
 );

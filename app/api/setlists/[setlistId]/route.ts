@@ -113,11 +113,11 @@ export const GET = wrapPersistenceRoute(
 );
 
 export const PATCH = wrapPersistenceRoute(
-  { route: "/api/setlists/[setlistId]", method: "PATCH", permission: "music:read" },
+  { route: "/api/setlists/[setlistId]", method: "PATCH", permission: "setlists:led" },
   createSetlistDetailPatchHandler(routeDependencies),
 );
 
 export const DELETE = wrapPersistenceRoute(
-  { route: "/api/setlists/[setlistId]", method: "DELETE", permission: "music:read" },
+  { route: "/api/setlists/[setlistId]", method: "DELETE", permission: "setlists:led" },
   createSetlistDetailDeleteHandler(routeDependencies),
 );

@@ -80,6 +80,48 @@ describe("RootLayout navigation", () => {
     expect(screen.getByRole("link", { name: "Grupos" })).toBeInTheDocument();
   });
 
+  it("shows Usuários for manager and Importar for worship leader", async () => {
+    getCurrentActorMock.mockResolvedValue(
+      testUserActor({
+        userId: "user-manager",
+        organizationId: DEFAULT_ORGANIZATION_ID,
+        roles: ["manager"],
+        teams: [],
+      }),
+    );
+    render(await RootLayout({ children: <p>Conteúdo</p> }));
+    expect(screen.getByRole("link", { name: "Usuários" })).toHaveAttribute("href", "/usuarios");
+
+    cleanup();
+    getCurrentActorMock.mockResolvedValue(
+      testUserActor({
+        userId: "user-leader",
+        organizationId: DEFAULT_ORGANIZATION_ID,
+        roles: ["worship_leader"],
+        teams: [],
+      }),
+    );
+    render(await RootLayout({ children: <p>Conteúdo</p> }));
+    expect(screen.getByRole("link", { name: "Importar" })).toHaveAttribute("href", "/import");
+    expect(screen.queryByRole("link", { name: "Grupos" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Usuários" })).not.toBeInTheDocument();
+  });
+
+  it("hides admin links for musician", async () => {
+    getCurrentActorMock.mockResolvedValue(
+      testUserActor({
+        userId: "user-musician",
+        organizationId: DEFAULT_ORGANIZATION_ID,
+        roles: ["musician"],
+        teams: [],
+      }),
+    );
+    render(await RootLayout({ children: <p>Conteúdo</p> }));
+    expect(screen.queryByRole("link", { name: "Importar" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Grupos" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Usuários" })).not.toBeInTheDocument();
+  });
+
   it("shows Entrar for anonymous actor", async () => {
     getCurrentActorMock.mockResolvedValue({ kind: "anonymous" });
 

@@ -33,6 +33,9 @@ type UsersAdminProps = {
   teams: WorshipTeam[];
   canGrantAdmin: boolean;
   canEditCatalog: boolean;
+  canChangeRoles: boolean;
+  showRequestsTab: boolean;
+  showRolesTab: boolean;
   currentUserId: string;
   initialTab: UsersTab;
 };
@@ -52,6 +55,9 @@ export function UsersAdmin({
   teams,
   canGrantAdmin,
   canEditCatalog,
+  canChangeRoles,
+  showRequestsTab,
+  showRolesTab,
   currentUserId,
   initialTab,
 }: UsersAdminProps) {
@@ -72,7 +78,11 @@ export function UsersAdmin({
   return (
     <div className="space-y-8">
       <nav className="flex flex-wrap gap-2 border-b border-border pb-2">
-        {TABS.map((entry) => (
+        {TABS.filter(
+          (entry) =>
+            (entry.id !== "pedidos" || showRequestsTab) &&
+            (entry.id !== "papeis" || showRolesTab),
+        ).map((entry) => (
           <button
             key={entry.id}
             type="button"
@@ -100,6 +110,7 @@ export function UsersAdmin({
           roles={roles}
           teams={teams}
           canGrantAdmin={canGrantAdmin}
+          canChangeRoles={canChangeRoles}
           currentUserId={currentUserId}
           onMessage={setMessage}
           busy={busy}

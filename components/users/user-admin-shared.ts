@@ -1,3 +1,4 @@
+import type { Capability } from "@/lib/auth/capabilities";
 import type { OrganizationRole } from "@/types/identity";
 
 export type MemberRow = {
@@ -18,12 +19,27 @@ export const SYSTEM_ROLE_LABELS: Record<OrganizationRole, string> = {
   musician: "Músico",
 };
 
-export const CUSTOM_ROLE_MATCHES_ADMIN_MESSAGE =
-  "Um papel personalizado não pode ter as mesmas capacidades do administrador.";
+export const ADMIN_ONLY_CAPABILITY_MESSAGE =
+  "Somente o papel Administrador pode ter esta capacidade.";
+
+export const CAPABILITY_DEPENDENCY_WARNING =
+  "Desmarcar esta capacidade também desmarca as que dependem dela.";
+
+export const CAPABILITY_GROUPS: Array<{ title: string; capabilities: Capability[] }> = [
+  { title: "Biblioteca", capabilities: ["music:write", "import"] },
+  { title: "Setlists", capabilities: ["setlists:led", "setlists:all"] },
+  {
+    title: "Grupos e pessoas",
+    capabilities: ["users:invite", "member.manage", "teams:manage"],
+  },
+  { title: "Administração", capabilities: ["user.manage", "role.manage"] },
+];
 
 export const CAPABILITY_LABELS: Record<string, string> = {
   "users:invite": "Convidar",
-  "users:manage": "Gerenciar membros",
+  "member.manage": "Gerenciar membros",
+  "user.manage": "Área de usuário",
+  "role.manage": "Gerenciar papéis",
   "teams:manage": "Gerenciar grupos",
   "music:write": "Editar músicas",
   import: "Importar",
@@ -46,8 +62,8 @@ export async function readErrorMessage(response: Response, fallback: string): Pr
     if (body.error?.code === "SYSTEM_ROLE") {
       return "Papéis de sistema não podem ser alterados aqui.";
     }
-    if (body.error?.code === "ROLE_MATCHES_ADMIN") {
-      return CUSTOM_ROLE_MATCHES_ADMIN_MESSAGE;
+    if (body.error?.code === "ADMIN_ONLY_CAPABILITY") {
+      return ADMIN_ONLY_CAPABILITY_MESSAGE;
     }
     if (body.error?.code === "FORBIDDEN") {
       return "Sem permissão para esta ação.";

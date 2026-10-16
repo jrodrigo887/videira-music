@@ -118,6 +118,6 @@ export const GET = wrapPersistenceRoute(
 );
 
 export const POST = wrapPersistenceRoute(
-  { route: "/api/setlists", method: "POST", permission: "music:read" },
+  { route: "/api/setlists", method: "POST", permission: "setlists:led" },
   createSetlistsPostHandler(routeDependencies),
 );

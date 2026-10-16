@@ -1,5 +1,6 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
+import { NoAccess } from "@/components/auth/no-access";
 import { ImportPageClient } from "@/components/import/import-page-client";
 import { getCurrentActor } from "@/lib/auth/current-actor";
 import { can } from "@/lib/auth/permissions";
@@ -17,16 +18,11 @@ export default async function ImportPage() {
 
   const actor = await getCurrentActor();
   if (actor.kind !== "user") {
-    notFound();
+    redirect("/entrar?next=%2Fimport");
   }
 
   if (!can(actor, "import", { organizationId: actor.organizationId })) {
-    return (
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold text-content">Importar cifra</h1>
-        <p className="text-sm text-content-muted">Sem permissão para importar.</p>
-      </div>
-    );
+    return <NoAccess />;
   }
 
   return <ImportPageClient urlImportEnabled={isCifraClubUrlImportEnabled()} />;

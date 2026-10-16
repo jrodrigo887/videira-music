@@ -75,6 +75,7 @@
 ### AD-010: Letras públicas sem acordes para anônimos
 
 - **Status:** active
+- **Narrowed by:** AD-016
 - **Decision:** Anônimo só acessa a página de letras: músicas marcadas como "visível ao público" (desligado por padrão, editável no cadastro, import e edição), com o texto montado no servidor sem acordes. Anônimo deixa de ler setlists, inclusive `public`. Amplia a AD-006: uma cifra importada pode expor só a letra ao público, com o selo "Importada" e o link da fonte.
 - **Rationale:** Visitantes acompanham o louvor sem acesso às cifras, e a igreja decide música a música o que sai.
 - **Scope:** `auth`, `setlists` (leitura anônima), import e cadastro de músicas.
@@ -91,7 +92,8 @@
 ### AD-012: Catálogo de papéis e pedido de acesso na recusa do Google
 
 - **Status:** active
-- **Decision:** Os papéis da igreja formam um catálogo. `admin`, `manager`, `worship_leader` e `musician` continuam papéis de sistema, com capacidades fixas no código. O admin pode criar papéis personalizados com um subconjunto fechado de capacidades. A liderança de grupo exige a capacidade `setlists:led` e uma atribuição ao grupo. O líder único automático continua só para o papel de sistema `worship_leader`. Além do convite, um pedido gravado na recusa do Google e liberado por admin ou gestor cria o membro ativo. O login seguinte liga a conta Google. Entrada e ação continuam em `validateUserInfo` e em `getCurrentActor()`.
+- **Narrowed by:** AD-014 (aprovar pedido, trocar papel, desativar e o catálogo deixam de ser do gestor)
+- **Decision:** Os papéis da igreja formam um catálogo. `admin`, `manager`, `worship_leader` e `musician` continuam papéis de sistema, com capacidades fixas no código. O admin pode criar papéis personalizados com um subconjunto fechado de capacidades. A liderança de grupo exige a capacidade `setlists:led` e uma atribuição ao grupo. O líder único automático continua só para o papel de sistema `worship_leader`. Além do convite, um pedido gravado na recusa do Google cria o membro ativo quando um ator com `user.manage` libera. O login seguinte liga a conta Google. Entrada e ação continuam em `validateUserInfo` e em `getCurrentActor()`.
 - **Rationale:** A igreja precisa de papéis novos sem um editor livre de permissões, e precisa liberar quem já tentou entrar com o e-mail verificado.
 - **Trade-off:** Um papel personalizado não herda as regras especiais do admin nem do líder único. Quem só tem `setlists:led` não lidera todos os grupos.
 - **Scope:** `admin-access` e toda feature que conceda papel, convide ou decida acesso.
@@ -101,19 +103,47 @@
 ### AD-013: Correção de cifra não é importação nova
 
 - **Status:** active
+- **Narrowed by:** AD-015
 - **Decision:** Atualizar uma cifra já gravada, mantendo a mesma `originUrl` canônica, exige só `music:write`. Criar uma cifra com `origin`, ou trocar a `originUrl`, continua no gate de import: flag ligada e capacidade `import`. A correção não grava `ImportLog`.
 - **Rationale:** Editar música e importar já são capacidades diferentes. Corrigir letra e acordes não busca fonte nova e não pode depender da flag de import.
 - **Trade-off:** Quem tem `music:write` altera o texto de uma cifra importada. O selo e o link da fonte permanecem. Tirar ou trocar a origem continua uma ação de import.
 - **Scope:** `chart-edit` e toda escrita de `ChordChart` que carregue `origin`.
 - **Date:** 2026-10-16
 
+### AD-014: Área de usuário e catálogo só no preset admin
+
+- **Status:** active
+- **Decision:** `user.manage` e `role.manage` existem só no preset do papel de sistema `admin`. Aprovar ou recusar pedido de acesso, trocar papel e desativar membro exigem `user.manage`. Criar, editar e apagar papéis exigem `role.manage`. O gestor mantém convite (`users:invite`), lista de membros (`member.manage`) e grupos (`teams:manage`).
+- **Rationale:** O discovery confirmado tira do gestor a área de usuário. A escalada deixa de ser "ter todas as capacidades" e passa a ser "ter uma capacidade exclusiva do admin".
+- **Trade-off:** O gestor não libera mais quem pediu acesso na recusa do Google. Quem pede espera um admin.
+- **Scope:** `permission-foundation`, `admin-access` e toda feature que conceda papel ou decida acesso.
+- **Narrows:** AD-012.
+- **Date:** 2026-10-16
+
+### AD-015: Autor edita o conteúdo que criou
+
+- **Status:** active
+- **Decision:** Quem criou uma música, cifra ou setlist edita o conteúdo desse recurso na mesma igreja, mesmo sem `music:write` ou sem `setlists:led` / `setlists:all`. Não exclui, não importa, não muda visibilidade, status nem dono. Linha sem `createdByUserId` não ganha esse direito. Trocar `origin` ou `originUrl` continua no gate de import.
+- **Rationale:** Um líder rebaixado a músico ainda corrige o que ele mesmo gravou. A capacidade segue sendo a regra para o que é dos outros.
+- **Trade-off:** A autoria vira uma segunda chave de escrita. Todo `PUT` de conteúdo precisa consultar `createdByUserId`, não só a capacidade.
+- **Scope:** `deferred-scope` e toda escrita de música, cifra ou setlist.
+- **Narrows:** AD-013.
+- **Date:** 2026-10-16
+
+### AD-016: Link opaco de setlist só com letras
+
+- **Status:** active
+- **Decision:** Um setlist `published` pode ter um link com token opaco. Quem abre o link, sem login, vê as letras na ordem do setlist, sem acordes. Cifra importada leva o selo "Importada" e o link da fonte. `visibility=public` continua valendo só para usuário logado de outra igreja. Rota de setlist sem token continua fechada para anônimo.
+- **Rationale:** A congregação acompanha o culto por um link, sem abrir a cifra e sem transformar o setlist `public` numa página anônima.
+- **Trade-off:** A igreja publica a letra das músicas daquele setlist mesmo com `publicLyrics` desligado. O token é o ato de publicar.
+- **Scope:** `deferred-scope` e qualquer leitura anônima de setlist.
+- **Narrows:** AD-010.
+- **Date:** 2026-10-16
+
 ## Handoff
 
-- **Feature em execução:** `chart-edit` — implementada (T1–T11 em `main`); Verifier pendente (`validation.md`).
-- **Completed (recente):** `chart-edit` — edição de cifra salva na página da música, gate de mesma origem no `PUT`.
-- **Features ativas:** `import-access` (`.specs/features/import-access/`): implementada, verificação **PARTIAL** (`validation.md`).
-- **Completed:** `server-persistence` implementada e mergeada (PR #1); `chart-import` verificada (PASS 2026-10-09).
-- **Próximo passo:** fechar G1-G3 de `import-access/tasks.md` (testes do gate de cifra, `ImportLog` e rota de sessão); depois auditar os testes faltantes da `server-persistence` (rotas, repositório Prisma, HttpMusicRepository, migração, PER-15).
-- **Restrição de deploy:** não publicar enquanto G1-G3 estiverem abertas.
+- **Feature em execução:** nenhuma (aguardando próxima spec).
+- **Completed (recente):** `permission-foundation` T1–T35 — verificação PASS em `validation.md`; 814 testes.
+- **Próximo passo:** escolher próxima feature (ex.: `deferred-scope`) ou merge/deploy conforme prioridade.
 - **Bloqueio:** nenhum.
 - **Branch:** `main`
