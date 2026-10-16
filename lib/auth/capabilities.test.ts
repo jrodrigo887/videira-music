@@ -115,6 +115,6 @@ describe("system role unions", () => {
       systemCapabilities("worship_leader") ?? [],
     ]);
     expect(combined).toHaveLength(7);
-    expect(combined).not.toEqual(expect.arrayContaining(ADMIN_ONLY_CAPABILITIES));
+    expect(combined).not.toEqual(expect.arrayContaining([...ADMIN_ONLY_CAPABILITIES]));
   });
 });

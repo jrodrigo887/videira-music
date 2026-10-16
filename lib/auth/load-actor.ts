@@ -4,6 +4,7 @@ import type { WorshipTeamRole } from "@/types/identity";
 
 import { ANONYMOUS_ACTOR, type Actor } from "./actor";
 import {
+  closeCapabilities,
   parseStoredCapabilities,
   systemCapabilities,
   unionCapabilities,
@@ -75,7 +76,7 @@ async function mapUserToActor(
     userId: user.id,
     organizationId: user.organizationId,
     roles,
-    capabilities: unionCapabilities(capabilityGroups),
+    capabilities: closeCapabilities(unionCapabilities(capabilityGroups)),
     teams: user.teamMemberships
       .filter((membership) => TEAM_ROLES.has(membership.role))
       .map((membership) => ({

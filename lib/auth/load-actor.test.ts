@@ -65,7 +65,7 @@ describe("loadActorForUser", () => {
     const leader = await loadActorForUser(prisma, "user-leader");
     if (leader.kind !== "user") throw new Error("expected user");
     expect(hasCapability(leader, "setlists:led", "org-default")).toBe(true);
-    expect(hasCapability(leader, "users:manage", "org-default")).toBe(false);
+    expect(hasCapability(leader, "user.manage", "org-default")).toBe(false);
   });
 
   it("loads custom role capabilities from RoleDefinition", async () => {
@@ -85,6 +85,7 @@ describe("loadActorForUser", () => {
     if (actor.kind !== "user") throw new Error("expected user");
     expect(actor.roles).toContain("import-only");
     expect(hasCapability(actor, "import", "org-default")).toBe(true);
+    expect(hasCapability(actor, "music:write", "org-default")).toBe(true);
     await prisma.userRole.deleteMany({ where: { role: "import-only" } });
     await prisma.roleDefinition.deleteMany({ where: { key: "import-only" } });
   });
@@ -97,6 +98,30 @@ describe("loadActorForUser", () => {
     if (actor.kind !== "user") throw new Error("expected user");
     expect(actor.roles).not.toContain("fantasma");
     await prisma.userRole.deleteMany({ where: { role: "fantasma" } });
+  });
+
+  it("ignores legacy users:manage in stored capabilities", async () => {
+    await prisma.roleDefinition.create({
+      data: {
+        organizationId: "org-default",
+        key: "legacy-manage",
+        label: "Legacy",
+        system: false,
+        capabilities: ["users:manage", "import"],
+      },
+    });
+    await prisma.userRole.create({
+      data: { userId: "user-musician", role: "legacy-manage" },
+    });
+    const actor = await loadActorForUser(prisma, "user-musician");
+    if (actor.kind !== "user") throw new Error("expected user");
+    expect(actor.capabilities).not.toContain("users:manage");
+    expect(hasCapability(actor, "member.manage", "org-default")).toBe(false);
+    expect(hasCapability(actor, "user.manage", "org-default")).toBe(false);
+    expect(hasCapability(actor, "import", "org-default")).toBe(true);
+    expect(hasCapability(actor, "music:write", "org-default")).toBe(true);
+    await prisma.userRole.deleteMany({ where: { role: "legacy-manage" } });
+    await prisma.roleDefinition.deleteMany({ where: { key: "legacy-manage" } });
   });
 
   it("becomes anonymous when every role key is unknown", async () => {

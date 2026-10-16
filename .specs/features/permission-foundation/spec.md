@@ -171,14 +171,14 @@ O Gestor entra em Usuários, troca papel de quem não é Admin e desativa contas
 | PERM-15 | P1: Portão nega por padrão | - | In Tasks |
 | PERM-16 | P1: Portão nega por padrão | - | In Tasks |
 | PERM-17 | P1: Portão nega por padrão | T1 | Done |
-| PERM-18 | P1: Portão nega por padrão | - | In Tasks |
+| PERM-18 | P1: Portão nega por padrão | T3 | Done |
 | PERM-19 | P1: Papel personalizado sem escalada | - | In Tasks |
 | PERM-20 | P1: Papel personalizado sem escalada | - | In Tasks |
 | PERM-21 | P1: Papel personalizado sem escalada | - | In Tasks |
 | PERM-22 | P1: Papel personalizado sem escalada | - | In Tasks |
 | PERM-23 | P1: Papel personalizado sem escalada | - | In Tasks |
 | PERM-24 | P1: Papel personalizado sem escalada | - | In Tasks |
-| PERM-25 | P1: Papel personalizado sem escalada | - | In Tasks |
+| PERM-25 | P1: Papel personalizado sem escalada | T3 | Done |
 | PERM-26 | P1: Papel personalizado sem escalada | - | In Tasks |
 | PERM-27 | P1: Papel personalizado sem escalada | - | In Tasks |
 | PERM-28 | P1: Aba Papéis e tela de sem acesso | - | In Tasks |
