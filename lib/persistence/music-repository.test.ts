@@ -50,6 +50,13 @@ describe("InMemoryMusicRepository", () => {
     await expect(repository.listChartsBySong(SONG.id)).resolves.toEqual([CHART]);
   });
 
+  it("finds a chart by id and returns undefined for a missing id", async () => {
+    const repository = new InMemoryMusicRepository([SONG], [CHART]);
+
+    await expect(repository.findChartById(CHART.id)).resolves.toEqual(CHART);
+    await expect(repository.findChartById("missing")).resolves.toBeUndefined();
+  });
+
   it("injects repository failures without changing existing state", async () => {
     const repository = new InMemoryMusicRepository([SONG], [CHART]);
     const failure = new Error("storage unavailable");
