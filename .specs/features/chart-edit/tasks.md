@@ -143,12 +143,12 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] Without `parsed`, the result keeps `id`, `songId`, `origin`, `title`, `timeSignature`, `tempo`, `format`, and `source`
-- [ ] A `sectionTypes` entry replaces that section's type and leaves the label
-- [ ] With `parsed`, sections and `source` come from the draft, and `timeSignature` still comes from the existing chart
-- [ ] Omitted `capo` is absent on the result
-- [ ] Gate check passes: `npm test -- lib/charts/apply-edited-chart.test.ts`
-- [ ] Test count: at least 4 tests pass
+- [x] Without `parsed`, the result keeps `id`, `songId`, `origin`, `title`, `timeSignature`, `tempo`, `format`, and `source`
+- [x] A `sectionTypes` entry replaces that section's type and leaves the label
+- [x] With `parsed`, sections and `source` come from the draft, and `timeSignature` still comes from the existing chart
+- [x] Omitted `capo` is absent on the result
+- [x] Gate check passes: `npm test -- lib/charts/apply-edited-chart.test.ts`
+- [x] Test count: at least 4 tests pass
 
 **Tests**: unit
 **Gate**: quick
@@ -174,10 +174,10 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] `findChartById` returns the chart saved under that id
-- [ ] A missing id returns `undefined`
-- [ ] Gate check passes: `npm test -- lib/persistence/music-repository.test.ts`
-- [ ] Test count: at least 2 new assertions pass
+- [x] `findChartById` returns the chart saved under that id
+- [x] A missing id returns `undefined`
+- [x] Gate check passes: `npm test -- lib/persistence/music-repository.test.ts`
+- [x] Test count: at least 2 new assertions pass
 
 **Tests**: integration
 **Gate**: quick
@@ -201,10 +201,10 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] The contract suite resolves `findChartById` for the Prisma repository
-- [ ] An id from another organization returns `undefined`
-- [ ] Gate check passes: `npm test -- lib/persistence/music-repository.contract.test.ts`
-- [ ] Test count: the contract file passes, including the new lookup
+- [x] The contract suite resolves `findChartById` for the Prisma repository
+- [x] An id from another organization returns `undefined`
+- [x] Gate check passes: `npm test -- lib/persistence/music-repository.contract.test.ts`
+- [x] Test count: the contract file passes, including the new lookup
 
 **Tests**: integration
 **Gate**: quick
@@ -228,10 +228,10 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] A saved chart is returned by id after the database is reopened
-- [ ] A missing id returns `undefined`
-- [ ] Gate check passes: `npm test -- lib/persistence/music-database.test.ts`
-- [ ] Test count: at least 2 tests pass for the lookup
+- [x] A saved chart is returned by id after the database is reopened
+- [x] A missing id returns `undefined`
+- [x] Gate check passes: `npm test -- lib/persistence/music-database.test.ts`
+- [x] Test count: at least 2 tests pass for the lookup
 
 **Tests**: integration
 **Gate**: quick
@@ -255,10 +255,10 @@ T10 -> T11
 
 **Done when**:
 
-- [ ] Calling `findChartById` resolves `undefined`
-- [ ] The injected `fetch` is not called
-- [ ] Gate check passes: `npm test -- lib/persistence/http-music-repository.test.ts`
-- [ ] Test count: at least 1 test passes
+- [x] Calling `findChartById` resolves `undefined`
+- [x] The injected `fetch` is not called
+- [x] Gate check passes: `npm test -- lib/persistence/http-music-repository.test.ts`
+- [x] Test count: at least 1 test passes
 
 **Tests**: integration
 **Gate**: quick
