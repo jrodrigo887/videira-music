@@ -3,7 +3,12 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 
 vi.mock("server-only", () => ({}));
 
-import { CAPABILITIES, parseStoredCapabilities } from "@/lib/auth/capabilities";
+import {
+  ADMIN_ONLY_CAPABILITIES,
+  CAPABILITIES,
+  closeCapabilities,
+  parseStoredCapabilities,
+} from "@/lib/auth/capabilities";
 import { loadActorForUser } from "@/lib/auth/load-actor";
 import { hasCapability } from "@/lib/auth/actor";
 import { testUserActor } from "@/lib/auth/test-actor";
@@ -20,10 +25,15 @@ import { seedSimulatedIdentities } from "@/lib/auth/simulated-identities";
 import {
   createRole,
   deleteRole,
+  listRoleLabels,
   listRoles,
   RoleServiceError,
   updateRole,
 } from "./role-service";
+
+const NON_ADMIN_CAPABILITIES = CAPABILITIES.filter(
+  (cap) => !ADMIN_ONLY_CAPABILITIES.includes(cap),
+);
 
 function admin() {
   return testUserActor({
@@ -85,6 +95,15 @@ describe("role-service", () => {
     expect(roles.find((role) => role.key === "musician")?.capabilities).toEqual([]);
   });
 
+  it("lets manager list role labels but not full roles", async () => {
+    const labels = await listRoleLabels(prisma, manager());
+    expect(labels.some((role) => role.key === "admin")).toBe(true);
+    await expect(listRoles(prisma, manager())).rejects.toMatchObject({
+      status: 403,
+      code: "FORBIDDEN",
+    });
+  });
+
   it("creates a custom role for admin", async () => {
     const created = await createRole(prisma, admin(), {
       label: "Intercessão",
@@ -112,43 +131,45 @@ describe("role-service", () => {
     ).rejects.toMatchObject({ code: "INVALID_ROLE" });
   });
 
-  it("rejects custom role with the full admin capability set", async () => {
+  it("rejects custom role with admin-only capabilities", async () => {
     const beforeLogs = await prisma.authAuditLog.count({ where: { action: "role.create" } });
     await expect(
       createRole(prisma, admin(), {
         label: "Coordenação",
-        capabilities: [...CAPABILITIES],
+        capabilities: ["user.manage"],
       }),
-    ).rejects.toMatchObject({ status: 409, code: "ROLE_MATCHES_ADMIN" });
+    ).rejects.toMatchObject({ status: 409, code: "ADMIN_ONLY_CAPABILITY" });
     const afterLogs = await prisma.authAuditLog.count({ where: { action: "role.create" } });
     expect(afterLogs).toBe(beforeLogs);
     const roles = await listRoles(prisma, admin());
     expect(roles.some((role) => role.key === "coordenacao")).toBe(false);
   });
 
-  it("creates custom role with six of seven capabilities", async () => {
+  it("creates custom role with every non-admin capability", async () => {
     const created = await createRole(prisma, admin(), {
       label: "Quase Admin",
-      capabilities: CAPABILITIES.slice(0, 6),
+      capabilities: [...NON_ADMIN_CAPABILITIES],
     });
-    expect(created.capabilities).toHaveLength(6);
+    expect(created.capabilities).toEqual(expect.arrayContaining([...NON_ADMIN_CAPABILITIES]));
     await deleteRole(prisma, admin(), created.key);
   });
 
-  it("rejects update to admin set and keeps stored capabilities", async () => {
+  it("rejects update with admin-only capability and keeps stored capabilities", async () => {
     const created = await createRole(prisma, admin(), {
       label: "Parcial",
-      capabilities: CAPABILITIES.slice(0, 6),
+      capabilities: NON_ADMIN_CAPABILITIES.slice(0, 4),
     });
     await expect(
-      updateRole(prisma, admin(), created.key, { capabilities: [...CAPABILITIES] }),
-    ).rejects.toMatchObject({ code: "ROLE_MATCHES_ADMIN" });
+      updateRole(prisma, admin(), created.key, { capabilities: ["role.manage"] }),
+    ).rejects.toMatchObject({ code: "ADMIN_ONLY_CAPABILITY" });
     const row = await prisma.roleDefinition.findUnique({
       where: {
         organizationId_key: { organizationId: DEFAULT_ORGANIZATION_ID, key: created.key },
       },
     });
-    expect(parseStoredCapabilities(row?.capabilities)).toEqual(CAPABILITIES.slice(0, 6));
+    expect(parseStoredCapabilities(row?.capabilities)).toEqual(
+      closeCapabilities(NON_ADMIN_CAPABILITIES.slice(0, 4)),
+    );
     await deleteRole(prisma, admin(), created.key);
   });
 
@@ -183,7 +204,7 @@ describe("role-service", () => {
     });
     const actor = await loadActorForUser(prisma, "user-musician");
     if (actor.kind !== "user") throw new Error("expected user");
-    expect(hasCapability(actor, "users:manage", DEFAULT_ORGANIZATION_ID)).toBe(true);
+    expect(hasCapability(actor, "user.manage", DEFAULT_ORGANIZATION_ID)).toBe(true);
     await prisma.userRole.deleteMany({ where: { role: "legacy-actor" } });
     await prisma.roleDefinition.deleteMany({ where: { key: "legacy-actor" } });
   });
@@ -196,11 +217,22 @@ describe("role-service", () => {
     expect(updated.key).toBe("intercessao");
   });
 
-  it("updates capabilities on custom role", async () => {
+  it("updates capabilities on custom role and closes implications", async () => {
     const updated = await updateRole(prisma, admin(), "intercessao", {
       capabilities: ["import"],
     });
-    expect(updated.capabilities).toEqual(["import"]);
+    expect(updated.capabilities).toEqual(expect.arrayContaining(["import", "music:write"]));
+  });
+
+  it("stores member.manage and users:invite together", async () => {
+    const created = await createRole(prisma, admin(), {
+      label: "Membros",
+      capabilities: ["member.manage"],
+    });
+    expect(created.capabilities).toEqual(
+      expect.arrayContaining(["member.manage", "users:invite"]),
+    );
+    await deleteRole(prisma, admin(), created.key);
   });
 
   it("refuses to update system role", async () => {

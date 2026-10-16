@@ -3,10 +3,10 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 type RoleDb = PrismaClient | Prisma.TransactionClient;
 
 import type { UserActor } from "@/lib/auth/actor";
-import { hasRole } from "@/lib/auth/actor";
 import {
+  ADMIN_ONLY_CAPABILITIES,
   type Capability,
-  capabilitiesMatchAdminPreset,
+  closeCapabilities,
   isCapability,
   parseStoredCapabilities,
   systemCapabilities,
@@ -83,8 +83,35 @@ function toRoleRecord(row: {
   };
 }
 
+function assertNoAdminOnlyCapabilities(capabilities: readonly Capability[]): void {
+  if (capabilities.some((cap) => ADMIN_ONLY_CAPABILITIES.includes(cap))) {
+    throw roleError(409, "ADMIN_ONLY_CAPABILITY");
+  }
+}
+
+export async function listRoleLabels(
+  prisma: PrismaClient,
+  actor: UserActor,
+): Promise<Array<{ key: string; label: string }>> {
+  const orgId = actor.organizationId;
+  const allowed =
+    can(actor, "member.manage", { organizationId: orgId }) ||
+    can(actor, "user.manage", { organizationId: orgId }) ||
+    can(actor, "role.manage", { organizationId: orgId });
+  if (!allowed) {
+    throw roleError(403, "FORBIDDEN");
+  }
+  await ensureSystemRoles(prisma, orgId);
+  const rows = await prisma.roleDefinition.findMany({
+    where: { organizationId: orgId },
+    orderBy: [{ system: "desc" }, { label: "asc" }],
+    select: { key: true, label: true },
+  });
+  return rows;
+}
+
 export async function listRoles(prisma: PrismaClient, actor: UserActor): Promise<RoleRecord[]> {
-  if (!can(actor, "users:manage", { organizationId: actor.organizationId })) {
+  if (!can(actor, "role.manage", { organizationId: actor.organizationId })) {
     throw roleError(403, "FORBIDDEN");
   }
   await ensureSystemRoles(prisma, actor.organizationId);
@@ -142,7 +169,7 @@ export async function createRole(
   actor: UserActor,
   input: { label: string; capabilities: string[] },
 ): Promise<RoleRecord> {
-  if (!hasRole(actor, "admin", actor.organizationId)) {
+  if (!can(actor, "role.manage", { organizationId: actor.organizationId })) {
     throw roleError(403, "FORBIDDEN");
   }
 
@@ -152,9 +179,8 @@ export async function createRole(
   if (capabilities.length !== input.capabilities.length) {
     throw roleError(400, "INVALID_ROLE");
   }
-  if (capabilitiesMatchAdminPreset(capabilities)) {
-    throw roleError(409, "ROLE_MATCHES_ADMIN");
-  }
+  assertNoAdminOnlyCapabilities(capabilities);
+  const storedCapabilities = closeCapabilities(capabilities);
 
   const key = roleKeyFromLabel(label);
 
@@ -181,14 +207,14 @@ export async function createRole(
       key,
       label,
       system: false,
-      capabilities,
+      capabilities: storedCapabilities,
     },
   });
 
   await writeAudit(prisma, {
     actorUserId: actor.userId,
     action: "role.create",
-    details: { key, label, capabilities },
+    details: { key, label, capabilities: storedCapabilities },
   });
 
   return toRoleRecord(row);
@@ -200,7 +226,7 @@ export async function updateRole(
   key: string,
   input: { label?: string; capabilities?: string[] },
 ): Promise<RoleRecord> {
-  if (!hasRole(actor, "admin", actor.organizationId)) {
+  if (!can(actor, "role.manage", { organizationId: actor.organizationId })) {
     throw roleError(403, "FORBIDDEN");
   }
 
@@ -236,9 +262,8 @@ export async function updateRole(
     if (capabilities.length !== input.capabilities.length) {
       throw roleError(400, "INVALID_ROLE");
     }
-    if (capabilitiesMatchAdminPreset(capabilities)) {
-      throw roleError(409, "ROLE_MATCHES_ADMIN");
-    }
+    assertNoAdminOnlyCapabilities(capabilities);
+    capabilities = closeCapabilities(capabilities);
   }
 
   const row = await prisma.roleDefinition.update({
@@ -260,7 +285,7 @@ export async function deleteRole(
   actor: UserActor,
   key: string,
 ): Promise<void> {
-  if (!hasRole(actor, "admin", actor.organizationId)) {
+  if (!can(actor, "role.manage", { organizationId: actor.organizationId })) {
     throw roleError(403, "FORBIDDEN");
   }
 

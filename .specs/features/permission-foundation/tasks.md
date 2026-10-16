@@ -217,11 +217,11 @@ T35
 
 **Done when**:
 
-- [ ] Criar ou alterar com `user.manage` ou `role.manage` responde `409 ADMIN_ONLY_CAPABILITY` e não grava.
-- [ ] Lista com `import` sem `music:write` grava as duas. O mesmo para `member.manage` e `setlists:all`.
-- [ ] `listRoleLabels` exige `member.manage`, `user.manage` ou `role.manage`. `listRoles` exige `role.manage`.
-- [ ] `ROLE_MATCHES_ADMIN` sai do caminho de escrita.
-- [ ] `npm test -- lib/roles/role-service.test.ts` passa, sem apagar `it` existente.
+- [x] Criar ou alterar com `user.manage` ou `role.manage` responde `409 ADMIN_ONLY_CAPABILITY` e não grava.
+- [x] Lista com `import` sem `music:write` grava as duas. O mesmo para `member.manage` e `setlists:all`.
+- [x] `listRoleLabels` exige `member.manage`, `user.manage` ou `role.manage`. `listRoles` exige `role.manage`.
+- [x] `ROLE_MATCHES_ADMIN` sai do caminho de escrita.
+- [x] `npm test -- lib/roles/role-service.test.ts` passa, sem apagar `it` existente.
 
 **Tests**: unit
 **Gate**: quick
