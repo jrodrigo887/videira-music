@@ -42,7 +42,7 @@ export async function reconcileSoleWorshipLeader(
 }
 
 export async function listMembers(prisma: PrismaClient, actor: UserActor) {
-  if (!can(actor, "users:manage", { organizationId: actor.organizationId })) {
+  if (!can(actor, "member.manage", { organizationId: actor.organizationId })) {
     throw memberError(403, "FORBIDDEN");
   }
   const users = await prisma.user.findMany({
@@ -69,7 +69,7 @@ export async function setMemberRoles(
   userId: string,
   roles: string[],
 ): Promise<void> {
-  if (!can(actor, "users:manage", { organizationId: actor.organizationId })) {
+  if (!can(actor, "user.manage", { organizationId: actor.organizationId })) {
     throw memberError(403, "FORBIDDEN");
   }
   if (roles.length === 0) {
@@ -196,7 +196,7 @@ export async function deactivateMember(
   actor: UserActor,
   userId: string,
 ): Promise<void> {
-  if (!can(actor, "users:manage", { organizationId: actor.organizationId })) {
+  if (!can(actor, "user.manage", { organizationId: actor.organizationId })) {
     throw memberError(403, "FORBIDDEN");
   }
 

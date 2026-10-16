@@ -154,13 +154,13 @@ O Gestor entra em Usuários, troca papel de quem não é Admin e desativa contas
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| PERM-01 | P1: Gestor fora da área de usuário | - | In Tasks |
-| PERM-02 | P1: Gestor fora da área de usuário | - | In Tasks |
-| PERM-03 | P1: Gestor fora da área de usuário | - | In Tasks |
+| PERM-01 | P1: Gestor fora da área de usuário | T5 | Done |
+| PERM-02 | P1: Gestor fora da área de usuário | T5 | Done |
+| PERM-03 | P1: Gestor fora da área de usuário | T6 | Done |
 | PERM-04 | P1: Gestor fora da área de usuário | - | In Tasks |
 | PERM-05 | P1: Gestor fora da área de usuário | - | In Tasks |
 | PERM-06 | P1: Gestor fora da área de usuário | - | In Tasks |
-| PERM-07 | P1: Gestor fora da área de usuário | - | In Tasks |
+| PERM-07 | P1: Gestor fora da área de usuário | T5 | Done |
 | PERM-08 | P1: Gestor fora da área de usuário | - | In Tasks |
 | PERM-09 | P1: Gestor fora da área de usuário | - | In Tasks |
 | PERM-10 | P1: Portão nega por padrão | - | In Tasks |
@@ -179,8 +179,8 @@ O Gestor entra em Usuários, troca papel de quem não é Admin e desativa contas
 | PERM-23 | P1: Papel personalizado sem escalada | T4 | Done |
 | PERM-24 | P1: Papel personalizado sem escalada | T4 | Done |
 | PERM-25 | P1: Papel personalizado sem escalada | T3 | Done |
-| PERM-26 | P1: Papel personalizado sem escalada | - | In Tasks |
-| PERM-27 | P1: Papel personalizado sem escalada | - | In Tasks |
+| PERM-26 | P1: Papel personalizado sem escalada | T5 | Done |
+| PERM-27 | P1: Papel personalizado sem escalada | T5 | Done |
 | PERM-28 | P1: Aba Papéis e tela de sem acesso | - | In Tasks |
 | PERM-29 | P1: Aba Papéis e tela de sem acesso | - | In Tasks |
 | PERM-30 | P1: Aba Papéis e tela de sem acesso | - | In Tasks |

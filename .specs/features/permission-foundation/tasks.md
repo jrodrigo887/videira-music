@@ -245,10 +245,10 @@ T35
 
 **Done when**:
 
-- [ ] Gestor recebe `403` em `setMemberRoles` e `deactivateMember`, e o estado não muda.
-- [ ] Ator com `user.manage` grava papéis. Incluir `admin` também exige `role.manage`.
-- [ ] Remover ou desativar o único admin ativo responde `409 LAST_ADMIN`.
-- [ ] `npm test -- lib/members/member-service.test.ts` passa. O arquivo nasce nesta tarefa se ainda não existir.
+- [x] Gestor recebe `403` em `setMemberRoles` e `deactivateMember`, e o estado não muda.
+- [x] Ator com `user.manage` grava papéis. Incluir `admin` também exige `role.manage`.
+- [x] Remover ou desativar o único admin ativo responde `409 LAST_ADMIN`.
+- [x] `npm test -- lib/members/member-service.test.ts` passa. O arquivo nasce nesta tarefa se ainda não existir.
 
 **Tests**: unit
 **Gate**: quick
@@ -272,9 +272,9 @@ T35
 
 **Done when**:
 
-- [ ] Gestor recebe `403` em aprovar e em recusar.
-- [ ] A checagem deixa de usar `hasRole(actor, "admin")`.
-- [ ] `npm test -- lib/access-requests/access-request-service.test.ts` passa, sem apagar `it` existente.
+- [x] Gestor recebe `403` em aprovar e em recusar.
+- [x] A checagem deixa de usar `hasRole(actor, "admin")`.
+- [x] `npm test -- lib/access-requests/access-request-service.test.ts` passa, sem apagar `it` existente.
 
 **Tests**: unit
 **Gate**: quick
