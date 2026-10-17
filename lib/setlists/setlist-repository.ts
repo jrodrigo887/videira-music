@@ -44,6 +44,7 @@ export type SetlistRecord = {
   organizationId: string;
   ownerTeamId: string | null;
   ownerUserId: string | null;
+  createdByUserId: string | null;
   title: string;
   eventType?: SetlistEventType;
   eventAt?: string;
@@ -60,6 +61,7 @@ export type NewSetlist = {
   id: string;
   organizationId: string;
   ownerTeamId: string | null;
+  createdByUserId?: string | null;
   title: string;
   eventType?: SetlistEventType;
   eventAt?: string;

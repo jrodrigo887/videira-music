@@ -960,4 +960,61 @@ describe("SetlistService", () => {
       ).rejects.toMatchObject({ code: "FORBIDDEN" });
     });
   });
+
+  describe("authorship", () => {
+    it("stores createdByUserId on create", async () => {
+      const leader = await actorFor(prisma, "user-leader");
+      const created = await service.create(leader, {
+        title: "Do líder",
+        ownerTeamId: "team-louvor",
+      });
+      const row = await repository.findById(created.id);
+      expect(row?.createdByUserId).toBe("user-leader");
+    });
+
+    it("lets the author update title and notes without setlist capability", async () => {
+      await repository.create({
+        id: "sl-author-only",
+        organizationId: DEFAULT_ORGANIZATION_ID,
+        ownerTeamId: "team-louvor",
+        createdByUserId: "user-musician",
+        title: "Rascunho",
+        status: "draft",
+        visibility: "team",
+      });
+      const musician = await actorFor(prisma, "user-musician");
+      const updated = await service.updateMeta(musician, "sl-author-only", {
+        expectedVersion: 1,
+        title: "Ajustado",
+        notes: "Notas",
+      });
+      expect(updated.title).toBe("Ajustado");
+      expect(updated.notes).toBe("Notas");
+    });
+
+    it("forbids the author from changing visibility or status", async () => {
+      await repository.create({
+        id: "sl-author-meta",
+        organizationId: DEFAULT_ORGANIZATION_ID,
+        ownerTeamId: "team-louvor",
+        createdByUserId: "user-musician",
+        title: "Rascunho",
+        status: "draft",
+        visibility: "team",
+      });
+      const musician = await actorFor(prisma, "user-musician");
+      await expect(
+        service.updateMeta(musician, "sl-author-meta", {
+          expectedVersion: 1,
+          visibility: "organization",
+        }),
+      ).rejects.toMatchObject({ code: "FORBIDDEN" });
+      await expect(
+        service.updateMeta(musician, "sl-author-meta", {
+          expectedVersion: 1,
+          status: "published",
+        }),
+      ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    });
+  });
 });

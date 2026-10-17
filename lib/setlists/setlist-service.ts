@@ -26,7 +26,12 @@ import type { WorshipTeam } from "@/types/identity";
 
 import { buildClonePlan } from "./clone-plan";
 import { mergeReplaceItemIds, PrismaSetlistRepository } from "./prisma-setlist-repository";
-import { canPerform, type SetlistAccess } from "./setlist-policy";
+import {
+  canEditSetlistContent,
+  canPerform,
+  setlistPolicyInternals,
+  type SetlistAccess,
+} from "./setlist-policy";
 import type { NewSetlistItem, SetlistRecord, SetlistRepository } from "./setlist-repository";
 import { SetlistVersionConflictError } from "./setlist-repository";
 import { throwSetlistError } from "./setlist-errors";
@@ -57,11 +62,29 @@ function toAccess(record: SetlistRecord): SetlistAccess {
   return {
     organizationId: record.organizationId,
     ownerTeamId: record.ownerTeamId,
+    createdByUserId: record.createdByUserId,
     status: record.status,
     visibility: record.visibility,
     deletedAt: record.deletedAt ?? null,
     followerTeamIds: record.followerTeamIds,
   };
+}
+
+function assertAuthorMetaAllowed(actor: Actor, access: SetlistAccess, input: UpdateSetlistInput): void {
+  if (actor.kind !== "user") {
+    return;
+  }
+  if (setlistPolicyInternals.canEditSetlistByCapability(actor, access)) {
+    return;
+  }
+  if (
+    input.status !== undefined ||
+    input.visibility !== undefined ||
+    input.eventType !== undefined ||
+    input.eventAt !== undefined
+  ) {
+    throw throwSetlistError(403, "FORBIDDEN");
+  }
 }
 
 function permissionsFor(actor: Actor, record: SetlistRecord) {
@@ -183,6 +206,7 @@ function countAffectedFollowers(
   const nextAccess: SetlistAccess = {
     organizationId: record.organizationId,
     ownerTeamId: record.ownerTeamId,
+    createdByUserId: record.createdByUserId,
     status: record.status,
     visibility: patch.visibility ?? record.visibility,
     deletedAt: patch.deleted ? new Date().toISOString() : null,
@@ -335,6 +359,7 @@ export function createSetlistService(dependencies: SetlistServiceDependencies) {
         id: newId(),
         organizationId,
         ownerTeamId,
+        createdByUserId: actor.userId,
         title: input.title,
         status: "draft",
         visibility,
@@ -352,9 +377,10 @@ export function createSetlistService(dependencies: SetlistServiceDependencies) {
         assertNotFound();
       }
       const access = toAccess(record);
-      if (!canPerform(actor, "edit", { type: "setlist", setlist: access })) {
+      if (!canEditSetlistContent(actor, access)) {
         throw throwSetlistError(403, "FORBIDDEN");
       }
+      assertAuthorMetaAllowed(actor, access, input);
 
       if (input.visibility !== undefined) {
         assertOrganizationVisibility(record.ownerTeamId, input.visibility);
@@ -409,7 +435,7 @@ export function createSetlistService(dependencies: SetlistServiceDependencies) {
       if (!record || record.deletedAt) {
         assertNotFound();
       }
-      if (!canPerform(actor, "edit", { type: "setlist", setlist: toAccess(record) })) {
+      if (!canEditSetlistContent(actor, toAccess(record))) {
         throw throwSetlistError(403, "FORBIDDEN");
       }
 
