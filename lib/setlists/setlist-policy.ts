@@ -14,6 +14,7 @@ export type SetlistAction =
 export type SetlistAccess = {
   organizationId: string;
   ownerTeamId: string | null;
+  createdByUserId: string | null;
   status: string;
   visibility: string;
   deletedAt: string | null;
@@ -44,7 +45,7 @@ function isMemberOfTeam(actor: Actor, teamId: string): boolean {
   return teamRoleOf(actor, teamId) !== undefined;
 }
 
-function canEditSetlist(actor: Actor, setlist: SetlistAccess): boolean {
+function canEditSetlistByCapability(actor: Actor, setlist: SetlistAccess): boolean {
   if (setlist.deletedAt) {
     return false;
   }
@@ -58,6 +59,19 @@ function canEditSetlist(actor: Actor, setlist: SetlistAccess): boolean {
     return hasCapability(actor, "setlists:led", setlist.organizationId);
   }
   return false;
+}
+
+export function canEditSetlistContent(actor: Actor, setlist: SetlistAccess): boolean {
+  if (setlist.deletedAt) {
+    return false;
+  }
+  if (!isSameOrganization(actor, setlist.organizationId)) {
+    return false;
+  }
+  if (actor.kind === "user" && setlist.createdByUserId === actor.userId) {
+    return true;
+  }
+  return canEditSetlistByCapability(actor, setlist);
 }
 
 function canActOnDestination(actor: Actor, organizationId: string, teamId: string | null): boolean {
@@ -79,7 +93,7 @@ function canReadSetlist(actor: Actor, setlist: SetlistAccess): boolean {
   }
 
   if (setlist.status === "draft" || setlist.visibility === "private") {
-    return canEditSetlist(actor, setlist);
+    return canEditSetlistContent(actor, setlist);
   }
 
   if (actor.kind === "anonymous") {
@@ -91,7 +105,7 @@ function canReadSetlist(actor: Actor, setlist: SetlistAccess): boolean {
   }
 
   if (setlist.visibility === "team") {
-    if (canEditSetlist(actor, setlist)) {
+    if (canEditSetlistContent(actor, setlist)) {
       return true;
     }
     if (setlist.ownerTeamId && isMemberOfTeam(actor, setlist.ownerTeamId)) {
@@ -154,7 +168,10 @@ export function canPerform(actor: Actor, action: SetlistAction, target: PolicyTa
     if (isCrossOrganization(actor, setlist.organizationId)) {
       return false;
     }
-    return canEditSetlist(actor, setlist);
+    if (action === "edit") {
+      return canEditSetlistContent(actor, setlist);
+    }
+    return canEditSetlistByCapability(actor, setlist);
   }
 
   return false;
@@ -162,7 +179,8 @@ export function canPerform(actor: Actor, action: SetlistAction, target: PolicyTa
 
 /** Expõe helpers para testes e serviços. */
 export const setlistPolicyInternals = {
-  canEditSetlist,
+  canEditSetlistByCapability,
+  canEditSetlistContent,
   canReadSetlist,
   actorOrganizationId,
 };

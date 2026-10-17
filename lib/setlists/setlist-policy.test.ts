@@ -5,6 +5,7 @@ import { testUserActor } from "@/lib/auth/test-actor";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/persistence/organization-scope";
 
 import {
+  canEditSetlistContent,
   canPerform,
   type SetlistAccess,
   type SetlistAction,
@@ -76,6 +77,7 @@ function setlist(overrides: Partial<SetlistAccess> = {}): SetlistAccess {
   return {
     organizationId: ORG,
     ownerTeamId: "team-louvor",
+    createdByUserId: null,
     status: "published",
     visibility: "team",
     deletedAt: null,
@@ -151,6 +153,43 @@ const matrix: MatrixCase[] = [
   { name: "create foreign org denied", actor: otherOrgUser, action: "create", target: { type: "destination", organizationId: ORG, teamId: "team-louvor" }, expected: false },
   { name: "follow cross-org denied", actor: otherOrgUser, action: "follow", target: { type: "destination", organizationId: ORG, teamId: "team-louvor" }, expected: false },
 ];
+
+describe("setlist authorship", () => {
+  const author = testUserActor({
+    userId: "user-author",
+    organizationId: ORG,
+    roles: ["musician"],
+    teams: [{ teamId: "team-louvor", role: "member" }],
+  });
+
+  const authoredSetlist = setlist({ createdByUserId: "user-author" });
+
+  it("lets the author edit content without setlists:led or setlists:all", () => {
+    expect(canEditSetlistContent(author, authoredSetlist)).toBe(true);
+    expect(canPerform(author, "edit", { type: "setlist", setlist: authoredSetlist })).toBe(true);
+  });
+
+  it("denies edit when createdByUserId is null and actor lacks capability", () => {
+    expect(canEditSetlistContent(author, setlist({ createdByUserId: null }))).toBe(false);
+  });
+
+  it("denies author from another organization", () => {
+    const foreignAuthor = testUserActor({
+      userId: "user-author",
+      organizationId: OTHER_ORG,
+      roles: ["musician"],
+      teams: [],
+    });
+    expect(canEditSetlistContent(foreignAuthor, authoredSetlist)).toBe(false);
+  });
+
+  it("still requires capability for delete and changeStatus", () => {
+    expect(canPerform(author, "delete", { type: "setlist", setlist: authoredSetlist })).toBe(false);
+    expect(
+      canPerform(author, "changeStatus", { type: "setlist", setlist: authoredSetlist }),
+    ).toBe(false);
+  });
+});
 
 describe("canPerform matrix", () => {
   it.each(matrix)("$name", ({ actor, action, target, expected }) => {
