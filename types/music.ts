@@ -28,6 +28,7 @@ export type Song = {
   meta: string;
   /** Letra visível em / e /letras sem login (AUTH-40). */
   publicLyrics?: boolean;
+  createdByUserId?: string | null;
 };
 
 export type ParsedChord = {
@@ -97,5 +98,6 @@ export type ChordChart = {
   sections: Section[];
   source?: string;
   origin?: ImportOrigin;
+  createdByUserId?: string | null;
 };
 

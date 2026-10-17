@@ -30,6 +30,7 @@ export function toDomainSong(row: PrismaSong): Song {
     ...(row.notes ? { notes: row.notes } : {}),
     meta: row.meta,
     publicLyrics: row.publicLyrics,
+    ...(row.createdByUserId != null ? { createdByUserId: row.createdByUserId } : {}),
   };
 }
 
@@ -48,6 +49,7 @@ export function toDomainChart(row: PrismaChart): ChordChart {
     sections: Array.isArray(sections) ? sections : [],
     ...(row.source ? { source: row.source } : {}),
     ...(origin ? { origin } : {}),
+    ...(row.createdByUserId != null ? { createdByUserId: row.createdByUserId } : {}),
   };
 }
 
