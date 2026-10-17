@@ -18,6 +18,7 @@ export type SaveImportedChartInput = {
   selectedSongKey?: string;
   song?: SongSelection;
   publicLyrics?: boolean;
+  versionLabel?: string;
 };
 
 export type SaveImportedChartResult = {
@@ -91,10 +92,12 @@ export async function saveImportedChart(
     throw new Error("A música selecionada não foi encontrada.");
   }
 
+  const versionLabel = input.versionLabel?.trim();
   const chart: ChordChart = {
     ...input.draft.chart,
     id: `chart-local-${crypto.randomUUID()}`,
     songId: song.id,
+    ...(versionLabel ? { versionLabel } : {}),
   };
 
   await serializeRepositoryWrite(

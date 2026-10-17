@@ -256,6 +256,7 @@ model ChordChart {
   songId               String
   song                 Song                 @relation(fields: [songId], references: [id])
   title                String?
+  versionLabel         String?
   format               String
   key                  String
   timeSignature        String
@@ -356,6 +357,7 @@ model ChordChartRevision {
   sections      Json
   key           String
   capo          Int?
+  versionLabel  String?
   savedByUserId String?
   savedBy       User?      @relation("ChartRevisionSavedBy", fields: [savedByUserId], references: [id])
   savedAt       DateTime   @default(now())

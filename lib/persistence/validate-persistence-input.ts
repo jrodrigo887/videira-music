@@ -53,6 +53,23 @@ function parseId(value: unknown, path: string): string | ValidationIssue {
   return value;
 }
 
+function parseVersionLabel(value: unknown): string | undefined | ValidationIssue {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (typeof value !== "string") {
+    return issue("versionLabel", "Versão inválida.");
+  }
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return undefined;
+  }
+  if (trimmed.length > 80) {
+    return issue("versionLabel", "A versão deve ter no máximo 80 caracteres.");
+  }
+  return trimmed;
+}
+
 function parseOptionalString(
   value: unknown,
   path: string,
@@ -217,6 +234,10 @@ export function parseChartJson(body: unknown): ParseResult<ChordChart> {
   if (title instanceof Object && "path" in title) {
     return fail([title]);
   }
+  const versionLabel = parseVersionLabel(record.versionLabel);
+  if (versionLabel instanceof Object && "path" in versionLabel) {
+    return fail([versionLabel]);
+  }
   const source = parseOptionalString(record.source, "source", 500_000);
   if (source instanceof Object && "path" in source) {
     return fail([source]);
@@ -230,6 +251,7 @@ export function parseChartJson(body: unknown): ParseResult<ChordChart> {
     timeSignature: record.timeSignature,
     sections,
     ...(typeof title === "string" ? { title } : {}),
+    ...(typeof versionLabel === "string" ? { versionLabel } : {}),
     ...(typeof record.tempo === "number" ? { tempo: record.tempo } : {}),
     ...(typeof record.capo === "number" ? { capo: record.capo } : {}),
     ...(typeof source === "string" ? { source } : {}),

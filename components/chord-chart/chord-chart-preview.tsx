@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { parseChord } from "@/lib/chords/parse-chord";
 import { semitonesBetweenKeys, transposeChord } from "@/lib/chords/transpose-chord";
+import { isLyricsOnlyVersion } from "@/lib/charts/chart-versions";
 import { chartDisplayStyle, type ChartDisplaySettings } from "@/lib/songs/chart-display-preference";
 import type {
   ChordChart,
@@ -474,11 +475,21 @@ function LyricsLine({
   line,
   semitones,
   chartKey,
+  lyricsOnly = false,
 }: {
   line: LyricsSectionContent["lines"][number];
   semitones: number;
   chartKey: string;
+  lyricsOnly?: boolean;
 }) {
+  if (lyricsOnly) {
+    return (
+      <div className="music-line">
+        <span className="music-lyrics">{line.text || "\u00a0"}</span>
+      </div>
+    );
+  }
+
   const segments = buildMusicSegments(line.text, line.chords, semitones, chartKey);
 
   return (
@@ -500,10 +511,12 @@ function LyricsChart({
   chart,
   semitones,
   columns = 1,
+  lyricsOnly = false,
 }: {
   chart: ChordChart;
   semitones: number;
   columns?: 1 | 2;
+  lyricsOnly?: boolean;
 }) {
   return (
     <div
@@ -528,6 +541,7 @@ function LyricsChart({
                 line={line}
                 semitones={semitones}
                 chartKey={chart.key}
+                lyricsOnly={lyricsOnly}
               />
             ))}
           </div>
@@ -601,6 +615,7 @@ export function ChordChartPreview({
     }
   }
 
+  const lyricsOnly = isLyricsOnlyVersion(chart.versionLabel);
   const activeKey = syncDisplayKeyBase
     ? transposeChord(syncDisplayKeyBase, semitones, { key: syncDisplayKeyBase })
     : transpose(chart.key, semitones, chart.key);
@@ -685,7 +700,7 @@ export function ChordChartPreview({
       </div>
       ) : null}
 
-      {showDiagrams && uniqueChords.length > 0 ? (
+      {showDiagrams && !lyricsOnly && uniqueChords.length > 0 ? (
         <ChordDiagramsStrip
           chords={uniqueChords}
           className={
@@ -721,7 +736,12 @@ export function ChordChartPreview({
         style={displaySettings ? chartDisplayStyle(displaySettings) : undefined}
       >
         {chart.format === "lyrics" ? (
-          <LyricsChart chart={chart} semitones={renderSemitones} columns={columns} />
+          <LyricsChart
+            chart={chart}
+            semitones={renderSemitones}
+            columns={columns}
+            lyricsOnly={lyricsOnly}
+          />
         ) : (
           <GridChart chart={chart} semitones={renderSemitones} />
         )}

@@ -90,6 +90,7 @@ export type ChordChart = {
   id: ChordChartId;
   songId: SongId;
   title?: string;
+  versionLabel?: string;
   format: ChartFormat;
   key: string;
   timeSignature: string;

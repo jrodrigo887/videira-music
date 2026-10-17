@@ -55,6 +55,16 @@ describe("ChordChartPreview", () => {
       .toEqual(["Minha oração só é ", "real transformação ", "se começar em mim"]);
   });
 
+  it("shows only the lyric when the version is Letra", () => {
+    const { container } = render(
+      <ChordChartPreview chart={{ ...CHART, versionLabel: "Letra" }} showDiagrams />,
+    );
+
+    expect(container.querySelector(".music-chords")).not.toBeInTheDocument();
+    expect(screen.getByText("Minha oração só é real transformação se começar em mim")).toBeInTheDocument();
+    expect(screen.queryByText("Am7")).not.toBeInTheDocument();
+  });
+
   it("hides expand control when all chord diagrams fit without scrolling", async () => {
     const scrollWidthSpy = vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockReturnValue(320);
     const clientWidthSpy = vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(320);

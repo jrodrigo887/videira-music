@@ -137,4 +137,68 @@ describe("chart-history-service", () => {
     expect(row?.source).toBe("autor v2");
     expect(row?.lastEditedByUserId).toBe("user-musician");
   });
+
+  it("keeps the version label on each revision and skips history for a label-only change", async () => {
+    const chartId = "chart-version-label";
+    const actor = writer();
+    await saveChartWithHistory(prisma, actor, {
+      ...BASE_CHART,
+      id: chartId,
+      versionLabel: "original",
+    });
+    await saveChartWithHistory(prisma, actor, {
+      ...BASE_CHART,
+      id: chartId,
+      source: "v2",
+      versionLabel: "original",
+    });
+
+    const listed = await listRevisions(prisma, actor, chartId);
+    expect(listed).toHaveLength(1);
+    expect(listed[0]?.versionLabel).toBe("original");
+
+    await saveChartWithHistory(prisma, actor, {
+      ...BASE_CHART,
+      id: chartId,
+      source: "v2",
+      versionLabel: "completa",
+    });
+
+    const afterLabel = await listRevisions(prisma, actor, chartId);
+    expect(afterLabel).toHaveLength(1);
+    const row = await prisma.chordChart.findUnique({ where: { id: chartId } });
+    expect(row?.versionLabel).toBe("completa");
+    expect(row?.source).toBe("v2");
+  });
+
+  it("treats a reordered origin as the same chart when only the version label changes", async () => {
+    const chartId = "chart-version-origin";
+    const actor = writer();
+    await saveChartWithHistory(prisma, actor, {
+      ...BASE_CHART,
+      id: chartId,
+      versionLabel: "original",
+      origin: {
+        kind: "url",
+        url: "https://www.cifraclub.com.br/artista/cancao/",
+        sourceName: "Cifra Club",
+        fetchedAt: "2026-10-17T12:00:00.000Z",
+      },
+    });
+    await saveChartWithHistory(prisma, actor, {
+      ...BASE_CHART,
+      id: chartId,
+      versionLabel: "trabalhada",
+      origin: {
+        fetchedAt: "2026-10-17T12:00:00.000Z",
+        sourceName: "Cifra Club",
+        url: "https://www.cifraclub.com.br/artista/cancao/",
+        kind: "url",
+      },
+    });
+    const listed = await listRevisions(prisma, actor, chartId);
+    expect(listed).toHaveLength(0);
+    const row = await prisma.chordChart.findUnique({ where: { id: chartId } });
+    expect(row?.versionLabel).toBe("trabalhada");
+  });
 });

@@ -41,13 +41,17 @@ export function ChartSuggestionPanel({
     if (!canReview) {
       return;
     }
-    const response = await fetch(`/api/charts/${chartId}/suggestions`);
-    if (!response.ok) {
+    try {
+      const response = await fetch(`/api/charts/${chartId}/suggestions`);
+      if (!response.ok) {
+        setQueue([]);
+        return;
+      }
+      const payload = (await response.json()) as { suggestions: PendingSuggestion[] };
+      setQueue(payload.suggestions);
+    } catch {
       setQueue([]);
-      return;
     }
-    const payload = (await response.json()) as { suggestions: PendingSuggestion[] };
-    setQueue(payload.suggestions);
   }, [canReview, chartId]);
 
   useEffect(() => {
@@ -108,7 +112,10 @@ export function ChartSuggestionPanel({
   }
 
   return (
-    <section className="rounded-lg border border-border bg-surface p-4" aria-label="Sugestões de cifra">
+    <section
+      className="rounded-2xl border border-border bg-surface p-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+      aria-label="Sugestões de cifra"
+    >
       {canSuggest ? (
         <div className="space-y-2">
           {!open ? (
@@ -169,11 +176,11 @@ export function ChartSuggestionPanel({
 
       {canReview ? (
         <div className={canSuggest ? "mt-4 border-t border-border pt-4" : ""}>
-          <h2 className="text-sm font-semibold text-content">Sugestões pendentes</h2>
+          <h2 className="text-xs font-semibold text-content">Sugestões pendentes</h2>
           {queue === null ? (
-            <p className="mt-2 text-sm text-content-muted">Carregando…</p>
+            <p className="mt-2 text-[12px] text-content-muted">Carregando…</p>
           ) : queue.length === 0 ? (
-            <p className="mt-2 text-sm text-content-muted">Nenhuma sugestão pendente.</p>
+            <p className="mt-2 text-[12px] text-content-muted">Nenhuma sugestão pendente.</p>
           ) : (
             <ul className="mt-3 space-y-3">
               {queue.map((item) => (

@@ -120,6 +120,25 @@ describe("saveImportedChart", () => {
     await expect(repository.listChartsBySong(EXISTING_SONG.id)).resolves.toEqual([result.chart]);
   });
 
+  it("stores the version chosen when saving the chart", async () => {
+    const repository = new InMemoryMusicRepository([EXISTING_SONG]);
+
+    const result = await saveImportedChart(
+      {
+        draft: DRAFT,
+        selectedSongKey: "G",
+        song: { kind: "existing", songId: EXISTING_SONG.id },
+        versionLabel: "Ensaio de domingo",
+      },
+      repository,
+    );
+
+    expect(result.chart.versionLabel).toBe("Ensaio de domingo");
+    await expect(repository.listChartsBySong(EXISTING_SONG.id)).resolves.toEqual([
+      expect.objectContaining({ versionLabel: "Ensaio de domingo" }),
+    ]);
+  });
+
   it("creates non-numeric local IDs and persists the new song with its chart", async () => {
     const repository = new InMemoryMusicRepository();
     const randomUUID = vi.spyOn(crypto, "randomUUID")

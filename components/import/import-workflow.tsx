@@ -3,11 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { ChordChartPreview } from "@/components/chord-chart/chord-chart-preview";
+import { ChartVersionField } from "@/components/import/chart-version-field";
 import { PublicVisibilityField } from "@/components/songs/public-visibility-field";
 import {
   SECTION_TYPE_OPTIONS,
   TONALITY_OPTIONS,
 } from "@/lib/charts/chart-edit-options";
+import {
+  CHART_VERSION_PRESETS,
+  PRINCIPAL_VERSION_LABEL,
+  chartVersionLabel,
+} from "@/lib/charts/chart-versions";
 import { previewImport } from "@/lib/import/preview-import";
 import {
   saveImportedChart,
@@ -84,6 +90,9 @@ export function ImportWorkflow({
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [publicLyrics, setPublicLyrics] = useState(false);
+  const [versionLabel, setVersionLabel] = useState<string>(PRINCIPAL_VERSION_LABEL);
+  const [extraVersions, setExtraVersions] = useState<string[]>([]);
+  const [songVersions, setSongVersions] = useState<string[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -113,6 +122,46 @@ export function ImportWorkflow({
     }
   }, [songChoice, catalogSongs]);
 
+  useEffect(() => {
+    if (songChoice?.kind !== "existing") {
+      setSongVersions((current) => (current.length === 0 ? current : []));
+      return;
+    }
+
+    let active = true;
+    repository
+      .listChartsBySong(songChoice.songId)
+      .then((charts) => {
+        if (active) {
+          setSongVersions(charts.map((chart) => chartVersionLabel(chart)));
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setSongVersions([]);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [repository, songChoice]);
+
+  const versionOptions = useMemo(() => {
+    const seen = new Set<string>();
+    const options: string[] = [];
+    for (const label of [...CHART_VERSION_PRESETS, ...songVersions, ...extraVersions]) {
+      const trimmed = label.trim();
+      const key = trimmed.toLowerCase();
+      if (!key || seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      options.push(trimmed);
+    }
+    return options;
+  }, [extraVersions, songVersions]);
+
   const suggestions = useMemo(() => {
     if (!draft?.song.title && !draft?.song.artist) return catalogSongs;
 
@@ -129,7 +178,24 @@ export function ImportWorkflow({
     setDraft(nextDraft);
     setSelectedSongKey(nextDraft.song.defaultKey ?? nextDraft.chart.key);
     setSongChoice(undefined);
+    setVersionLabel(PRINCIPAL_VERSION_LABEL);
+    setExtraVersions([]);
+    setSongVersions([]);
     setError(undefined);
+  }
+
+  function createVersion(label: string) {
+    const trimmed = label.trim();
+    if (!trimmed) {
+      return;
+    }
+    const existing = versionOptions.find((option) => option.toLowerCase() === trimmed.toLowerCase());
+    if (existing) {
+      setVersionLabel(existing);
+      return;
+    }
+    setExtraVersions((current) => [...current, trimmed]);
+    setVersionLabel(trimmed);
   }
 
   function reviewText() {
@@ -207,6 +273,7 @@ export function ImportWorkflow({
         selectedSongKey,
         song: songChoice,
         publicLyrics,
+        versionLabel,
       };
       const result = await saveImportedChart(input, repository);
       onNavigate(`/songs/${result.song.id}`);
@@ -344,6 +411,21 @@ export function ImportWorkflow({
           </ul>
         </section>
       ) : null}
+
+      <section className="ds-card space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold text-content">Versão da cifra</h2>
+          <p className="mt-1 text-sm text-content-muted">
+            Escolha Principal, Simplificada ou Letra, ou adicione uma tag para esta cifra.
+          </p>
+        </div>
+        <ChartVersionField
+          value={versionLabel}
+          options={versionOptions}
+          onChange={setVersionLabel}
+          onCreate={createVersion}
+        />
+      </section>
 
       <section className="ds-card space-y-4">
         <h2 className="text-xl font-semibold text-content">Seções e tom</h2>

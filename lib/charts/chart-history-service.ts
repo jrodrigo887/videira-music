@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 
 import type { UserActor } from "@/lib/auth/actor";
 import { PrismaMusicRepository } from "@/lib/persistence/prisma-music-repository";
@@ -29,7 +29,54 @@ export function isChartHistoryServiceError(error: unknown): error is ChartHistor
 export type ChartRevisionSummary = {
   id: string;
   savedAt: string;
+  versionLabel: string | null;
 };
+
+function stableJson(value: unknown): string {
+  return JSON.stringify(sortJson(value ?? null));
+}
+
+function sortJson(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(sortJson);
+  }
+  if (value && typeof value === "object") {
+    return Object.keys(value as Record<string, unknown>)
+      .sort()
+      .reduce<Record<string, unknown>>((sorted, key) => {
+        sorted[key] = sortJson((value as Record<string, unknown>)[key]);
+        return sorted;
+      }, {});
+  }
+  return value;
+}
+
+function chartSnapshotMatches(
+  existing: {
+    format: string;
+    key: string;
+    timeSignature: string;
+    tempo: number | null;
+    capo: number | null;
+    title: string | null;
+    source: string | null;
+    sections: Prisma.JsonValue;
+    origin: Prisma.JsonValue | null;
+  },
+  chart: ChordChart,
+): boolean {
+  return (
+    existing.format === chart.format &&
+    existing.key === chart.key &&
+    existing.timeSignature === chart.timeSignature &&
+    (existing.tempo ?? null) === (chart.tempo ?? null) &&
+    (existing.capo ?? null) === (chart.capo ?? null) &&
+    (existing.title ?? null) === (chart.title ?? null) &&
+    (existing.source ?? null) === (chart.source ?? null) &&
+    stableJson(existing.sections) === stableJson(chart.sections) &&
+    stableJson(existing.origin) === stableJson(chart.origin)
+  );
+}
 
 async function loadChartContext(
   prisma: PrismaClient,
@@ -107,14 +154,27 @@ export async function saveChartWithHistory(
       where: { id: chart.id, organizationId: actor.organizationId },
     });
 
+    if (
+      existing &&
+      chartSnapshotMatches(existing, chart) &&
+      (existing.versionLabel ?? null) !== (chart.versionLabel?.trim() || null)
+    ) {
+      await tx.chordChart.update({
+        where: { id: chart.id },
+        data: { versionLabel: chart.versionLabel?.trim() || null },
+      });
+      return;
+    }
+
     if (existing) {
       await tx.chordChartRevision.create({
         data: {
           chartId: existing.id,
           source: existing.source,
-          sections: existing.sections,
+          sections: existing.sections === null ? Prisma.JsonNull : existing.sections,
           key: existing.key,
           capo: existing.capo,
+          versionLabel: existing.versionLabel,
           savedByUserId: existing.lastEditedByUserId,
         },
       });
@@ -150,12 +210,13 @@ export async function listRevisions(
   const rows = await prisma.chordChartRevision.findMany({
     where: { chartId },
     orderBy: { savedAt: "desc" },
-    select: { id: true, savedAt: true },
+    select: { id: true, savedAt: true, versionLabel: true },
   });
 
   return rows.map((row) => ({
     id: row.id,
     savedAt: row.savedAt.toISOString(),
+    versionLabel: row.versionLabel,
   }));
 }
 
@@ -188,6 +249,7 @@ export async function restoreRevision(
     sections: revision.sections as ChordChart["sections"],
     key: revision.key,
     capo: revision.capo ?? undefined,
+    versionLabel: revision.versionLabel ?? undefined,
   };
 
   await saveChartWithHistory(prisma, actor, restoredChart);

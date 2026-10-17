@@ -318,6 +318,47 @@ describe("ImportWorkflow", () => {
     expect(screen.getByLabelText("Texto da cifra")).toBeInTheDocument();
   });
 
+  it("keeps Principal selected when the song already has another version", async () => {
+    const existing: ChordChart = {
+      ...DRAFT.chart,
+      id: "chart-simple",
+      songId: SONG.id,
+      versionLabel: "Simplificada",
+    };
+    renderWorkflow({
+      repository: new InMemoryMusicRepository([SONG], [existing]),
+    });
+    await reachPasteReview();
+
+    expect(screen.getByRole("button", { name: "Principal" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByLabelText("Vincular Canção Teste"));
+    expect(await screen.findByRole("button", { name: "Simplificada" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Principal" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("saves a custom version tag chosen on the save step", async () => {
+    const repository = new InMemoryMusicRepository([SONG]);
+    const onNavigate = vi.fn();
+    renderWorkflow({ repository, onNavigate });
+    await reachPasteReview();
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Adicionar versão" }), {
+      target: { value: "Ensaio de domingo" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar" }));
+    expect(screen.getByRole("button", { name: "Ensaio de domingo" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    fireEvent.click(screen.getByLabelText("Vincular Canção Teste"));
+    fireEvent.click(screen.getByRole("button", { name: "Salvar cifra" }));
+    await waitFor(() => expect(onNavigate).toHaveBeenCalledWith(`/songs/${SONG.id}`));
+
+    const [savedChart] = await repository.listChartsBySong(SONG.id);
+    expect(savedChart.versionLabel).toBe("Ensaio de domingo");
+  });
+
   it("keeps the reviewed draft visible when storage fails", async () => {
     const repository = new InMemoryMusicRepository([SONG]);
     repository.setFailure(new Error("storage unavailable"));

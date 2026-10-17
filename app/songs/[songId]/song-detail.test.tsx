@@ -2,7 +2,7 @@
 
 import "@testing-library/jest-dom/vitest";
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 class MockIntersectionObserver implements IntersectionObserver {
@@ -359,6 +359,58 @@ describe("SongDetail", () => {
     expect(screen.getAllByRole("button", { name: "Editar cifra" }).length).toBeGreaterThan(0);
   });
 
+  it("shows chart history and pending suggestions in the resources sidebar", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo) => {
+        const url = String(input);
+        if (url.includes("/revisions")) {
+          return Response.json({
+            revisions: [
+              {
+                id: "rev-1",
+                savedAt: "2026-10-17T12:02:00.000Z",
+                versionLabel: "simplificada",
+              },
+            ],
+          });
+        }
+        if (url.includes("/suggestions")) {
+          return Response.json({ suggestions: [] });
+        }
+        return new Response(null, { status: 404 });
+      }),
+    );
+
+    const chart = { ...persistedChart(SEED_SONG.id), versionLabel: "simplificada" };
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        canEditMusic
+        repository={new InMemoryMusicRepository([SEED_SONG], [chart])}
+      />,
+    );
+
+    expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
+    const aside = screen.getByRole("complementary");
+    const history = within(aside).getByRole("region", { name: "Histórico da cifra" });
+    expect(history.compareDocumentPosition(within(aside).getByRole("button", { name: /Texto/ }))).toBe(
+      Node.DOCUMENT_POSITION_PRECEDING,
+    );
+    expect(within(history).getByRole("button", { name: "Principal" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(await within(history).findByText("Música Seed - simplificada")).toBeInTheDocument();
+    expect(within(history).getByText("Música Seed - simplificada").closest("p")).toHaveClass("text-[12px]");
+    expect(within(aside).getByRole("region", { name: "Sugestões de cifra" })).toBeInTheDocument();
+    expect(within(aside).getByText("Sugestões pendentes")).toBeInTheDocument();
+
+    const article = screen.getByRole("article");
+    expect(within(article).queryByRole("region", { name: "Histórico da cifra" })).not.toBeInTheDocument();
+    expect(within(article).queryByText("Sugestões pendentes")).not.toBeInTheDocument();
+  });
+
   it("hides Editar cifra without music:write or without persisted source", async () => {
     const chart = persistedChart(SEED_SONG.id);
     const withoutSource: ChordChart = { ...chart, source: undefined };
@@ -396,13 +448,24 @@ describe("SongDetail", () => {
     expect(screen.queryByRole("button", { name: "Editar cifra" })).not.toBeInTheDocument();
   });
 
-  it("offers Editar cifra on each persisted lyrics chart and disables the other while editing", async () => {
-    const first = persistedChart(SEED_SONG.id);
+  it("loads the selected version and keeps custom tags as selectors", async () => {
+    const first = { ...persistedChart(SEED_SONG.id), versionLabel: "Principal" };
     const second: ChordChart = {
       ...persistedChart(SEED_SONG.id),
       id: "chart-second",
+      versionLabel: "Ensaio",
       title: "Segunda cifra",
       source: "[Refrão]\nC\nOutra letra",
+      sections: [
+        {
+          id: "section-2",
+          type: "chorus",
+          label: "Refrão",
+          content: {
+            lines: [{ text: "Outra letra", chords: [{ symbol: "C", position: 0 }] }],
+          },
+        },
+      ],
     };
     render(
       <SongDetail
@@ -413,12 +476,21 @@ describe("SongDetail", () => {
     );
 
     expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
-    const editButtons = screen.getAllByRole("button", { name: "Editar cifra" });
-    expect(editButtons.length).toBeGreaterThanOrEqual(2);
+    const history = screen.getByRole("region", { name: "Histórico da cifra" });
+    expect(within(history).queryByRole("textbox")).not.toBeInTheDocument();
+    expect(within(history).getByRole("button", { name: "Principal" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByText("Letra inventada")).toBeInTheDocument();
+    expect(screen.queryByText("Outra letra")).not.toBeInTheDocument();
 
-    fireEvent.click(editButtons[0]);
+    fireEvent.click(within(history).getByRole("button", { name: "Ensaio" }));
+    expect(screen.getByText("Outra letra")).toBeInTheDocument();
+    expect(screen.queryByText("Letra inventada")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Editar cifra" }));
     expect(screen.getByRole("region", { name: "Editor de cifra" })).toBeInTheDocument();
-    expect(editButtons[1]).toBeDisabled();
   });
 
   it("reloads charts and closes the editor after a successful save", async () => {

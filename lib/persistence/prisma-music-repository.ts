@@ -97,6 +97,7 @@ export class PrismaMusicRepository implements MusicRepository {
         update: {
           songId: data.songId,
           title: data.title,
+          versionLabel: data.versionLabel,
           format: data.format,
           key: data.key,
           timeSignature: data.timeSignature,

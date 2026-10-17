@@ -9,6 +9,7 @@ const EXISTING: ChordChart = {
   id: "chart-1",
   songId: "song-1",
   title: "Título gravado",
+  versionLabel: "simplificada",
   format: "lyrics",
   key: "G",
   timeSignature: "6/8",
@@ -64,6 +65,7 @@ describe("applyEditedChart", () => {
     expect(result.songId).toBe(EXISTING.songId);
     expect(result.origin).toEqual(EXISTING.origin);
     expect(result.title).toBe(EXISTING.title);
+    expect(result.versionLabel).toBe("simplificada");
     expect(result.timeSignature).toBe("6/8");
     expect(result.tempo).toBe(92);
     expect(result.source).toBe(EXISTING.source);

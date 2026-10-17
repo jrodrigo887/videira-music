@@ -10,6 +10,7 @@ import { ChartHistoryPanel } from "@/components/songs/chart-history-panel";
 import { ChartSuggestionPanel } from "@/components/songs/chart-suggestion-panel";
 import { ChartDisplaySettingsPanel } from "@/components/songs/chart-display-settings-panel";
 import { PublicVisibilityField } from "@/components/songs/public-visibility-field";
+import { originalChart, songVersionTags } from "@/lib/charts/chart-versions";
 import { buildExampleCharts } from "@/lib/charts/example-charts";
 import { semitonesBetweenKeys, transposeChord } from "@/lib/chords/transpose-chord";
 import { HttpMusicRepository } from "@/lib/persistence/http-music-repository";
@@ -158,6 +159,7 @@ export function SongDetail({
   const [publicLyricsSaving, setPublicLyricsSaving] = useState(false);
   const [publicLyricsError, setPublicLyricsError] = useState<string>();
   const [editingChartId, setEditingChartId] = useState<string | null>(null);
+  const [selectedChartId, setSelectedChartId] = useState<string | null>(null);
 
   const updateDisplaySettings = useCallback((next: ChartDisplaySettings) => {
     setDisplaySettings(next);
@@ -288,6 +290,20 @@ export function SongDetail({
   const baseKey = state.song.defaultKey ?? state.charts[0]?.key ?? "C";
   const activeKey = transposeChord(baseKey, semitones, { key: baseKey });
   const resourcesPanelId = "song-detail-resources";
+  const versionTags = songVersionTags(state.charts);
+  const selectedChart =
+    state.charts.find((chart) => chart.id === selectedChartId) ?? originalChart(state.charts);
+  const visibleCharts = state.persistedCharts
+    ? selectedChart
+      ? [selectedChart]
+      : []
+    : state.charts;
+
+  function selectVersion(chartId: string) {
+    setSelectedChartId(chartId);
+    setEditingChartId(null);
+    setResourcesOpen(false);
+  }
 
   async function savePublicLyrics() {
     if (state.status !== "ready" || !state.persistedCharts) {
@@ -350,7 +366,7 @@ export function SongDetail({
             </span>
             {state.charts.length > 1 ? (
               <span className="inline-flex items-center rounded-full bg-surface-muted px-3 py-1 text-xs font-medium text-content-subtle">
-                {state.charts.length} formatos
+                {state.charts.length} {state.persistedCharts ? "versões" : "formatos"}
               </span>
             ) : null}
           </div>
@@ -381,13 +397,13 @@ export function SongDetail({
               ) : null}
             </div>
           ) : null}
-          {state.charts.some(
+          {visibleCharts.some(
             (chart) =>
               chart.origin?.url ||
               chartSupportsLyricsEdit(chart, canEditMusic, state.persistedCharts, currentUserId),
           ) ? (
             <div className="mt-3 space-y-2.5">
-              {state.charts.map((chart, chartIndex) => {
+              {visibleCharts.map((chart, chartIndex) => {
                 const showEditControl = chartSupportsLyricsEdit(
                   chart,
                   canEditMusic,
@@ -400,7 +416,7 @@ export function SongDetail({
                 }
 
                 const chartLabel =
-                  state.charts.length > 1
+                  visibleCharts.length > 1
                     ? chart.title?.trim() || `Cifra ${chartIndex + 1}`
                     : null;
 
@@ -467,9 +483,9 @@ export function SongDetail({
           ) : null}
         </section>
 
-        {state.charts.map((chart, chartIndex) => {
+        {visibleCharts.map((chart, chartIndex) => {
           const chartSectionLabel =
-            state.charts.length > 1
+            visibleCharts.length > 1
               ? (chart.title?.trim() || `Cifra ${chartIndex + 1}`)
               : "Cifra";
 
@@ -563,6 +579,26 @@ export function SongDetail({
           </button>
         ) : null}
       </div>
+
+      {state.persistedCharts && selectedChart ? (
+        <div className="space-y-3">
+          <ChartHistoryPanel
+            chartId={selectedChart.id}
+            songTitle={state.song.title}
+            versionLabel={selectedChart.versionLabel}
+            versions={versionTags}
+            canEdit={canEditChartContent(selectedChart, canEditMusic, currentUserId)}
+            onRestored={reload}
+            onSelectVersion={selectVersion}
+          />
+          <ChartSuggestionPanel
+            chartId={selectedChart.id}
+            canReview={canEditMusic}
+            canSuggest={!canEditChartContent(selectedChart, canEditMusic, currentUserId)}
+            onChanged={reload}
+          />
+        </div>
+      ) : null}
     </>
   );
 
@@ -699,7 +735,7 @@ export function SongDetail({
         </aside>
 
         <article className="ds-card min-w-0 w-full max-w-full overflow-x-hidden rounded-none border-x-0 p-3 sm:rounded-2xl sm:border sm:p-8">
-          {state.charts.map((chart, index) => {
+          {visibleCharts.map((chart, index) => {
             return (
               <div
                 key={chart.id}
@@ -720,36 +756,17 @@ export function SongDetail({
                     }}
                   />
                 ) : (
-                  <>
-                    <ChordChartPreview
-                      chart={chart}
-                      layout="embedded"
-                      semitones={semitones}
-                      onSemitonesChange={setSemitones}
-                      syncDisplayKeyBase={baseKey}
-                      showTransposeControls={false}
-                      showDiagrams={showDiagrams}
-                      columns={columns}
-                      displaySettings={displaySettings}
-                    />
-                    {state.persistedCharts ? (
-                      <>
-                        <ChartHistoryPanel
-                          chartId={chart.id}
-                          canEdit={canEditChartContent(chart, canEditMusic, currentUserId)}
-                          onRestored={reload}
-                        />
-                        <ChartSuggestionPanel
-                          chartId={chart.id}
-                          canReview={canEditMusic}
-                          canSuggest={
-                            !canEditChartContent(chart, canEditMusic, currentUserId)
-                          }
-                          onChanged={reload}
-                        />
-                      </>
-                    ) : null}
-                  </>
+                  <ChordChartPreview
+                    chart={chart}
+                    layout="embedded"
+                    semitones={semitones}
+                    onSemitonesChange={setSemitones}
+                    syncDisplayKeyBase={baseKey}
+                    showTransposeControls={false}
+                    showDiagrams={showDiagrams}
+                    columns={columns}
+                    displaySettings={displaySettings}
+                  />
                 )}
               </div>
             );

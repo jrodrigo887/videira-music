@@ -26,6 +26,7 @@ export function applyEditedChart(input: ApplyEditedChartInput): ChordChart {
     id: existing.id,
     songId: existing.songId,
     title: existing.title,
+    ...(existing.versionLabel ? { versionLabel: existing.versionLabel } : {}),
     format: existing.format,
     timeSignature: existing.timeSignature,
     tempo: existing.tempo,
