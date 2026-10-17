@@ -60,6 +60,7 @@ function sourceRecord(overrides: Partial<SetlistRecord> = {}): SetlistRecord {
       },
     ],
     ...overrides,
+    createdByUserId: overrides.createdByUserId ?? null,
   };
 }
 
