@@ -3,7 +3,10 @@ import { systemCapabilities, unionCapabilities } from "./capabilities";
 
 /** Monta ator de teste com capacidades derivadas dos papéis de sistema. */
 export function testUserActor(
-  input: Omit<UserActor, "capabilities" | "kind"> & { capabilities?: UserActor["capabilities"] },
+  input: Omit<UserActor, "capabilities" | "kind" | "delegations"> & {
+    capabilities?: UserActor["capabilities"];
+    delegations?: UserActor["delegations"];
+  },
 ): UserActor {
   const capabilities =
     input.capabilities ??
