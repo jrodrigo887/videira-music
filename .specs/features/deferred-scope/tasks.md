@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/deferred-scope/design.md`
-**Status**: In progress (lots 1–2 complete: T1–T21)
+**Status**: In progress (lots 1–5 complete: T1–T36)
 
 ---
 
@@ -719,7 +719,7 @@ T52
 
 ### Phase 5: Autoria e histórico
 
-### T22: Gravar revisão antes de sobrescrever a cifra
+### T22: ✅ Gravar revisão antes de sobrescrever a cifra
 
 **What**: `saveChartWithHistory` copia o estado anterior, grava o autor na criação e atualiza `lastEditedByUserId`.
 **Where**: `lib/charts/chart-history-service.ts`
@@ -734,12 +734,12 @@ T52
 
 **Done when**:
 
-- [ ] Criação grava `createdByUserId` e não cria revisão
-- [ ] Update grava revisão com source, sections, key, capo e o `lastEditedByUserId` anterior
-- [ ] Restore copia a revisão para a cifra, cria revisão nova e mantém a linha escolhida
-- [ ] Nenhuma função deste arquivo apaga revisão
-- [ ] Gate check passes: `npm test -- lib/charts/chart-history-service.test.ts`
-- [ ] Test count: at least 4 tests pass
+- [x] Criação grava `createdByUserId` e não cria revisão
+- [x] Update grava revisão com source, sections, key, capo e o `lastEditedByUserId` anterior
+- [x] Restore copia a revisão para a cifra, cria revisão nova e mantém a linha escolhida
+- [x] Nenhuma função deste arquivo apaga revisão
+- [x] Gate check passes: `npm test -- lib/charts/chart-history-service.test.ts`
+- [x] Test count: at least 4 tests pass
 
 **Tests**: unit
 **Gate**: quick
@@ -748,7 +748,7 @@ T52
 
 ---
 
-### T23: Autor edita o setlist que criou
+### T23: ✅ Autor edita o setlist que criou
 
 **What**: `canEditSetlist` aceita o autor para conteúdo e continua negando o resto a quem não tem capacidade.
 **Where**: `lib/setlists/setlist-policy.ts`
@@ -763,12 +763,12 @@ T52
 
 **Done when**:
 
-- [ ] Autor na mesma igreja, setlist sem `deletedAt`, edita mesmo sem `setlists:led` e sem `setlists:all`
-- [ ] `createdByUserId` null não libera edição
-- [ ] Autor de outra igreja não edita
-- [ ] `delete` e `changeStatus` continuam exigindo a capacidade
-- [ ] Gate check passes: `npm test -- lib/setlists/setlist-policy.test.ts`
-- [ ] Test count: at least 4 tests pass
+- [x] Autor na mesma igreja, setlist sem `deletedAt`, edita mesmo sem `setlists:led` e sem `setlists:all`
+- [x] `createdByUserId` null não libera edição
+- [x] Autor de outra igreja não edita
+- [x] `delete` e `changeStatus` continuam exigindo a capacidade
+- [x] Gate check passes: `npm test -- lib/setlists/setlist-policy.test.ts`
+- [x] Test count: at least 4 tests pass
 
 **Tests**: unit
 **Gate**: quick
@@ -777,7 +777,7 @@ T52
 
 ---
 
-### T24: Setlist grava o autor e recusa meta fora do conteúdo
+### T24: ✅ Setlist grava o autor e recusa meta fora do conteúdo
 
 **What**: Criar setlist grava `createdByUserId`. Patch de autor sem capacidade só aceita título, notas e itens.
 **Where**: `lib/setlists/setlist-service.ts`
@@ -792,11 +792,11 @@ T52
 
 **Done when**:
 
-- [ ] Setlist novo fica com `createdByUserId` do ator
-- [ ] Autor sem capacidade altera título, notas ou itens e recebe `204`
-- [ ] O mesmo autor, ao mudar visibilidade, status, dono ou exclusão, recebe `403` `FORBIDDEN` e esses campos ficam
-- [ ] Gate check passes: `npm test -- lib/setlists/setlist-service.test.ts`
-- [ ] Test count: at least 3 tests pass
+- [x] Setlist novo fica com `createdByUserId` do ator
+- [x] Autor sem capacidade altera título, notas ou itens e recebe `204`
+- [x] O mesmo autor, ao mudar visibilidade, status, dono ou exclusão, recebe `403` `FORBIDDEN` e esses campos ficam
+- [x] Gate check passes: `npm test -- lib/setlists/setlist-service.test.ts`
+- [x] Test count: at least 3 tests pass
 
 **Tests**: unit
 **Gate**: quick
@@ -805,7 +805,7 @@ T52
 
 ---
 
-### T25: PUT da cifra usa a política e o histórico
+### T25: ✅ PUT da cifra usa a política e o histórico
 
 **What**: O `PUT` deixa de exigir `music:write` na porta. Autor salva conteúdo. Origem nova segue o gate.
 **Where**: `app/api/charts/[chartId]/route.ts`
@@ -820,12 +820,12 @@ T52
 
 **Done when**:
 
-- [ ] Autor sem `music:write` recebe `204` ao mudar source, sections, key e capo
-- [ ] Quem não é autor e não tem `music:write` recebe `403` `FORBIDDEN`
-- [ ] Origem nova com flag desligada responde `404` `NOT_FOUND`
-- [ ] Origem nova com flag ligada e sem `import` responde `401` `IMPORT_LOCKED`
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: at least 4 tests pass
+- [x] Autor sem `music:write` recebe `204` ao mudar source, sections, key e capo
+- [x] Quem não é autor e não tem `music:write` recebe `403` `FORBIDDEN`
+- [x] Origem nova com flag desligada responde `404` `NOT_FOUND`
+- [x] Origem nova com flag ligada e sem `import` responde `401` `IMPORT_LOCKED`
+- [x] Gate check passes: `npm test`
+- [x] Test count: at least 4 tests pass
 
 **Tests**: integration
 **Gate**: full
@@ -834,7 +834,7 @@ T52
 
 ---
 
-### T26: PUT da música separa conteúdo e visibilidade
+### T26: ✅ PUT da música separa conteúdo e visibilidade
 
 **What**: Autor edita metadados de conteúdo. `publicLyrics` sem `music:write` é recusado.
 **Where**: `app/api/songs/[songId]/route.ts`
@@ -849,12 +849,12 @@ T52
 
 **Done when**:
 
-- [ ] Criação de música grava `createdByUserId`
-- [ ] Autor sem `music:write` altera título, artista, gênero, notas e tom
-- [ ] Autor sem `music:write` que muda `publicLyrics` recebe `403` `PUBLIC_LYRICS_FORBIDDEN` e o valor gravado fica
-- [ ] Linha com `createdByUserId` null e ator sem `music:write` recebe `403` `FORBIDDEN`
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: at least 4 tests pass
+- [x] Criação de música grava `createdByUserId`
+- [x] Autor sem `music:write` altera título, artista, gênero, notas e tom
+- [x] Autor sem `music:write` que muda `publicLyrics` recebe `403` `PUBLIC_LYRICS_FORBIDDEN` e o valor gravado fica
+- [x] Linha com `createdByUserId` null e ator sem `music:write` recebe `403` `FORBIDDEN`
+- [x] Gate check passes: `npm test`
+- [x] Test count: at least 4 tests pass
 
 **Tests**: integration
 **Gate**: full
@@ -863,7 +863,7 @@ T52
 
 ---
 
-### T27: Rotas de listar e restaurar revisão
+### T27: ✅ Rotas de listar e restaurar revisão
 
 **What**: `GET` e restore de revisão exigem quem pode editar a cifra.
 **Where**: `app/api/charts/[chartId]/revisions/route.ts`
@@ -878,11 +878,11 @@ T52
 
 **Done when**:
 
-- [ ] Quem pode editar recebe a lista da mais nova para a mais antiga, com `savedAt`
-- [ ] Quem não pode editar recebe `403` `FORBIDDEN` no GET e no restore
-- [ ] Restore devolve o conteúdo da revisão escolhida
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: at least 3 tests pass
+- [x] Quem pode editar recebe a lista da mais nova para a mais antiga, com `savedAt`
+- [x] Quem não pode editar recebe `403` `FORBIDDEN` no GET e no restore
+- [x] Restore devolve o conteúdo da revisão escolhida
+- [x] Gate check passes: `npm test`
+- [x] Test count: at least 3 tests pass
 
 **Tests**: integration
 **Gate**: full
@@ -891,7 +891,7 @@ T52
 
 ---
 
-### T28: Painel de histórico na página da música
+### T28: ✅ Painel de histórico na página da música
 
 **What**: Quem edita vê as revisões. Sem revisão, vê o texto vazio.
 **Where**: `components/songs/chart-history-panel.tsx`
@@ -906,11 +906,11 @@ T52
 
 **Done when**:
 
-- [ ] A lista mostra as revisões da mais nova para a mais antiga
-- [ ] Sem revisão, o texto é “Nenhuma versão anterior.”
-- [ ] Quem não pode editar não vê o painel
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: at least 2 tests pass
+- [x] A lista mostra as revisões da mais nova para a mais antiga
+- [x] Sem revisão, o texto é “Nenhuma versão anterior.”
+- [x] Quem não pode editar não vê o painel
+- [x] Gate check passes: `npm test`
+- [x] Test count: at least 2 tests pass
 
 **Tests**: integration
 **Gate**: full
@@ -921,7 +921,7 @@ T52
 
 ### Phase 6: Sugestão
 
-### T29: Fila de sugestão
+### T29: ✅ Fila de sugestão
 
 **What**: Membro envia uma pendente por cifra. `music:write` aprova pelo histórico ou rejeita sem mexer na cifra.
 **Where**: `lib/charts/chart-suggestion-service.ts`
@@ -936,16 +936,16 @@ T52
 
 **Done when**:
 
-- [ ] Primeiro envio válido responde criação `pending`. O segundo do mesmo autor substitui e continua `pending`
-- [ ] Source vazio e source acima de 500 KiB UTF-8 não gravam
-- [ ] Enviar sugestão não muda source, sections, key nem capo da cifra
-- [ ] Aprovar grava a cifra, cria revisão e marca `approved` com revisor e data
-- [ ] Rejeitar marca `rejected` e não muda a cifra
-- [ ] Aprovar ou rejeitar fora de `pending` é `409` `SUGGESTION_NOT_PENDING`
-- [ ] Sem `music:write`, aprovar ou rejeitar é `403` `FORBIDDEN`
-- [ ] Música na lixeira ou cifra ausente é `404` `NOT_FOUND`
-- [ ] Gate check passes: `npm test -- lib/charts/chart-suggestion-service.test.ts`
-- [ ] Test count: at least 8 tests pass
+- [x] Primeiro envio válido responde criação `pending`. O segundo do mesmo autor substitui e continua `pending`
+- [x] Source vazio e source acima de 500 KiB UTF-8 não gravam
+- [x] Enviar sugestão não muda source, sections, key nem capo da cifra
+- [x] Aprovar grava a cifra, cria revisão e marca `approved` com revisor e data
+- [x] Rejeitar marca `rejected` e não muda a cifra
+- [x] Aprovar ou rejeitar fora de `pending` é `409` `SUGGESTION_NOT_PENDING`
+- [x] Sem `music:write`, aprovar ou rejeitar é `403` `FORBIDDEN`
+- [x] Música na lixeira ou cifra ausente é `404` `NOT_FOUND`
+- [x] Gate check passes: `npm test -- lib/charts/chart-suggestion-service.test.ts`
+- [x] Test count: at least 8 tests pass
 
 **Tests**: unit
 **Gate**: quick
@@ -954,7 +954,7 @@ T52
 
 ---
 
-### T30: Rotas da sugestão
+### T30: ✅ Rotas da sugestão
 
 **What**: POST envia. POST de aprovar e rejeitar exigem `music:write`. Sem sessão, `401`.
 **Where**: `app/api/charts/[chartId]/suggestions/route.ts`
@@ -969,11 +969,11 @@ T52
 
 **Done when**:
 
-- [ ] Primeiro POST responde `201`. O segundo do mesmo autor responde `200`
-- [ ] Sem sessão, responde `401` `UNAUTHENTICATED`
-- [ ] Aprovar e rejeitar sem `music:write` respondem `403` `FORBIDDEN`
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: at least 4 tests pass
+- [x] Primeiro POST responde `201`. O segundo do mesmo autor responde `200`
+- [x] Sem sessão, responde `401` `UNAUTHENTICATED`
+- [x] Aprovar e rejeitar sem `music:write` respondem `403` `FORBIDDEN`
+- [x] Gate check passes: `npm test`
+- [x] Test count: at least 4 tests pass
 
 **Tests**: integration
 **Gate**: full
@@ -982,7 +982,7 @@ T52
 
 ---
 
-### T31: Painel de sugerir e a fila
+### T31: ✅ Painel de sugerir e a fila
 
 **What**: Quem não edita vê “Sugerir correção”. Quem tem `music:write` vê as pendentes.
 **Where**: `components/songs/chart-suggestion-panel.tsx`
@@ -997,12 +997,12 @@ T52
 
 **Done when**:
 
-- [ ] Sem `music:write`, o botão “Sugerir correção” aparece e a fila dos outros não
-- [ ] Com `music:write`, as pendentes da cifra aparecem
-- [ ] Texto vazio mostra “Informe o texto da cifra.”
-- [ ] Texto acima de 500 KiB mostra “O texto deve ter no máximo 500 KiB.”
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: at least 4 tests pass
+- [x] Sem `music:write`, o botão “Sugerir correção” aparece e a fila dos outros não
+- [x] Com `music:write`, as pendentes da cifra aparecem
+- [x] Texto vazio mostra “Informe o texto da cifra.”
+- [x] Texto acima de 500 KiB mostra “O texto deve ter no máximo 500 KiB.”
+- [x] Gate check passes: `npm test`
+- [x] Test count: at least 4 tests pass
 
 **Tests**: integration
 **Gate**: full
@@ -1013,7 +1013,7 @@ T52
 
 ### Phase 7: Link público
 
-### T32: Criar, revogar e ler o link
+### T32: Criar, revogar e ler o link ✅
 
 **What**: Token opaco de setlist publicado. A leitura devolve letras, sem passar por `canPerform("read")`.
 **Where**: `lib/setlists/share-link-service.ts`
@@ -1028,17 +1028,17 @@ T52
 
 **Done when**:
 
-- [ ] Setlist `published` devolve o código uma vez e guarda só o hash
-- [ ] Draft, archived ou `deletedAt` na criação é `409` `SETLIST_NOT_SHAREABLE`
-- [ ] Quem não edita o setlist recebe `403` ao criar e ao revogar
-- [ ] Leitura ativa devolve as músicas na ordem, linha só com texto, sem campo `chords`
-- [ ] Código ruim, revogado, setlist fora de `published` ou excluído não devolve setlist
-- [ ] `imported.originUrl` sai quando há origin e originUrl
-- [ ] Música na lixeira sai com título e sem letra
-- [ ] `publicLyrics` falso não tira a música do link
-- [ ] Revogar um código não invalida o outro
-- [ ] Gate check passes: `npm test -- lib/setlists/share-link-service.test.ts`
-- [ ] Test count: at least 9 tests pass
+- [x] Setlist `published` devolve o código uma vez e guarda só o hash
+- [x] Draft, archived ou `deletedAt` na criação é `409` `SETLIST_NOT_SHAREABLE`
+- [x] Quem não edita o setlist recebe `403` ao criar e ao revogar
+- [x] Leitura ativa devolve as músicas na ordem, linha só com texto, sem campo `chords`
+- [x] Código ruim, revogado, setlist fora de `published` ou excluído não devolve setlist
+- [x] `imported.originUrl` sai quando há origin e originUrl
+- [x] Música na lixeira sai com título e sem letra
+- [x] `publicLyrics` falso não tira a música do link
+- [x] Revogar um código não invalida o outro
+- [x] Gate check passes: `npm test -- lib/setlists/share-link-service.test.ts`
+- [x] Test count: at least 9 tests pass
 
 **Tests**: unit
 **Gate**: quick
@@ -1047,7 +1047,7 @@ T52
 
 ---
 
-### T33: Limite de código inválido
+### T33: Limite de código inválido ✅
 
 **What**: Dez códigos ruins por IP em 15 minutos. O décimo primeiro satura.
 **Where**: `lib/setlists/share-rate-limit.ts`
@@ -1062,10 +1062,10 @@ T52
 
 **Done when**:
 
-- [ ] A instância é separada da do convite
-- [ ] A 11ª falha no mesmo IP em 15 minutos pede bloqueio
-- [ ] Gate check passes: `npm test -- lib/setlists/share-rate-limit.test.ts`
-- [ ] Test count: at least 2 tests pass
+- [x] A instância é separada da do convite
+- [x] A 11ª falha no mesmo IP em 15 minutos pede bloqueio
+- [x] Gate check passes: `npm test -- lib/setlists/share-rate-limit.test.ts`
+- [x] Test count: at least 2 tests pass
 
 **Tests**: unit
 **Gate**: quick
@@ -1074,7 +1074,7 @@ T52
 
 ---
 
-### T34: Liberar /s/ no proxy
+### T34: Liberar /s/ no proxy ✅
 
 **What**: `/s/` entra nas rotas públicas e aplica o limitador antes do login.
 **Where**: `proxy.ts`
@@ -1089,11 +1089,11 @@ T52
 
 **Done when**:
 
-- [ ] `/s/{code}` não redireciona para `/entrar`
-- [ ] A 11ª falha do mesmo IP responde `429`
-- [ ] `/api/billing/webhook` também passa sem sessão
-- [ ] Gate check passes: `npm test -- proxy.test.ts`
-- [ ] Test count: at least 3 tests pass
+- [x] `/s/{code}` não redireciona para `/entrar`
+- [x] A 11ª falha do mesmo IP responde `429`
+- [x] `/api/billing/webhook` também passa sem sessão
+- [x] Gate check passes: `npm test -- proxy.test.ts`
+- [x] Test count: at least 3 tests pass
 
 **Tests**: unit
 **Gate**: quick
@@ -1102,7 +1102,7 @@ T52
 
 ---
 
-### T35: Página pública do setlist
+### T35: Página pública do setlist ✅
 
 **What**: `/s/{code}` renderiza letras, selo Importada, ou 404.
 **Where**: `app/s/[code]/page.tsx`
@@ -1117,12 +1117,12 @@ T52
 
 **Done when**:
 
-- [ ] Código válido mostra as letras na ordem e nenhum acorde no HTML
-- [ ] Item importado mostra “Importada” e o link da fonte
-- [ ] Música na lixeira mostra o título e “Música indisponível”
-- [ ] Código inválido responde `404`
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: at least 4 tests pass
+- [x] Código válido mostra as letras na ordem e nenhum acorde no HTML
+- [x] Item importado mostra “Importada” e o link da fonte
+- [x] Música na lixeira mostra o título e “Música indisponível”
+- [x] Código inválido responde `404`
+- [x] Gate check passes: `npm test`
+- [x] Test count: at least 4 tests pass
 
 **Tests**: integration
 **Gate**: full
@@ -1131,7 +1131,7 @@ T52
 
 ---
 
-### T36: Rotas de criar e revogar o link
+### T36: Rotas de criar e revogar o link ✅
 
 **What**: Quem edita o setlist cria e revoga o link.
 **Where**: `app/api/setlists/[setlistId]/share/route.ts`
@@ -1146,11 +1146,11 @@ T52
 
 **Done when**:
 
-- [ ] Criação de setlist publicado responde `201` com o código
-- [ ] Setlist que não pode ser compartilhado responde `409` `SETLIST_NOT_SHAREABLE`
-- [ ] Quem não edita recebe `403` `FORBIDDEN`
-- [ ] Gate check passes: `npm test`
-- [ ] Test count: at least 3 tests pass
+- [x] Criação de setlist publicado responde `201` com o código
+- [x] Setlist que não pode ser compartilhado responde `409` `SETLIST_NOT_SHAREABLE`
+- [x] Quem não edita recebe `403` `FORBIDDEN`
+- [x] Gate check passes: `npm test`
+- [x] Test count: at least 3 tests pass
 
 **Tests**: integration
 **Gate**: full
