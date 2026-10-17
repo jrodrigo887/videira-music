@@ -6,6 +6,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChordChartPreview } from "@/components/chord-chart/chord-chart-preview";
 import { SetlistNeighborsNav } from "@/components/setlists/setlist-neighbors-nav";
 import { ChartEditor } from "@/components/songs/chart-editor";
+import { ChartHistoryPanel } from "@/components/songs/chart-history-panel";
+import { ChartSuggestionPanel } from "@/components/songs/chart-suggestion-panel";
 import { ChartDisplaySettingsPanel } from "@/components/songs/chart-display-settings-panel";
 import { PublicVisibilityField } from "@/components/songs/public-visibility-field";
 import { buildExampleCharts } from "@/lib/charts/example-charts";
@@ -29,6 +31,7 @@ type SongDetailProps = {
   songId: string;
   importLinkVisible?: boolean;
   canEditMusic?: boolean;
+  currentUserId?: string;
   repository?: MusicRepository;
   setlistContext?: SetlistSongContext;
 };
@@ -54,13 +57,25 @@ type DetailState =
   | { status: "ready"; song: Song; charts: ChordChart[]; persistedCharts: boolean }
   | { status: "storage-error" };
 
+function canEditChartContent(
+  chart: ChordChart,
+  canEditMusic: boolean,
+  currentUserId?: string,
+): boolean {
+  if (canEditMusic) {
+    return true;
+  }
+  return Boolean(currentUserId && chart.createdByUserId === currentUserId);
+}
+
 function chartSupportsLyricsEdit(
   chart: ChordChart,
   canEditMusic: boolean,
   persistedCharts: boolean,
+  currentUserId?: string,
 ): boolean {
   return (
-    canEditMusic &&
+    canEditChartContent(chart, canEditMusic, currentUserId) &&
     persistedCharts &&
     chart.format === "lyrics" &&
     Boolean(chart.source?.trim())
@@ -117,6 +132,7 @@ export function SongDetail({
   songId,
   importLinkVisible = false,
   canEditMusic = false,
+  currentUserId,
   repository: suppliedRepository,
   setlistContext,
 }: SongDetailProps) {
@@ -368,7 +384,7 @@ export function SongDetail({
           {state.charts.some(
             (chart) =>
               chart.origin?.url ||
-              chartSupportsLyricsEdit(chart, canEditMusic, state.persistedCharts),
+              chartSupportsLyricsEdit(chart, canEditMusic, state.persistedCharts, currentUserId),
           ) ? (
             <div className="mt-3 space-y-2.5">
               {state.charts.map((chart, chartIndex) => {
@@ -376,6 +392,7 @@ export function SongDetail({
                   chart,
                   canEditMusic,
                   state.persistedCharts,
+                  currentUserId,
                 );
                 const originUrl = chart.origin?.url;
                 if (!originUrl && !showEditControl) {
@@ -703,17 +720,36 @@ export function SongDetail({
                     }}
                   />
                 ) : (
-                  <ChordChartPreview
-                    chart={chart}
-                    layout="embedded"
-                    semitones={semitones}
-                    onSemitonesChange={setSemitones}
-                    syncDisplayKeyBase={baseKey}
-                    showTransposeControls={false}
-                    showDiagrams={showDiagrams}
-                    columns={columns}
-                    displaySettings={displaySettings}
-                  />
+                  <>
+                    <ChordChartPreview
+                      chart={chart}
+                      layout="embedded"
+                      semitones={semitones}
+                      onSemitonesChange={setSemitones}
+                      syncDisplayKeyBase={baseKey}
+                      showTransposeControls={false}
+                      showDiagrams={showDiagrams}
+                      columns={columns}
+                      displaySettings={displaySettings}
+                    />
+                    {state.persistedCharts ? (
+                      <>
+                        <ChartHistoryPanel
+                          chartId={chart.id}
+                          canEdit={canEditChartContent(chart, canEditMusic, currentUserId)}
+                          onRestored={reload}
+                        />
+                        <ChartSuggestionPanel
+                          chartId={chart.id}
+                          canReview={canEditMusic}
+                          canSuggest={
+                            !canEditChartContent(chart, canEditMusic, currentUserId)
+                          }
+                          onChanged={reload}
+                        />
+                      </>
+                    ) : null}
+                  </>
                 )}
               </div>
             );

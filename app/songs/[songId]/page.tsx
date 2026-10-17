@@ -20,6 +20,7 @@ export default async function SongDetailPage({ params }: SongDetailPageProps) {
   const canEditMusic =
     actor.kind === "user" &&
     can(actor, "music:write", { organizationId: actor.organizationId });
+  const currentUserId = actor.kind === "user" ? actor.userId : undefined;
 
   return (
     <Suspense fallback={<p className="text-content-muted">Carregando música…</p>}>
@@ -27,6 +28,7 @@ export default async function SongDetailPage({ params }: SongDetailPageProps) {
         songId={songId}
         importLinkVisible={isImportModuleVisibleInUi()}
         canEditMusic={canEditMusic}
+        currentUserId={currentUserId}
       />
     </Suspense>
   );
