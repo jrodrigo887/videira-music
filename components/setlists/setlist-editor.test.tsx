@@ -2,7 +2,7 @@
 
 import "@testing-library/jest-dom/vitest";
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const pushMock = vi.fn();
@@ -91,18 +91,58 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+async function waitForChartLoad() {
+  await waitFor(() => {
+    const chartsRequested = fetchMock.mock.calls.some((call) => String(call[0]).endsWith("/charts"));
+    expect(chartsRequested).toBe(true);
+    expect(screen.queryByText("Carregando cifras…")).not.toBeInTheDocument();
+  });
+}
+
+async function selectCatalogSong(name: string) {
+  const song = await screen.findByRole("button", { name });
+  if (song.getAttribute("aria-pressed") !== "true") {
+    fireEvent.click(song);
+  }
+  await waitForChartLoad();
+}
+
 describe("SetlistEditor", () => {
   it("shows permission message for read-only viewers", () => {
     render(<SetlistEditor setlist={readOnlySetlist} teamQuery="louvor" />);
     expect(screen.getByText("Você não tem permissão para editar este setlist.")).toBeInTheDocument();
   });
 
+  it("shows a skeleton while the catalog loads", async () => {
+    let resolveSongs: (response: Response) => void = () => {};
+    fetchMock.mockImplementation((input: RequestInfo) => {
+      if (String(input).endsWith("/api/songs")) {
+        return new Promise<Response>((resolve) => {
+          resolveSongs = resolve;
+        });
+      }
+      return Promise.resolve(new Response("{}", { status: 404 }));
+    });
+
+    render(<SetlistEditor setlist={editableSetlist} />);
+    expect(screen.getByRole("status", { name: "Carregando músicas" })).toBeInTheDocument();
+    resolveSongs(
+      new Response(JSON.stringify({ songs: [{ id: "song-1", title: "Música A" }] }), { status: 200 }),
+    );
+    expect(await screen.findByRole("button", { name: "Música A" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Carregar catálogo" })).not.toBeInTheDocument();
+  });
+
   it("auto-selects a single chart when adding a song", async () => {
     render(<SetlistEditor setlist={editableSetlist} />);
-    fireEvent.click(screen.getByRole("button", { name: "Carregar catálogo" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Música A" }));
+    const song = await screen.findByRole("button", { name: "Música A" });
+    expect(song).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(song);
+    expect(song).toHaveAttribute("aria-pressed", "true");
+    await waitForChartLoad();
+    expect(screen.queryByText("Tom G")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Adicionar música" }));
-    expect(screen.getByRole("listitem")).toHaveTextContent("Música A");
+    expect(screen.getByLabelText("Tom de Música A (G)")).toBeInTheDocument();
   });
 
   it("requires chart choice when multiple charts exist", async () => {
@@ -128,17 +168,21 @@ describe("SetlistEditor", () => {
     });
 
     render(<SetlistEditor setlist={editableSetlist} />);
-    fireEvent.click(screen.getByRole("button", { name: "Carregar catálogo" }));
     fireEvent.click(await screen.findByRole("button", { name: "Música A" }));
-    expect(await screen.findByRole("combobox", { name: "Escolher cifra" })).toBeInTheDocument();
+    expect(await screen.findByRole("combobox", { name: "Escolher cifra de Música A" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Adicionar música" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Escolha a cifra antes de adicionar.");
   });
 
-  it("adds note items", () => {
+  it("attaches notes to a selected song from the dialog", async () => {
     render(<SetlistEditor setlist={editableSetlist} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Música A" }));
+    expect(screen.queryByRole("button", { name: "Anotação de Música A" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Anotação de Música A" }));
     fireEvent.change(screen.getByLabelText("Texto da anotação"), { target: { value: "Pausa" } });
     fireEvent.click(screen.getByRole("button", { name: "Adicionar anotação" }));
+    await selectCatalogSong("Música A");
+    fireEvent.click(screen.getByRole("button", { name: "Adicionar música" }));
     expect(screen.getByText("Pausa")).toBeInTheDocument();
   });
 
@@ -163,10 +207,37 @@ describe("SetlistEditor", () => {
     expect(screen.getByRole("button", { name: "Arrastar item: Único" })).toBeInTheDocument();
   });
 
+  it("does not show a trash button on list items", () => {
+    render(
+      <SetlistEditor
+        setlist={{
+          ...editableSetlist,
+          items: [{ id: "only", kind: "note", position: 0, text: "Único" }],
+        }}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "Remover item: Único" })).not.toBeInTheDocument();
+  });
+
+  it("removes an item when it is dragged to the right", () => {
+    render(
+      <SetlistEditor
+        setlist={{
+          ...editableSetlist,
+          items: [{ id: "only", kind: "note", position: 0, text: "Único" }],
+        }}
+      />,
+    );
+    const surface = screen.getByTestId("setlist-item-only");
+    fireEvent.pointerDown(surface, { clientX: 10, pointerId: 1 });
+    fireEvent.pointerMove(surface, { clientX: 140, pointerId: 1 });
+    fireEvent.pointerUp(surface, { clientX: 140, pointerId: 1 });
+    expect(screen.queryByText("Único")).not.toBeInTheDocument();
+  });
+
   it("saves items through the items api", async () => {
     render(<SetlistEditor setlist={editableSetlist} />);
-    fireEvent.click(screen.getByRole("button", { name: "Carregar catálogo" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Música A" }));
+    await selectCatalogSong("Música A");
     fireEvent.click(screen.getByRole("button", { name: "Adicionar música" }));
     fireEvent.click(screen.getByRole("button", { name: "Salvar itens" }));
     await waitFor(() => {
@@ -204,6 +275,16 @@ describe("SetlistEditor", () => {
     });
   });
 
+  it("describes archive and delete when those actions are available", () => {
+    render(<SetlistEditor setlist={{ ...editableSetlist, status: "published" }} />);
+    expect(screen.getByRole("tooltip", { name: /Arquivar/ })).toHaveTextContent(
+      "Tira o setlist das listas ativas",
+    );
+    expect(screen.getByRole("tooltip", { name: /Excluir setlist/ })).toHaveTextContent(
+      "Remove o setlist",
+    );
+  });
+
   it("archives published setlists", async () => {
     render(<SetlistEditor setlist={{ ...editableSetlist, status: "published" }} />);
     fireEvent.click(screen.getByRole("button", { name: "Arquivar" }));
@@ -237,8 +318,42 @@ describe("SetlistEditor", () => {
     expect(await screen.findByRole("dialog")).toHaveTextContent("2 grupos seguem este setlist");
     fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const deletes = fetchMock.mock.calls.filter((call) => (call[1] as RequestInit | undefined)?.method === "DELETE");
+      expect(deletes).toHaveLength(2);
     });
+  });
+
+  it("places the catalog card before the item list", () => {
+    render(<SetlistEditor setlist={editableSetlist} />);
+    const catalog = screen.getByRole("heading", { name: "Adicionar música" });
+    const items = screen.getByRole("heading", { name: "Itens" });
+    expect(catalog.compareDocumentPosition(items) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("edits the key from the item options menu", () => {
+    render(
+      <SetlistEditor
+        setlist={{
+          ...editableSetlist,
+          items: [
+            {
+              id: "song-item",
+              kind: "song",
+              position: 0,
+              songId: "song-1",
+              chartId: "chart-1",
+              selectedKey: "G",
+              song: { title: "Música A" },
+              chart: { key: "G", imported: false },
+            },
+          ],
+        }}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Mais opções de Música A (G)" }));
+    const dialog = screen.getByRole("dialog", { name: "Tom de Música A (G)" });
+    fireEvent.change(within(dialog).getByLabelText("Tom"), { target: { value: "A" } });
+    expect(within(dialog).getByLabelText("Tom")).toHaveValue("A");
   });
 
   it("updates selected key inputs", () => {
@@ -265,8 +380,10 @@ describe("SetlistEditor", () => {
     expect(screen.getByDisplayValue("A")).toBeInTheDocument();
   });
 
-  it("validates empty note text", () => {
+  it("validates empty note text", async () => {
     render(<SetlistEditor setlist={editableSetlist} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Música A" }));
+    fireEvent.click(screen.getByRole("button", { name: "Anotação de Música A" }));
     fireEvent.click(screen.getByRole("button", { name: "Adicionar anotação" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Digite o texto da anotação.");
   });
