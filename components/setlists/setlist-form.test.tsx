@@ -18,7 +18,10 @@ afterEach(() => {
 
 describe("SetlistForm", () => {
   const destinations = [
-    { kind: "team" as const, team: { id: "team-1", name: "Louvor", organizationId: "org" } },
+    {
+      kind: "team" as const,
+      team: { id: "team-1", slug: "louvor", name: "Louvor", organizationId: "org" },
+    },
   ];
 
   it("does not render Alert without an error", () => {

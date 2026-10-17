@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { Atkinson_Hyperlegible, JetBrains_Mono } from "next/font/google";
 import Link from "next/link";
@@ -47,7 +48,12 @@ export default async function RootLayout({
   const appVersion = getAppVersion();
 
   return (
-    <html lang="pt-BR" className="light" data-theme="light" style={brandStyle(videiraBrand)}>
+    <html
+      lang="pt-BR"
+      className="light"
+      data-theme="light"
+      style={brandStyle(videiraBrand) as CSSProperties}
+    >
       <body className={`${lyricsFont.variable} ${chordFont.variable} bg-canvas font-sans text-content antialiased`}>
         <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-2 sm:gap-3 sm:py-3.5">

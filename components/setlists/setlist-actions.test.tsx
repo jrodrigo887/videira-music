@@ -38,7 +38,7 @@ describe("SetlistActions", () => {
     render(
       <SetlistActions
         setlist={setlist}
-        followTeams={[{ id: "team-1", name: "Louvor", organizationId: "org" }]}
+        followTeams={[{ id: "team-1", slug: "louvor", name: "Louvor", organizationId: "org" }]}
         cloneTeams={[]}
         canCloneOrganization={false}
       />,
@@ -53,7 +53,7 @@ describe("SetlistActions", () => {
     render(
       <SetlistActions
         setlist={setlist}
-        followTeams={[{ id: "team-1", name: "Louvor", organizationId: "org" }]}
+        followTeams={[{ id: "team-1", slug: "louvor", name: "Louvor", organizationId: "org" }]}
         cloneTeams={[]}
         canCloneOrganization={false}
       />,
