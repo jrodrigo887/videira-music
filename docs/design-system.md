@@ -51,6 +51,8 @@ Três camadas. Componente novo consome só a terceira.
 
 Trocar a paleta é editar primitivos e revisar o mapa semântico. Não é caçar hex no JSX.
 
+A marca da igreja é o objeto `videiraBrand` em `lib/design/brand.ts`. O layout aplica `brandStyle(videiraBrand)` no `<html>`, que define `--brand-primary`, `--brand-primary-hover`, `--brand-primary-foreground`, `--brand-primary-subtle` e `--brand-chord`. As chaves do objeto que a marca altera são `primary`, `primaryHover`, `primaryForeground`, `primarySubtle` e `chord`. Neutros, tokens de status (`danger`, `warning`, `success`), densidade mesa/estante, estrutura da cifra, raio e famílias tipográficas não mudam com a marca — são contrato do produto Videira Music.
+
 ### 3.1 Papéis de cor
 
 | Token Tailwind | Papel | Uso |
@@ -71,9 +73,9 @@ Trocar a paleta é editar primitivos e revisar o mapa semântico. Não é caçar
 
 `accent` existe no tema e hoje aponta para o mesmo verde que `primary`. Não use `accent` até existir um papel que `primary` não cubra. Badge operacional é `ds-badge` (`primary-subtle`).
 
-### 3.2 O que ainda falta nos tokens
+### 3.2 Status
 
-Status ainda não está em `globals.css`. Até entrar, não invente `text-red-600` na página. Quando for implementado, o mapa é este:
+Os canais de status vivem em `app/globals.css` nos blocos claro e escuro. Use sempre os tokens Tailwind, nunca a paleta `red` do Tailwind.
 
 | Token | Papel | Exemplo de texto |
 |---|---|---|

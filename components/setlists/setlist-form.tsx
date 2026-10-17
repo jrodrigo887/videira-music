@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Alert } from "@/components/ui/alert";
 import type { WorshipTeam } from "@/types/identity";
 import type { SetlistEventType, SetlistVisibility } from "@/types/setlist";
 
@@ -183,11 +184,7 @@ export function SetlistForm({ destinations, defaultDestination, teamQuery }: Set
         />
       </div>
 
-      {error ? (
-        <p role="alert" className="text-sm text-red-600">
-          {error}
-        </p>
-      ) : null}
+      {error ? <Alert>{error}</Alert> : null}
 
       <button type="submit" className="ds-button w-full" disabled={busy || !title.trim() || destinations.length === 0}>
         Criar setlist

@@ -386,5 +386,13 @@ describe("SetlistEditor", () => {
     fireEvent.click(screen.getByRole("button", { name: "Anotação de Música A" }));
     fireEvent.click(screen.getByRole("button", { name: "Adicionar anotação" }));
     expect(screen.getByRole("alert")).toHaveTextContent("Digite o texto da anotação.");
+    expect(screen.getByRole("alert")).toHaveClass("text-danger");
+  });
+
+  it("uses danger tokens on the delete setlist control", () => {
+    render(<SetlistEditor setlist={editableSetlist} />);
+    const deleteButton = screen.getByRole("button", { name: "Excluir setlist" });
+    expect(deleteButton.className).toContain("hover:border-danger");
+    expect(deleteButton.className).toContain("hover:text-danger");
   });
 });

@@ -26,6 +26,8 @@ import { testUserActor } from "@/lib/auth/test-actor";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/persistence/organization-scope";
 import packageJson from "../package.json";
 
+import { brandStyle, videiraBrand } from "@/lib/design/brand";
+
 import RootLayout from "./layout";
 
 afterEach(() => {
@@ -144,5 +146,15 @@ describe("RootLayout navigation", () => {
     render(await RootLayout({ children: <p>Conteúdo</p> }));
 
     expect(screen.getByRole("link", { name: /Videira Music/ })).toHaveTextContent(`v${packageJson.version}`);
+  });
+
+  it("injects brand variables on the html element", async () => {
+    getCurrentActorMock.mockResolvedValue({ kind: "anonymous" });
+
+    render(await RootLayout({ children: <p>Conteúdo</p> }));
+    const html = document.documentElement;
+    expect(html).toHaveClass("light");
+    expect(html).toHaveAttribute("data-theme", "light");
+    expect(html).toHaveStyle(brandStyle(videiraBrand));
   });
 });

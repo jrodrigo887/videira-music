@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Alert } from "@/components/ui/alert";
 import type { TrashedSongSummary } from "@/lib/songs/song-trash-service";
 
 type SongTrashListProps = {
@@ -35,7 +36,7 @@ export function SongTrashList({ songs }: SongTrashListProps) {
 
   return (
     <div className="space-y-4">
-      {message ? <p className="text-sm text-red-600">{message}</p> : null}
+      {message ? <Alert>{message}</Alert> : null}
       <ul className="ds-card divide-y divide-border">
         {songs.map((song) => (
           <li

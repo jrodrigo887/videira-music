@@ -3,6 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+
 type TeamInviteFormProps = {
   teamId: string;
   teamName: string;
@@ -76,11 +79,11 @@ export function TeamInviteForm({ teamId, teamName }: TeamInviteFormProps) {
             disabled={busy}
           />
         </label>
-        <button type="submit" className="ds-button ds-button-primary" disabled={busy}>
+        <Button type="submit" variant="primary" disabled={busy}>
           Enviar convite
-        </button>
+        </Button>
       </form>
-      {message ? <p className="text-sm text-red-600">{message}</p> : null}
+      {message ? <Alert>{message}</Alert> : null}
       {createdLink ? (
         <p className="text-sm text-content-muted">
           Link do convite:{" "}

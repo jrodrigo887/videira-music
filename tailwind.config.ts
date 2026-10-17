@@ -39,6 +39,24 @@ const config: Config = {
         },
         focus: "hsl(var(--color-focus) / <alpha-value>)",
         chord: "hsl(var(--color-chord) / <alpha-value>)",
+        danger: {
+          DEFAULT: "hsl(var(--color-danger) / <alpha-value>)",
+          hover: "hsl(var(--color-danger-hover) / <alpha-value>)",
+          foreground: "hsl(var(--color-danger-foreground) / <alpha-value>)",
+          subtle: "hsl(var(--color-danger-subtle) / <alpha-value>)",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--color-warning) / <alpha-value>)",
+          hover: "hsl(var(--color-warning-hover) / <alpha-value>)",
+          foreground: "hsl(var(--color-warning-foreground) / <alpha-value>)",
+          subtle: "hsl(var(--color-warning-subtle) / <alpha-value>)",
+        },
+        success: {
+          DEFAULT: "hsl(var(--color-success) / <alpha-value>)",
+          hover: "hsl(var(--color-success-hover) / <alpha-value>)",
+          foreground: "hsl(var(--color-success-foreground) / <alpha-value>)",
+          subtle: "hsl(var(--color-success-subtle) / <alpha-value>)",
+        },
         leaf: {
           50: "#f1f8f3",
           100: "#dcefe0",

@@ -40,16 +40,29 @@
     --color-content-inverse: var(--neutral-0);
     --color-border: var(--neutral-200);
     --color-border-strong: 240 5% 80%;
-    --color-primary: var(--videira-700);
-    --color-primary-hover: var(--videira-900);
-    --color-primary-foreground: var(--neutral-0);
-    --color-primary-subtle: var(--videira-50);
+    --color-primary: var(--brand-primary);
+    --color-primary-hover: var(--brand-primary-hover);
+    --color-primary-foreground: var(--brand-primary-foreground);
+    --color-primary-subtle: var(--brand-primary-subtle);
     --color-accent: var(--videira-700);
     --color-accent-hover: var(--videira-900);
     --color-accent-foreground: var(--neutral-0);
     --color-accent-subtle: var(--videira-50);
     --color-focus: var(--videira-500);
-    --color-chord: var(--videira-700);
+    --color-chord: var(--brand-chord);
+
+    --color-danger: 0 72% 38%;
+    --color-danger-hover: 0 72% 30%;
+    --color-danger-foreground: 0 0% 100%;
+    --color-danger-subtle: 0 70% 96%;
+    --color-warning: 32 80% 28%;
+    --color-warning-hover: 32 80% 22%;
+    --color-warning-foreground: 0 0% 100%;
+    --color-warning-subtle: 40 90% 95%;
+    --color-success: 164 64% 24%;
+    --color-success-hover: 164 64% 18%;
+    --color-success-foreground: 0 0% 100%;
+    --color-success-subtle: 164 40% 95%;
   }
 
   :root.dark,
@@ -76,6 +89,19 @@
     --color-accent-subtle: 136 28% 18%;
     --color-focus: 134 45% 58%;
     --color-chord: 134 45% 58%;
+
+    --color-danger: 0 85% 72%;
+    --color-danger-hover: 0 85% 78%;
+    --color-danger-foreground: 240 10% 10%;
+    --color-danger-subtle: 0 30% 16%;
+    --color-warning: 38 92% 68%;
+    --color-warning-hover: 38 92% 74%;
+    --color-warning-foreground: 240 10% 10%;
+    --color-warning-subtle: 32 30% 16%;
+    --color-success: 164 45% 62%;
+    --color-success-hover: 164 45% 70%;
+    --color-success-foreground: 240 10% 10%;
+    --color-success-subtle: 164 25% 16%;
   }
 
   * {
@@ -124,6 +150,10 @@
     @apply inline-flex items-center justify-center rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-semibold text-content transition hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-focus/25 disabled:pointer-events-none disabled:opacity-50;
   }
 
+  .ds-button-danger {
+    @apply inline-flex items-center justify-center rounded-full bg-danger px-5 py-2.5 text-sm font-semibold text-danger-foreground shadow-sm transition hover:bg-danger-hover focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-focus/25 disabled:pointer-events-none disabled:opacity-50;
+  }
+
   .ds-input {
     @apply w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-base text-content outline-none transition placeholder:text-content-subtle focus:border-primary focus:ring-4 focus:ring-focus/20;
   }
@@ -133,7 +163,7 @@
   }
 
   .ds-badge-accent {
-    @apply inline-flex w-fit items-center rounded-full bg-accent-subtle px-3 py-1 text-xs font-semibold text-accent;
+    @apply inline-flex w-fit items-center rounded-full bg-primary-subtle px-3 py-1 text-xs font-semibold text-primary;
   }
 
   .ds-eyebrow {

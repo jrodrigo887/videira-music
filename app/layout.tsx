@@ -7,6 +7,7 @@ import { can } from "@/lib/auth/permissions";
 import { AppHeaderNav } from "@/components/layout/app-header-nav";
 import { getAppVersion } from "@/lib/app-version";
 import { DEFAULT_ORGANIZATION_ID } from "@/lib/persistence/organization-scope";
+import { brandStyle, videiraBrand } from "@/lib/design/brand";
 
 import "./globals.css";
 
@@ -46,7 +47,7 @@ export default async function RootLayout({
   const appVersion = getAppVersion();
 
   return (
-    <html lang="pt-BR" className="light" data-theme="light">
+    <html lang="pt-BR" className="light" data-theme="light" style={brandStyle(videiraBrand)}>
       <body className={`${lyricsFont.variable} ${chordFont.variable} bg-canvas font-sans text-content antialiased`}>
         <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-2 sm:gap-3 sm:py-3.5">

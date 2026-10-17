@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Alert } from "@/components/ui/alert";
 import type { WorshipTeam } from "@/types/identity";
 import type { Setlist } from "@/types/setlist";
 
@@ -152,11 +153,7 @@ export function SetlistActions({
         </div>
       ) : null}
 
-      {message ? (
-        <p role="alert" className="text-sm text-red-600">
-          {message}
-        </p>
-      ) : null}
+      {message ? <Alert>{message}</Alert> : null}
     </div>
   );
 }

@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
+
 type FollowersConfirmDialogProps = {
   open: boolean;
   followerCount: number;
@@ -15,36 +18,22 @@ export function FollowersConfirmDialog({
   onConfirm,
   onCancel,
 }: FollowersConfirmDialogProps) {
-  if (!open) {
-    return null;
-  }
-
   const label =
     followerCount === 1
       ? "1 grupo segue este setlist"
       : `${followerCount} grupos seguem este setlist`;
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="followers-confirm-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-    >
-      <div className="ds-card max-w-md space-y-4">
-        <h2 id="followers-confirm-title" className="text-lg font-bold text-content">
-          Confirmar impacto
-        </h2>
-        <p className="text-content-muted">{label}. Deseja continuar?</p>
-        <div className="flex flex-wrap justify-end gap-2">
-          <button type="button" className="ds-button-secondary" disabled={busy} onClick={onCancel}>
-            Cancelar
-          </button>
-          <button type="button" className="ds-button" disabled={busy} onClick={onConfirm}>
-            Confirmar
-          </button>
-        </div>
+    <Dialog open={open} title="Confirmar impacto" onClose={onCancel} closeOnOverlay={!busy}>
+      <p className="text-content-muted">{label}. Deseja continuar?</p>
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button type="button" variant="secondary" disabled={busy} onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button type="button" variant="primary" disabled={busy} onClick={onConfirm}>
+          Confirmar
+        </Button>
       </div>
-    </div>
+    </Dialog>
   );
 }

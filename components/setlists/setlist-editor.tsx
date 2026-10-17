@@ -31,6 +31,7 @@ import {
 } from "react";
 
 import { FollowersConfirmDialog } from "@/components/setlists/followers-confirm-dialog";
+import { Alert } from "@/components/ui/alert";
 import type { Setlist, SetlistItem, ReplaceSetlistItemInput } from "@/types/setlist";
 
 type EditorItem =
@@ -339,7 +340,7 @@ function SetlistItemRow({
       <div className="relative overflow-hidden rounded-[inherit]">
         <div
           aria-hidden
-          className="absolute inset-y-0 left-0 flex w-28 items-center bg-red-600 px-3 text-sm font-semibold text-white"
+          className="absolute inset-y-0 left-0 flex w-28 items-center bg-danger px-3 text-sm font-semibold text-danger-foreground"
         >
           Remover
         </div>
@@ -830,7 +831,7 @@ export function SetlistEditor({ setlist: initialSetlist, teamQuery }: SetlistEdi
               <ActionIconButton
                 label="Excluir setlist"
                 description="Remove o setlist. Grupos que seguem deixam de vê-lo."
-                className={`${iconButtonClass} hover:border-red-600 hover:text-red-700`}
+                className={`${iconButtonClass} hover:border-danger hover:text-danger`}
                 disabled={busy}
                 tooltipSide="below"
                 tooltipAlign="end"
@@ -1033,11 +1034,7 @@ export function SetlistEditor({ setlist: initialSetlist, teamQuery }: SetlistEdi
               aria-label="Texto da anotação"
               autoFocus
             />
-            {noteError ? (
-              <p role="alert" className="text-sm text-red-600">
-                {noteError}
-              </p>
-            ) : null}
+            {noteError ? <Alert>{noteError}</Alert> : null}
             <div className="flex flex-wrap justify-end gap-2">
               <button
                 type="button"
