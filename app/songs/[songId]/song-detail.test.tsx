@@ -333,6 +333,41 @@ describe("SongDetail", () => {
     });
   });
 
+  it("points the back arrow to the setlist that opened the chart", async () => {
+    const chart = persistedChart(SEED_SONG.id);
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        setlistContext={{ setlistId: "sl-nav", setlistItemId: "item-1" }}
+        repository={new InMemoryMusicRepository([SEED_SONG], [chart])}
+      />,
+    );
+
+    expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
+    const backLinks = screen.getAllByRole("link", { name: "Voltar para o setlist" });
+    expect(backLinks.length).toBeGreaterThan(0);
+    for (const link of backLinks) {
+      expect(link).toHaveAttribute("href", "/setlists/sl-nav/play");
+    }
+  });
+
+  it("points the back arrow to the library when the chart was opened from there", async () => {
+    const chart = persistedChart(SEED_SONG.id);
+    render(
+      <SongDetail
+        songId={SEED_SONG.id}
+        repository={new InMemoryMusicRepository([SEED_SONG], [chart])}
+      />,
+    );
+
+    expect(await screen.findByRole("heading", { name: "Música Seed" })).toBeInTheDocument();
+    const backLinks = screen.getAllByRole("link", { name: "Voltar para biblioteca" });
+    expect(backLinks.length).toBeGreaterThan(0);
+    for (const link of backLinks) {
+      expect(link).toHaveAttribute("href", "/songs");
+    }
+  });
+
   it("does not show setlist navigation without context", async () => {
     const chart = persistedChart(SEED_SONG.id);
     render(

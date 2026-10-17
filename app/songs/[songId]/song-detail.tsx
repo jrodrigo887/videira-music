@@ -141,6 +141,10 @@ export function SongDetail({
     () => transposePreferenceScope(songId, setlistContext),
     [songId, setlistContext],
   );
+  const backHref = setlistContext
+    ? `/setlists/${encodeURIComponent(setlistContext.setlistId)}/play`
+    : "/songs";
+  const backLabel = setlistContext ? "Voltar para o setlist" : "Voltar para biblioteca";
   const setlistSelectedKey = setlistContext?.selectedKey;
   const repository = useMemo(
     () => suppliedRepository ?? new HttpMusicRepository(),
@@ -327,9 +331,9 @@ export function SongDetail({
     <>
       <div className="hidden items-center gap-2 lg:flex">
         <Link
-          href="/songs"
-          aria-label="Voltar para biblioteca"
-          title="Voltar para biblioteca"
+          href={backHref}
+          aria-label={backLabel}
+          title={backLabel}
           className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-content shadow-xs transition hover:border-primary hover:text-primary"
         >
           ‹
@@ -614,8 +618,8 @@ export function SongDetail({
       >
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2 sm:py-3.5">
           <Link
-            href="/songs"
-            aria-label="Voltar para biblioteca"
+            href={backHref}
+            aria-label={backLabel}
             tabIndex={headerCollapsed ? 0 : -1}
             className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-content transition hover:border-primary hover:text-primary"
           >
@@ -654,9 +658,9 @@ export function SongDetail({
         className="border-b border-border bg-canvas/95 px-4 py-2.5 lg:rounded-2xl lg:border lg:bg-surface lg:px-5 lg:py-4 lg:shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
         <div className="flex items-center gap-3">
           <Link
-            href="/songs"
-            aria-label="Voltar para biblioteca"
-            title="Voltar para biblioteca"
+            href={backHref}
+            aria-label={backLabel}
+            title={backLabel}
             className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-content shadow-xs transition hover:border-primary hover:text-primary lg:hidden"
           >
             ‹
