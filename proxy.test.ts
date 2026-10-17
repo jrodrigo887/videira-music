@@ -5,6 +5,10 @@ import {
   getInviteTokenRateLimiter,
   resetInviteTokenRateLimiterForTests,
 } from "@/lib/invites/invite-rate-limit";
+import {
+  getShareTokenRateLimiter,
+  resetShareTokenRateLimiterForTests,
+} from "@/lib/setlists/share-rate-limit";
 
 import { proxy } from "./proxy";
 
@@ -85,6 +89,55 @@ describe("proxy access request submission", () => {
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toContain("/entrar");
+  });
+});
+
+function shareRequest(ip: string): NextRequest {
+  return new NextRequest("http://localhost/s/invalid-code", {
+    headers: { "x-forwarded-for": ip },
+  });
+}
+
+describe("proxy public setlist path", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    resetShareTokenRateLimiterForTests();
+  });
+
+  it("does not redirect /s/{code} to /entrar", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("DEV_LOCALHOST", "false");
+
+    const response = proxy(shareRequest("198.51.100.20"));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+  });
+
+  it("responds 429 on /s when the IP is blocked", () => {
+    const ip = "198.51.100.21";
+    const now = 1_700_000_000_000;
+    const limiter = getShareTokenRateLimiter();
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      limiter.recordFailure(ip, now);
+    }
+
+    const response = proxy(shareRequest(ip));
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("Retry-After")).toMatch(/^[1-9]\d*$/);
+  });
+
+  it("allows POST /api/billing/webhook without session", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("DEV_LOCALHOST", "false");
+
+    const response = proxy(
+      new NextRequest("http://localhost/api/billing/webhook", { method: "POST" }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
   });
 });
 

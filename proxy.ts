@@ -5,8 +5,16 @@ import { NextResponse } from "next/server";
 import { isDevLocalhost } from "@/lib/auth/dev-localhost";
 import { resolveClientIp } from "@/lib/http/client-ip";
 import { createInviteRateLimitResponse } from "@/lib/invites/convite-rate-limit-http";
+import { createShareRateLimitResponse } from "@/lib/setlists/share-rate-limit-http";
 
-const PUBLIC_PREFIXES = ["/entrar", "/convite/", "/letras/", "/api/auth/"];
+const PUBLIC_PREFIXES = [
+  "/entrar",
+  "/convite/",
+  "/letras/",
+  "/s/",
+  "/api/auth/",
+  "/api/billing/webhook",
+];
 
 function isPublicPath(pathname: string): boolean {
   if (pathname === "/") {
@@ -29,6 +37,17 @@ export function proxy(request: NextRequest): NextResponse {
   if (pathname.startsWith("/convite/")) {
     const ip = resolveClientIp(request);
     const rateLimited = createInviteRateLimitResponse(ip, Date.now());
+    if (rateLimited) {
+      return new NextResponse(rateLimited.body, {
+        status: rateLimited.status,
+        headers: rateLimited.headers,
+      });
+    }
+  }
+
+  if (pathname.startsWith("/s/")) {
+    const ip = resolveClientIp(request);
+    const rateLimited = createShareRateLimitResponse(ip, Date.now());
     if (rateLimited) {
       return new NextResponse(rateLimited.body, {
         status: rateLimited.status,
