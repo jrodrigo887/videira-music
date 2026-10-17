@@ -67,10 +67,29 @@ function putRequest(chart: ChordChart): Request {
   });
 }
 
-function handlerWith(repository: InMemoryMusicRepository) {
+function handlerWith(
+  repository: InMemoryMusicRepository,
+  options: {
+    actor?: ReturnType<typeof testUserActor>;
+    canEdit?: boolean;
+  } = {},
+) {
+  const actor =
+    options.actor ??
+    testUserActor({
+      userId: "user-manager",
+      organizationId: ORG,
+      roles: ["manager"],
+      teams: [],
+    });
   return createChartPutHandler({
     isConfigured: () => true,
     getRepository: async () => repository,
+    getActor: async () => actor,
+    preflightChartWrite: async () => undefined,
+    persistChart: async (_actor, chart) => {
+      await repository.saveChart(chart);
+    },
   });
 }
 
@@ -235,7 +254,7 @@ describe("PUT /api/charts/[chartId] auth", () => {
     });
   });
 
-  it("returns 403 without music:write", async () => {
+  it("returns 403 without music:write when the actor cannot edit the chart", async () => {
     getCurrentActorMock.mockResolvedValue(
       testUserActor({
         userId: "user-musician",
@@ -245,14 +264,51 @@ describe("PUT /api/charts/[chartId] auth", () => {
       }),
     );
 
-    const response = await PUT(
-      putRequest(chartBody()),
-      { params: Promise.resolve({ chartId: CHART.id }) },
-    );
+    const repository = new InMemoryMusicRepository([SONG], [CHART]);
+    const handler = createChartPutHandler({
+      isConfigured: () => true,
+      getRepository: async () => repository,
+      getActor: async () =>
+        testUserActor({
+          userId: "user-musician",
+          organizationId: ORG,
+          roles: ["musician"],
+          teams: [],
+        }),
+      preflightChartWrite: async () =>
+        new Response(JSON.stringify({ error: { code: "FORBIDDEN" } }), { status: 403 }),
+      persistChart: async (_actor, chart) => {
+        await repository.saveChart(chart);
+      },
+    });
+
+    const response = await handler(putRequest(chartBody()), {
+      params: Promise.resolve({ chartId: CHART.id }),
+    });
 
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({
       error: { code: "FORBIDDEN" },
     });
+  });
+
+  it("returns 204 for the chart author without music:write", async () => {
+    const authorChart = { ...CHART, createdByUserId: "user-musician" };
+    const repository = new InMemoryMusicRepository([SONG], [authorChart]);
+    const handler = handlerWith(repository, {
+      actor: testUserActor({
+        userId: "user-musician",
+        organizationId: ORG,
+        roles: ["musician"],
+        teams: [],
+      }),
+      canEdit: true,
+    });
+
+    const response = await handler(putRequest(chartBody({ source: "autor" })), {
+      params: Promise.resolve({ chartId: CHART.id }),
+    });
+
+    expect(response.status).toBe(204);
   });
 });

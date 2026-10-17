@@ -1,3 +1,11 @@
+import { forbiddenResponse } from "@/lib/auth/api-guard";
+import { hasCapability } from "@/lib/auth/actor";
+import { getCurrentActor } from "@/lib/auth/current-actor";
+import type { UserActor } from "@/lib/auth/actor";
+import {
+  isChartHistoryServiceError,
+  saveChartWithHistory,
+} from "@/lib/charts/chart-history-service";
 import {
   chartOriginGateKind,
   gateChartWriteWithOrigin,
@@ -7,6 +15,7 @@ import {
   recordSuccessfulChartSave,
   wrapPersistenceRoute,
 } from "@/lib/persistence/persistence-api";
+import { getPrisma } from "@/lib/persistence/prisma-client";
 import {
   createPersistenceRouteDependencies,
   type PersistenceRouteDependencies,
@@ -17,13 +26,100 @@ import {
   WRITE_BODY_LIMIT_BYTES,
 } from "@/lib/persistence/validate-persistence-input";
 import { isEditableChartKey } from "@/lib/charts/chart-edit-options";
+import { canEditChartContent } from "@/lib/songs/song-policy";
+import type { ChordChart } from "@/types/music";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export function createChartPutHandler(dependencies: PersistenceRouteDependencies) {
+export type ChartPutDependencies = PersistenceRouteDependencies & {
+  getActor?: typeof getCurrentActor;
+  persistChart?: (actor: UserActor, chart: ChordChart) => Promise<void>;
+  canEditChart?: (
+    actor: UserActor,
+    input: { chartId: string; songId: string; existingCreatedByUserId: string | null },
+  ) => Promise<boolean>;
+  preflightChartWrite?: (actor: UserActor, chartId: string) => Promise<Response | undefined>;
+};
+
+async function defaultPersistChart(actor: UserActor, chart: ChordChart): Promise<void> {
+  const prisma = getPrisma();
+  await saveChartWithHistory(prisma, actor, chart);
+}
+
+async function defaultPreflightChartWrite(
+  actor: UserActor,
+  chartId: string,
+  canEditChart: ChartPutDependencies["canEditChart"],
+): Promise<Response | undefined> {
+  const existingRow = await getPrisma().chordChart.findFirst({
+    where: { id: chartId, organizationId: actor.organizationId },
+    select: { createdByUserId: true, songId: true },
+  });
+  if (existingRow) {
+    const songRow = await getPrisma().song.findFirst({
+      where: { id: existingRow.songId, organizationId: actor.organizationId },
+      select: { deletedAt: true },
+    });
+    const allowed = await (canEditChart ?? defaultCanEditChart)(actor, {
+      chartId,
+      songId: existingRow.songId,
+      existingCreatedByUserId: existingRow.createdByUserId,
+    });
+    if (!allowed || !songRow || songRow.deletedAt) {
+      return forbiddenResponse();
+    }
+    return undefined;
+  }
+  if (!hasCapability(actor, "music:write", actor.organizationId)) {
+    return forbiddenResponse();
+  }
+  return undefined;
+}
+
+async function defaultCanEditChart(
+  actor: UserActor,
+  input: { chartId: string; songId: string; existingCreatedByUserId: string | null },
+): Promise<boolean> {
+  const prisma = getPrisma();
+  const songRow = await prisma.song.findFirst({
+    where: { id: input.songId, organizationId: actor.organizationId },
+    select: { deletedAt: true },
+  });
+  if (!songRow || songRow.deletedAt) {
+    return false;
+  }
+  return canEditChartContent(
+    actor,
+    { organizationId: actor.organizationId, createdByUserId: input.existingCreatedByUserId },
+    { deletedAt: songRow.deletedAt },
+  );
+}
+
+export function createChartPutHandler(dependencies: ChartPutDependencies) {
+  const getActor = dependencies.getActor ?? getCurrentActor;
+  const persistChart = dependencies.persistChart ?? defaultPersistChart;
+  const canEditChart = dependencies.canEditChart ?? defaultCanEditChart;
+  const preflightChartWrite =
+    dependencies.preflightChartWrite ??
+    ((actor, chartId) => defaultPreflightChartWrite(actor, chartId, canEditChart));
+
   return async function put(request: Request, context?: unknown): Promise<Response> {
+    const actorResult = await getActor();
+    if (actorResult.kind !== "user") {
+      return persistenceError(401, "UNAUTHENTICATED", "Não autenticado.");
+    }
+    const actor = actorResult;
+
     const { chartId } = await (context as { params: Promise<{ chartId: string }> }).params;
+
+    if (dependencies.isConfigured()) {
+      const preflight = await preflightChartWrite(actor, chartId);
+      if (preflight) {
+        return preflight;
+      }
+    }
+
     let body: unknown;
     try {
       body = await readJsonBody(request, WRITE_BODY_LIMIT_BYTES);
@@ -71,7 +167,15 @@ export function createChartPutHandler(dependencies: PersistenceRouteDependencies
         }
       }
 
-      await repository.saveChart(parsed.value);
+      try {
+        await persistChart(actor, parsed.value);
+      } catch (error) {
+        if (isChartHistoryServiceError(error)) {
+          return persistenceError(error.status, error.code, error.code);
+        }
+        throw error;
+      }
+
       if (gateKind === "import") {
         await recordSuccessfulChartSave(body, parsed.value.id);
       }
@@ -86,6 +190,6 @@ export function createChartPutHandler(dependencies: PersistenceRouteDependencies
 }
 
 export const PUT = wrapPersistenceRoute(
-  { route: "/api/charts/[chartId]", method: "PUT", permission: "music:write" },
+  { route: "/api/charts/[chartId]", method: "PUT", permission: "music:read" },
   createChartPutHandler(createPersistenceRouteDependencies()),
 );
