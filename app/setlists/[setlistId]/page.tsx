@@ -126,6 +126,9 @@ export default async function SetlistDetailPage({ params, searchParams }: Setlis
                     <p className="text-sm text-content-muted">
                       Tom {item.selectedKey} · Cifra {item.chart.key}
                     </p>
+                    {item.notes ? (
+                      <p className="whitespace-pre-wrap text-sm text-content-muted">{item.notes}</p>
+                    ) : null}
                     {item.chart.imported ? <ImportedBadge originUrl={item.chart.originUrl} /> : null}
                   </div>
                 )}

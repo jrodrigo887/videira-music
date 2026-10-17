@@ -18,6 +18,7 @@ export type SetlistSongItem =
       id: string;
       kind: "song";
       position: number;
+      unavailable?: false;
       songId: string;
       chartId: string;
       selectedKey: string;

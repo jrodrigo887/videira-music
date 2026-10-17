@@ -35,7 +35,7 @@ export type SharedSetlistSongItem =
       artist: string | null;
       unavailable: true;
     }
-  | (PublicLyrics & { kind: "song" });
+  | (PublicLyrics & { kind: "song"; unavailable?: false });
 
 export type SharedSetlist = {
   title: string;

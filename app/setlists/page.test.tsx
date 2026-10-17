@@ -91,6 +91,10 @@ describe("SetlistsPage", () => {
     await seedPublished("ui-team-sl", "team-louvor", "Domingo Louvor");
     render(await SetlistsPage({ searchParams: Promise.resolve({ tab: "team" }) }));
     expect(screen.getByRole("heading", { name: "Domingo Louvor" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Domingo Louvor/ })).toHaveAttribute(
+      "href",
+      "/setlists/ui-team-sl/play?team=louvor",
+    );
   });
 
   it("lists organization tab setlists", async () => {

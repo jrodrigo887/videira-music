@@ -25,10 +25,14 @@ function statusLabel(status: SetlistSummary["status"]): string {
   return "Publicado";
 }
 
-function SetlistSummaryCard({ setlist, teamQuery }: { setlist: SetlistSummary; teamQuery?: string }) {
+function setlistReadHref(setlistId: string, teamQuery?: string) {
   const suffix = teamQuery ? `?team=${encodeURIComponent(teamQuery)}` : "";
+  return `/setlists/${encodeURIComponent(setlistId)}/play${suffix}`;
+}
+
+function SetlistSummaryCard({ setlist, teamQuery }: { setlist: SetlistSummary; teamQuery?: string }) {
   return (
-    <Link href={`/setlists/${encodeURIComponent(setlist.id)}${suffix}`} className="ds-card block transition hover:border-primary">
+    <Link href={setlistReadHref(setlist.id, teamQuery)} className="ds-card block transition hover:border-primary">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-semibold text-content">{setlist.title}</h2>
         <span className="ds-badge">{statusLabel(setlist.status)}</span>
@@ -58,10 +62,9 @@ function FollowedSetlistCard({
     );
   }
 
-  const suffix = teamQuery ? `?team=${encodeURIComponent(teamQuery)}` : "";
   return (
     <div className="ds-card flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <Link href={`/setlists/${encodeURIComponent(entry.setlist.id)}${suffix}`} className="flex-1">
+      <Link href={setlistReadHref(entry.setlist.id, teamQuery)} className="flex-1">
         <h2 className="text-lg font-semibold text-content">{entry.setlist.title}</h2>
         <span className="ds-badge mt-2 inline-block">{statusLabel(entry.setlist.status)}</span>
       </Link>

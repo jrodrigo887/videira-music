@@ -45,17 +45,23 @@ export function buildSetlistSongHref(
   return `/songs/${encodeURIComponent(songId)}?${params.toString()}`;
 }
 
+type AvailableSetlistSong = Extract<SetlistSongItem, { unavailable?: false }>;
+
 export type SetlistSongNeighbors = {
-  previous?: SetlistSongItem;
-  next?: SetlistSongItem;
+  previous?: AvailableSetlistSong;
+  next?: AvailableSetlistSong;
 };
 
-/** Vizinhos de música na ordem do setlist, ignorando anotações. */
+function isAvailableSong(item: SetlistItem): item is AvailableSetlistSong {
+  return item.kind === "song" && !item.unavailable;
+}
+
+/** Vizinhos tocáveis na ordem do setlist, ignorando anotações e músicas indisponíveis. */
 export function findSongNeighbors(
   items: SetlistItem[],
   setlistItemId: string,
 ): SetlistSongNeighbors {
-  const songs = items.filter((item): item is SetlistSongItem => item.kind === "song");
+  const songs = items.filter(isAvailableSong);
   const index = songs.findIndex((item) => item.id === setlistItemId);
   if (index === -1) {
     return {};

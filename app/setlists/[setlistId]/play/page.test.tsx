@@ -84,6 +84,33 @@ describe("SetlistPlayPage", () => {
       `/songs/${FIXTURE_SONG.id}?setlist=play-ui-1&item=play-item-1&key=Bb`,
     );
     expect(screen.getByText("Momento de oração")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Editar setlist" })).toHaveAttribute(
+      "href",
+      "/setlists/play-ui-1/edit?team=louvor",
+    );
+    expect(screen.getByRole("link", { name: "Voltar para setlists" })).toHaveAttribute(
+      "href",
+      "/setlists?team=louvor",
+    );
+  });
+
+  it("hides the edit control without permission", async () => {
+    await repository.create({
+      id: "play-ui-readonly",
+      organizationId: DEFAULT_ORGANIZATION_ID,
+      ownerTeamId: "team-jovens",
+      title: "Somente leitura",
+      status: "published",
+      visibility: "organization",
+    });
+    createDepsMock.mockReturnValue(withSimulatedUser(context, "user-musician"));
+    render(
+      await SetlistPlayPage({
+        params: Promise.resolve({ setlistId: "play-ui-readonly" }),
+        searchParams: Promise.resolve({ team: "louvor" }),
+      }),
+    );
+    expect(screen.queryByRole("link", { name: "Editar setlist" })).not.toBeInTheDocument();
   });
 
   it("shows selected key in song link", async () => {

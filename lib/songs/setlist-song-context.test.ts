@@ -55,4 +55,16 @@ describe("setlist-song-context", () => {
   it("returns empty neighbors for unknown item id", () => {
     expect(findSongNeighbors([], "missing")).toEqual({});
   });
+
+  it("skips unavailable songs when finding neighbors", () => {
+    const neighbors = findSongNeighbors(
+      [
+        { id: "s1", kind: "song", position: 0, songId: "a", chartId: "c1", selectedKey: "G", song: { title: "A" }, chart: { key: "G", imported: false } },
+        { id: "gone", kind: "song", position: 1, unavailable: true, title: "Removida" },
+        { id: "s2", kind: "song", position: 2, songId: "b", chartId: "c2", selectedKey: "A", song: { title: "B" }, chart: { key: "A", imported: false } },
+      ],
+      "s1",
+    );
+    expect(neighbors.next?.songId).toBe("b");
+  });
 });

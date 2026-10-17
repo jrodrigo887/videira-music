@@ -50,7 +50,7 @@ export default async function PublicSetlistSharePage({ params }: PageProps) {
         {shared.items.map((item, index) => (
           <section key={`${item.title}-${index}`} className="border-b border-border pb-8 last:border-0">
             <h2 className="text-lg font-semibold text-content">{item.title}</h2>
-            {"unavailable" in item && item.unavailable ? (
+            {item.unavailable ? (
               <p className="mt-2 text-sm text-content-muted">Música indisponível</p>
             ) : (
               <>
