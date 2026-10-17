@@ -4,6 +4,7 @@ Esta pasta concentra a especificacao inicial do produto antes da implementacao d
 
 ## Documentos
 
+- [Padrão de interface](design-system.md): densidades mesa e estante, tokens, componentes e acessibilidade.
 - [Modelo de dominio](domain.md): vocabulário e entidades principais.
 - [Formatos de cifra](chart-formats.md): cifra com letra e cifra por compassos.
 - [Telas do MVP](mvp-screens.md): biblioteca, editores, leitor e setlists.
@@ -15,9 +16,10 @@ Esta pasta concentra a especificacao inicial do produto antes da implementacao d
 
 ## Ordem de leitura recomendada
 
-1. `domain.md`
-2. `chart-formats.md`
-3. `transposition.md`
-4. `mvp-screens.md`
-5. `platform-decision.md`
-6. `implementation-plan.md`
+1. `design-system.md`
+2. `domain.md`
+3. `chart-formats.md`
+4. `transposition.md`
+5. `mvp-screens.md`
+6. `platform-decision.md`
+7. `implementation-plan.md`

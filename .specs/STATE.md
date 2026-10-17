@@ -140,6 +140,15 @@
 - **Narrows:** AD-010.
 - **Date:** 2026-10-16
 
+### AD-017: Marca entra por variável CSS, status não é marca
+
+- **Status:** active
+- **Decision:** Cores de marca entram por um objeto TypeScript aplicado como `--brand-*` no `<html>`. No tema claro, `--color-primary` e `--color-chord` apontam para essas variáveis. No tema escuro, primário e acorde permanecem literais até existir preferência de tema. Status (`danger`, `warning`, `success`) é token de produto, não de marca. Whitelabel futuro troca o objeto no layout. `Organization` não ganha coluna de marca nesta etapa.
+- **Rationale:** A spec `design-foundation` exige `brandStyle` e o style no `<html>`. Classe CSS só, ou contexto React com cor em JavaScript, não atendem DS-02, DS-03 e DS-08.
+- **Trade-off:** O tema escuro não acompanha outra igreja. Um segundo tenant no escuro ainda veria o verde escuro da Videira.
+- **Scope:** `design-foundation` e qualquer feature futura de tema ou whitelabel.
+- **Date:** 2026-10-17
+
 ## Handoff
 
 - **Feature em execução:** nenhuma (aguardando próxima spec).
